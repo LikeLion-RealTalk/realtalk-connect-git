@@ -46,7 +46,7 @@ export const MobileMenuModal = ({ open, onOpenChange, isLoggedIn = false, onLogi
         />
         
         {/* Menu Modal */}
-        <div className="absolute top-[60px] right-4 w-[150px] bg-background border-2 border-border rounded-lg shadow-lg">
+        <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[150px] bg-background border-2 border-border rounded-lg shadow-lg">
           {menuItems.map((item, index) => (
             <div
               key={index}

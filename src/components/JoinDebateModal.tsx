@@ -39,7 +39,7 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px] max-w-[320px] mx-4 p-0 gap-0 border-4 border-quick-debate rounded-2xl bg-background">
+        <DialogContent className="sm:max-w-[500px] max-w-[320px] p-0 gap-0 border-4 border-quick-debate rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <div className="relative p-6 sm:p-10">
             {/* Close button */}
             <button

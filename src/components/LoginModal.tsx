@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
   open: boolean;
@@ -15,9 +16,15 @@ interface LoginModalProps {
 }
 
 export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalProps) => {
+  const { toast } = useToast();
+  
   const handleKakaoLogin = () => {
     // 카카오 로그인 로직
     console.log("카카오 로그인");
+    toast({
+      description: "카카오님, 어서오세요.",
+      duration: 3000,
+    });
     onLoginSuccess?.();
     onOpenChange(false);
   };
@@ -25,13 +32,17 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
   const handleGoogleLogin = () => {
     // 구글 로그인 로직
     console.log("구글 로그인");
+    toast({
+      description: "구글님, 어서오세요.",
+      duration: 3000,
+    });
     onLoginSuccess?.();
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] max-w-[320px] mx-4 p-0 gap-0 border-4 border-quick-debate rounded-2xl bg-background">
+      <DialogContent className="sm:max-w-[400px] max-w-[320px] p-0 gap-0 border-4 border-quick-debate rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="relative p-6 sm:p-10">
           {/* Close button */}
           <button

@@ -7,7 +7,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { debateCategories, getCategoryIcon } from "@/data/categories";
+import { JoinDebateModal } from "./JoinDebateModal";
+import { Debate } from "@/types/debate";
 
 interface DebateMatchingModalProps {
   open: boolean;
@@ -16,18 +19,42 @@ interface DebateMatchingModalProps {
 
 export const DebateMatchingModal = ({ open, onOpenChange }: DebateMatchingModalProps) => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [isMatching, setIsMatching] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [matchedDebate, setMatchedDebate] = useState<Debate | null>(null);
 
   const handleStartMatching = () => {
     if (selectedCategory) {
-      console.log("매칭 시작:", selectedCategory);
-      // TODO: 실제 매칭 로직 구현
-      onOpenChange(false);
+      setIsMatching(true);
+      
+      // 1초 딜레이 후 토론방 입장 모달 표시
+      setTimeout(() => {
+        const category = debateCategories.find(cat => cat.id === selectedCategory);
+        const mockDebate: Debate = {
+          id: Math.random().toString(),
+          title: `${category?.name} 관련 실시간 토론`,
+          description: `${category?.description}에 대한 다양한 의견을 나누는 토론입니다.`,
+          category: category?.name || "일반",
+          icon: getCategoryIcon(selectedCategory),
+          type: "quick",
+          status: "waiting",
+          participants: { current: 2, max: 6 },
+          audience: { current: 8, max: 50 },
+          duration: 3
+        };
+        
+        setMatchedDebate(mockDebate);
+        setIsMatching(false);
+        onOpenChange(false);
+        setShowJoinModal(true);
+      }, 1000);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-w-[320px] mx-4 p-0 gap-0 border-4 border-quick-debate rounded-xl bg-background max-h-[80vh] overflow-y-auto">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px] max-w-[320px] p-0 gap-0 border-4 border-quick-debate rounded-xl bg-background max-h-[80vh] overflow-y-auto fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="relative p-6 sm:p-10">
           {/* Close button */}
           <button
@@ -94,5 +121,24 @@ export const DebateMatchingModal = ({ open, onOpenChange }: DebateMatchingModalP
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* 매칭 중 오버레이 */}
+    {isMatching && (
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+        <div className="bg-background rounded-2xl p-8 mx-4 max-w-sm w-full text-center border-4 border-quick-debate">
+          <div className="mb-6">
+            <Progress value={75} className="w-full mb-4" />
+            <h3 className="text-lg font-bold text-foreground">토론방을 찾고 있어요</h3>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <JoinDebateModal
+      open={showJoinModal}
+      onOpenChange={setShowJoinModal}
+      debate={matchedDebate}
+    />
+    </>
   );
 };
