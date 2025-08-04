@@ -17,9 +17,39 @@ interface UserProfileDropdownProps {
     avatar?: string;
   };
   onLogout: () => void;
+  isMobilePopover?: boolean;
 }
 
-export const UserProfileDropdown = ({ user, onLogout }: UserProfileDropdownProps) => {
+export const UserProfileDropdown = ({ user, onLogout, isMobilePopover = false }: UserProfileDropdownProps) => {
+  if (isMobilePopover) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-start gap-2 p-3 border-b border-border">
+          <div className="flex flex-col space-y-1 leading-none">
+            <p className="font-medium">{user.name}</p>
+            <p className="truncate text-sm text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </div>
+        <div className="p-1">
+          <div className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-muted rounded-sm">
+            <User className="mr-2 h-4 w-4" />
+            프로필
+          </div>
+          <div className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-muted rounded-sm">
+            <Settings className="mr-2 h-4 w-4" />
+            설정
+          </div>
+          <div className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-muted rounded-sm text-red-600" onClick={onLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            로그아웃
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

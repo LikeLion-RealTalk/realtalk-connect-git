@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { MobileMenuModal } from "./MobileMenuModal";
+import { CreateDebateModal } from "./CreateDebateModal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 export const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCreateDebateOpen, setIsCreateDebateOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 상태 관리
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   // Mock user data
   const mockUser = {
@@ -27,6 +31,18 @@ export const Header = () => {
     setIsLoggedIn(false);
   };
 
+  const handleCreateDebate = () => {
+    if (isLoggedIn) {
+      setIsCreateDebateOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+      toast({
+        description: "로그인이 필요합니다.",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <>
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,7 +57,12 @@ export const Header = () => {
 
           {/* Navigation - Hidden on mobile */}
           <nav className="hidden md:flex items-center gap-8">
-            <span className="text-foreground hover:text-primary cursor-pointer transition-colors">토론방 만들기</span>
+            <span 
+              className="text-foreground hover:text-primary cursor-pointer transition-colors"
+              onClick={handleCreateDebate}
+            >
+              토론방 만들기
+            </span>
             <span className="text-foreground hover:text-primary cursor-pointer transition-colors">랭킹</span>
             <span className="text-foreground hover:text-primary cursor-pointer transition-colors">고객센터</span>
           </nav>
@@ -98,6 +119,13 @@ export const Header = () => {
       <MobileMenuModal
         open={isMobileMenuOpen}
         onOpenChange={setIsMobileMenuOpen}
+        isLoggedIn={isLoggedIn}
+        onLoginRequired={handleCreateDebate}
+      />
+      
+      <CreateDebateModal
+        open={isCreateDebateOpen}
+        onOpenChange={setIsCreateDebateOpen}
       />
     </>
   );
