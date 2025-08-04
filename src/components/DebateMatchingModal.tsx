@@ -26,6 +26,7 @@ export const DebateMatchingModal = ({ open, onOpenChange }: DebateMatchingModalP
   const handleStartMatching = () => {
     if (selectedCategory) {
       setIsMatching(true);
+      onOpenChange(false); // 모달 즉시 닫기
       
       // 1초 딜레이 후 토론방 입장 모달 표시
       setTimeout(() => {
@@ -45,7 +46,6 @@ export const DebateMatchingModal = ({ open, onOpenChange }: DebateMatchingModalP
         
         setMatchedDebate(mockDebate);
         setIsMatching(false);
-        onOpenChange(false);
         setShowJoinModal(true);
       }, 1000);
     }
