@@ -69,13 +69,15 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
             토론 참여하기
           </Button>
           
-          <Button 
-            variant="outline"
-            className="w-full transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
-            onClick={() => setIsSummaryModalOpen(true)}
-          >
-            AI 토론 요약
-          </Button>
+          {debate.status === 'ended' && (
+            <Button 
+              variant="outline"
+              className="w-full transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={() => setIsSummaryModalOpen(true)}
+            >
+              AI 토론 요약
+            </Button>
+          )}
         </CardContent>
       </Card>
 
