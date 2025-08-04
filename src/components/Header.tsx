@@ -27,21 +27,21 @@ export const Header = () => {
 
   return (
     <>
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+      <header className="border-b border-border/50 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 shadow-sm">
+        <div className="container flex h-18 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded border-2 border-muted-foreground bg-background text-xs text-muted-foreground">
-              로고
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[image:var(--gradient-button)] text-white text-sm font-bold shadow-lg">
+              RT
             </div>
-            <span className="text-xl font-bold text-foreground">RealTalk</span>
+            <span className="text-2xl font-bold bg-[image:var(--gradient-button)] bg-clip-text text-transparent">RealTalk</span>
           </div>
 
           {/* Navigation - Hidden on mobile */}
           <nav className="hidden md:flex items-center gap-8">
-            <span className="text-foreground hover:text-primary cursor-pointer transition-colors">토론방 만들기</span>
-            <span className="text-foreground hover:text-primary cursor-pointer transition-colors">랭킹</span>
-            <span className="text-foreground hover:text-primary cursor-pointer transition-colors">고객센터</span>
+            <span className="text-foreground hover:text-primary cursor-pointer transition-all duration-200 font-medium hover:scale-105">토론방 만들기</span>
+            <span className="text-foreground hover:text-primary cursor-pointer transition-all duration-200 font-medium hover:scale-105">랭킹</span>
+            <span className="text-foreground hover:text-primary cursor-pointer transition-all duration-200 font-medium hover:scale-105">고객센터</span>
           </nav>
 
           {/* Auth section */}

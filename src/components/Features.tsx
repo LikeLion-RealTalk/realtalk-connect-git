@@ -18,25 +18,27 @@ export const Features = () => {
   ];
 
   return (
-    <section className="py-16 md:py-20 bg-hero-bg">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-white to-hero-bg relative">
       <div className="container text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          RealTalk만의 특별함
-        </h2>
-        <p className="text-muted-foreground text-lg mb-12 md:mb-16">
-          AI 기술로 더 나은 토론 경험을 제공합니다
-        </p>
+        <div className="max-w-3xl mx-auto mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            RealTalk만의 <span className="bg-[image:var(--gradient-button)] bg-clip-text text-transparent">특별함</span>
+          </h2>
+          <p className="text-muted-foreground text-xl leading-relaxed">
+            AI 기술로 더 나은 토론 경험을 제공합니다
+          </p>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-6xl mx-auto">
           {features.map((feature, index) => (
-            <div key={index} className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-primary rounded-xl flex items-center justify-center text-2xl md:text-3xl mx-auto mb-4 md:mb-6 transition-transform duration-300 hover:scale-110">
+            <div key={index} className="group text-center p-8 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-border/50">
+              <div className="w-20 h-20 md:w-24 md:h-24 bg-[image:var(--gradient-card)] rounded-2xl flex items-center justify-center text-3xl md:text-4xl mx-auto mb-6 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
+              <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed text-lg">
                 {feature.description}
               </p>
             </div>
