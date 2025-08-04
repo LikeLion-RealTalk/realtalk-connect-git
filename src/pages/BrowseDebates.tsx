@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Search, Filter, Plus, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { JoinDebateModal } from "@/components/JoinDebateModal";
 import { CreateDebateModal } from "@/components/CreateDebateModal";
@@ -10,10 +12,13 @@ import { extendedMockDebates } from "@/data/extendedMockDebates";
 import { Debate } from "@/types/debate";
 
 const BrowseDebates = () => {
+  const navigate = useNavigate();
   const [selectedDebate, setSelectedDebate] = useState<Debate | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredDebates, setFilteredDebates] = useState(extendedMockDebates);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -46,12 +51,26 @@ const BrowseDebates = () => {
     setIsSummaryModalOpen(true);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query) {
+      setFilteredDebates(extendedMockDebates);
+    } else {
+      const filtered = extendedMockDebates.filter(debate => 
+        debate.title.toLowerCase().includes(query.toLowerCase()) ||
+        (debate.description && debate.description.toLowerCase().includes(query.toLowerCase())) ||
+        debate.category.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredDebates(filtered);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-background p-4 sm:p-6">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="flex flex-col">
+          <div className="flex flex-col cursor-pointer" onClick={() => navigate("/")}>
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded border-2 border-muted-foreground bg-background text-xs text-muted-foreground">
                 로고
@@ -76,19 +95,25 @@ const BrowseDebates = () => {
       <main className="bg-hero-bg p-4 sm:p-6">
         <div className="container mx-auto">
           {/* Search and Filter */}
-          <div className="flex justify-between items-center mb-6 sm:mb-8">
-            <div className="text-muted-foreground text-sm sm:text-base">
-              토론방이나 주제를 검색하세요...
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:mb-8">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="토론방이나 주제를 검색하세요..."
+                className="pl-10"
+              />
             </div>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <span>🔽</span>
+            <Button variant="outline" size="sm" className="flex items-center gap-2 w-fit">
+              <Filter className="w-4 h-4" />
               <span>필터</span>
             </Button>
           </div>
 
           {/* Debates Grid/List */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {extendedMockDebates.map((debate) => (
+            {filteredDebates.map((debate) => (
               <Card key={debate.id} className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start mb-3">
