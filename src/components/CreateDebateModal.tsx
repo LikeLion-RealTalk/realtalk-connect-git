@@ -235,10 +235,16 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
                     const newTime = value[0] as DebateTime;
                     if (availableTimeOptions.includes(newTime)) {
                       setSelectedTime(newTime);
+                    } else {
+                      // 허용되지 않는 시간이면 가장 가까운 허용 시간으로 조정
+                      const closestTime = availableTimeOptions.reduce((prev, curr) => 
+                        Math.abs(curr - newTime) < Math.abs(prev - newTime) ? curr : prev
+                      );
+                      setSelectedTime(closestTime as DebateTime);
                     }
                   }}
-                  min={minTime}
-                  max={maxTime}
+                  min={20}
+                  max={80}
                   step={20}
                   className="w-full"
                 />
