@@ -30,11 +30,11 @@ const BrowseDebates = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-500 text-white">진행중</Badge>;
+        return <Badge className="bg-debate-active text-white hover:bg-debate-active">진행중</Badge>;
       case 'waiting':
-        return <Badge className="bg-orange-500 text-white">대기중</Badge>;
+        return <Badge className="bg-debate-waiting text-white hover:bg-debate-waiting">대기중</Badge>;
       case 'ended':
-        return <Badge className="bg-gray-500 text-white">종료됨</Badge>;
+        return <Badge className="bg-debate-ended text-white hover:bg-debate-ended">종료됨</Badge>;
       default:
         return null;
     }
@@ -227,10 +227,10 @@ const BrowseDebates = () => {
                     <div className="flex gap-3">
                       <Badge 
                         variant="secondary" 
-                        className={`text-xs font-semibold ${
+                        className={`text-xs font-semibold hover:bg-current ${
                           debate.type === 'quick' 
-                            ? 'bg-quick-debate text-white' 
-                            : 'bg-normal-debate text-white'
+                            ? 'bg-quick-debate text-white hover:bg-quick-debate' 
+                            : 'bg-normal-debate text-white hover:bg-normal-debate'
                         }`}
                       >
                         {debate.type === 'quick' ? '3분토론' : '일반토론'}
@@ -293,10 +293,11 @@ const BrowseDebates = () => {
 
       {/* Profile Button */}
       <Button
-        className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-quick-debate text-white shadow-lg hover:bg-quick-debate/90 p-0"
+        className="fixed bottom-4 left-4 w-12 h-12 rounded-full shadow-lg hover:opacity-90 p-0"
+        style={{ backgroundColor: 'hsl(var(--floating-login))', color: 'white' }}
         size="icon"
       >
-        <User className="w-5 h-5 sm:w-6 sm:h-6" />
+        <User className="w-6 h-6" />
       </Button>
 
       {/* Modals */}

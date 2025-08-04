@@ -24,19 +24,19 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
             <div className="flex gap-3">
               <Badge 
                 variant="secondary" 
-                className={`text-xs font-semibold ${
+                className={`text-xs font-semibold hover:bg-current ${
                   debate.type === 'quick' 
-                    ? 'bg-quick-debate text-white' 
-                    : 'bg-normal-debate text-white'
+                    ? 'bg-quick-debate text-white hover:bg-quick-debate' 
+                    : 'bg-normal-debate text-white hover:bg-normal-debate'
                 }`}
               >
                 {debate.type === 'quick' ? '3분토론' : '일반토론'}
               </Badge>
               
               {isActive ? (
-                <Badge className="bg-debate-active text-white">진행중</Badge>
+                <Badge className="bg-debate-active text-white hover:bg-debate-active">진행중</Badge>
               ) : (
-                <span className="text-sm text-muted-foreground">대기중</span>
+                <Badge className="bg-debate-waiting text-white hover:bg-debate-waiting">대기중</Badge>
               )}
             </div>
           </div>

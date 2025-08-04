@@ -38,8 +38,9 @@ All colors MUST be HSL.
 
     /* RealTalk Design System */
     --hero-bg: 248 250% 98%;
-    --debate-active: 120 60% 50%;
+    --debate-active: 142 76% 36%;  /* Active green color for 진행중 */
     --debate-waiting: 210 40% 60%;
+    --debate-ended: 0 0% 60%;      /* Monochrome gray for 종료됨 */
     --quick-debate: 220 90% 56%;
     --normal-debate: 270 60% 50%;
     --floating-login: 30 100% 55%;  /* Orange color for floating login button */
