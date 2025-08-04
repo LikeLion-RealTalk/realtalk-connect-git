@@ -8,63 +8,47 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 248 250% 99%;
-    --foreground: 220 13% 13%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 13%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 13%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 13%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 220 13% 95%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 220 13% 95%;
-    --accent-foreground: 220 13% 13%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262 83% 58%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    /* RealTalk Premium Design System */
-    --hero-bg: 262 90% 98%;
-    --hero-accent: 262 83% 58%;
-    --hero-secondary: 293 69% 49%;
+    /* RealTalk Design System */
+    --hero-bg: 248 250% 98%;
+    --debate-active: 120 60% 50%;
+    --debate-waiting: 210 40% 60%;
+    --quick-debate: 220 90% 56%;
+    --normal-debate: 270 60% 50%;
     
-    --debate-active: 142 76% 36%;
-    --debate-waiting: 43 74% 66%;
-    --quick-debate: 262 83% 58%;
-    --normal-debate: 293 69% 49%;
-    
-    /* Premium Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(293 69% 49%) 50%, hsl(314 100% 74%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(262 90% 98%) 100%);
-    --gradient-button: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(293 69% 49%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(293 69% 49%) 0%, hsl(314 100% 74%) 100%);
-    --gradient-mesh: radial-gradient(circle at 20% 80%, hsl(262 83% 58% / 0.1) 0%, transparent 50%), 
-                     radial-gradient(circle at 80% 20%, hsl(293 69% 49% / 0.1) 0%, transparent 50%),
-                     radial-gradient(circle at 40% 40%, hsl(314 100% 74% / 0.05) 0%, transparent 50%);
-    
-    /* Premium Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(262 83% 58% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(262 83% 58% / 0.1), 0 2px 4px -1px hsl(262 83% 58% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(262 83% 58% / 0.1), 0 4px 6px -2px hsl(262 83% 58% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(262 83% 58% / 0.1), 0 10px 10px -5px hsl(262 83% 58% / 0.04);
-    --shadow-glow: 0 0 20px hsl(262 83% 58% / 0.3);
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 90% 56%), hsl(270 60% 50%));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(248 250% 98%));
     
     /* Interactive */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 
