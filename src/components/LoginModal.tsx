@@ -11,18 +11,21 @@ import { X } from "lucide-react";
 interface LoginModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onLoginSuccess?: () => void;
 }
 
-export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
+export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalProps) => {
   const handleKakaoLogin = () => {
     // 카카오 로그인 로직
     console.log("카카오 로그인");
+    onLoginSuccess?.();
     onOpenChange(false);
   };
 
   const handleGoogleLogin = () => {
     // 구글 로그인 로직
     console.log("구글 로그인");
+    onLoginSuccess?.();
     onOpenChange(false);
   };
 

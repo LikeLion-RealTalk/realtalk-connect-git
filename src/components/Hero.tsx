@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 
-export const Hero = () => {
+export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
@@ -41,7 +41,8 @@ export const Hero = () => {
 
       <LoginModal 
         open={isLoginModalOpen} 
-        onOpenChange={setIsLoginModalOpen} 
+        onOpenChange={setIsLoginModalOpen}
+        onLoginSuccess={onLoginSuccess}
       />
     </>
   );
