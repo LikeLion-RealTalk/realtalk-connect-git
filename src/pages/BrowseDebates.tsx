@@ -123,7 +123,7 @@ const BrowseDebates = () => {
                   </div>
                   
                   <Button 
-                    className={`w-full transition-all duration-300 mb-3 ${
+                    className={`w-full transition-all duration-300 mb-2 ${
                       debate.status === 'ended' 
                         ? 'bg-muted text-muted-foreground cursor-not-allowed' 
                         : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -132,6 +132,14 @@ const BrowseDebates = () => {
                     disabled={debate.status === 'ended'}
                   >
                     토론 참여하기
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="w-full transition-all duration-300 mb-3 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => handleJoinDebate(debate)}
+                  >
+                    토론방 요약
                   </Button>
 
                   <div className="text-xs text-muted-foreground text-right">

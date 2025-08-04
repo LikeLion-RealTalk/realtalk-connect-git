@@ -50,7 +50,7 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
             </button>
 
             {/* Icon */}
-            <div className="w-15 h-15 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-8">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-8">
               <MessageCircle size={24} className="sm:w-8 sm:h-8 text-muted-foreground" />
             </div>
 
