@@ -140,9 +140,12 @@ const BrowseDebates = () => {
               />
             </div>
             <Button 
-              variant={showFilters ? "default" : "outline"} 
+              variant="outline"
               size="sm" 
-              className="flex items-center gap-2 w-fit"
+              className={`flex items-center gap-2 w-fit text-white ${
+                showFilters ? 'border-join-button' : 'border-border'
+              }`}
+              style={showFilters ? { backgroundColor: 'hsl(var(--join-button))' } : {}}
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="w-4 h-4" />
@@ -152,7 +155,7 @@ const BrowseDebates = () => {
 
           {/* Filter Fields */}
           {showFilters && (
-            <div className="bg-muted border border-border rounded-lg p-4 mb-6 space-y-4">
+            <div className="border border-filter-border rounded-xl p-6 mb-6 space-y-4" style={{ backgroundColor: 'hsl(var(--filter-bg))' }}>
               <h3 className="font-semibold text-foreground">필터 옵션</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -162,7 +165,8 @@ const BrowseDebates = () => {
                   <select
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
+                    style={{ borderColor: 'hsl(var(--filter-border))' }}
                   >
                     <option value="">전체</option>
                     {debateCategories.map((category) => (
@@ -179,7 +183,8 @@ const BrowseDebates = () => {
                   <select
                     value={filters.type}
                     onChange={(e) => handleFilterChange('type', e.target.value)}
-                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
+                    style={{ borderColor: 'hsl(var(--filter-border))' }}
                   >
                     <option value="">전체</option>
                     <option value="normal">일반토론</option>
@@ -193,7 +198,8 @@ const BrowseDebates = () => {
                   <select
                     value={filters.status}
                     onChange={(e) => handleFilterChange('status', e.target.value)}
-                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
+                    style={{ borderColor: 'hsl(var(--filter-border))' }}
                   >
                     <option value="">전체</option>
                     <option value="active">진행중</option>

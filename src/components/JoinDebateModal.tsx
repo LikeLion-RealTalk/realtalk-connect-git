@@ -70,12 +70,19 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
                   variant="secondary" 
                   className={`text-xs font-semibold ${
                     debate.type === 'quick' 
-                      ? 'bg-quick-debate text-white' 
-                      : 'bg-normal-debate text-white'
+                      ? 'bg-quick-debate text-white hover:bg-quick-debate' 
+                      : 'bg-normal-debate text-white hover:bg-normal-debate'
                   }`}
                 >
                   {debate.type === 'quick' ? '3분토론' : '일반토론'}
                 </Badge>
+                {isActive ? (
+                  <Badge className="bg-debate-active text-white hover:bg-debate-active">진행중</Badge>
+                ) : debate.status === 'ended' ? (
+                  <Badge className="text-debate-ended-text hover:bg-debate-ended" style={{ backgroundColor: 'hsl(var(--debate-ended))' }}>종료됨</Badge>
+                ) : (
+                  <Badge className="bg-debate-waiting text-white hover:bg-debate-waiting">대기중</Badge>
+                )}
               </div>
               
               <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight mb-3 sm:mb-4">
@@ -102,15 +109,16 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
             <div className="flex flex-col gap-3 sm:gap-4">
               <Button
                 onClick={handleJoinAsSpeaker}
-                className="w-full h-12 sm:h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm sm:text-base"
+                className="w-full h-12 sm:h-14 text-white font-bold text-sm sm:text-base"
+                style={{ backgroundColor: 'hsl(var(--speaker-button))' }}
                 disabled={debate.participants.current >= debate.participants.max}
               >
                 발언자로 참여하기
               </Button>
               <Button
                 onClick={handleJoinAsAudience}
-                variant="outline"
-                className="w-full h-12 sm:h-14 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm sm:text-base"
+                className="w-full h-12 sm:h-14 text-white font-bold text-sm sm:text-base"
+                style={{ backgroundColor: 'hsl(var(--audience-button))' }}
                 disabled={debate.audience.max > 0 && debate.audience.current >= debate.audience.max}
               >
                 청중으로 참여하기

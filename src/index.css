@@ -48,6 +48,14 @@ All colors MUST be HSL.
     --join-button: 222.2 47.4% 35%; /* Lower saturation for join button */
     --summary-button: 210 20% 55%;  /* Medium activation for summary button */
     
+    /* Modal buttons */
+    --speaker-button: 220 90% 56%;   /* Blue for speaker button */
+    --audience-button: 142 76% 36%;  /* Green for audience button */
+    
+    /* Filter styles */
+    --filter-bg: 248 250% 98%;
+    --filter-border: 220 13% 91%;
+    
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(220 90% 56%), hsl(270 60% 50%));
     --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(248 250% 98%));

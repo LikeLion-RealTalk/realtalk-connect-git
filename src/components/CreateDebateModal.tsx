@@ -186,23 +186,25 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
             <div className="flex gap-3">
               <Button
                 onClick={() => handleTypeChange('normal')}
-                variant={debateType === 'normal' ? 'default' : 'outline'}
-                className={`flex-1 rounded-full font-bold ${
+                variant="outline"
+                className={`flex-1 rounded-full font-bold text-white ${
                   debateType === 'normal' 
-                    ? 'bg-primary text-primary-foreground' 
+                    ? 'border-normal-debate' 
                     : 'bg-muted text-muted-foreground border-muted'
                 }`}
+                style={debateType === 'normal' ? { backgroundColor: 'hsl(var(--normal-debate))' } : {}}
               >
                 일반 토론
               </Button>
               <Button
                 onClick={() => handleTypeChange('quick')}
-                variant={debateType === 'quick' ? 'default' : 'outline'}
-                className={`flex-1 rounded-full font-bold ${
+                variant="outline"
+                className={`flex-1 rounded-full font-bold text-white ${
                   debateType === 'quick' 
-                    ? 'bg-primary text-primary-foreground' 
+                    ? 'border-quick-debate' 
                     : 'bg-muted text-muted-foreground border-muted'
                 }`}
+                style={debateType === 'quick' ? { backgroundColor: 'hsl(var(--quick-debate))' } : {}}
               >
                 3분 토론
               </Button>
@@ -313,11 +315,10 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
           <Button
             onClick={handleCreateDebate}
             disabled={!isFormValid}
-            className={`flex-1 font-bold ${
-              isFormValid 
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            className={`flex-1 font-bold text-white ${
+              !isFormValid ? 'bg-muted text-muted-foreground cursor-not-allowed' : ''
             }`}
+            style={isFormValid ? { backgroundColor: 'hsl(var(--join-button))' } : {}}
           >
             토론방 만들기
           </Button>
