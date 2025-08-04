@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Debate } from "@/types/debate";
 import { JoinDebateModal } from "./JoinDebateModal";
+import { DebateSummaryModal } from "./DebateSummaryModal";
 
 interface DebateCardProps {
   debate: Debate;
@@ -11,6 +12,7 @@ interface DebateCardProps {
 
 export const DebateCard = ({ debate }: DebateCardProps) => {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const isActive = debate.status === 'active';
   
   
@@ -60,11 +62,19 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
           </div>
           
           <Button 
-            className="w-full transition-all duration-300"
+            className="w-full transition-all duration-300 mb-2"
             variant={isActive ? "default" : "secondary"}
             onClick={() => setIsJoinModalOpen(true)}
           >
             토론 참여하기
+          </Button>
+          
+          <Button 
+            variant="outline"
+            className="w-full transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+            onClick={() => setIsSummaryModalOpen(true)}
+          >
+            AI 토론 요약
           </Button>
         </CardContent>
       </Card>
@@ -72,6 +82,12 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
       <JoinDebateModal
         open={isJoinModalOpen}
         onOpenChange={setIsJoinModalOpen}
+        debate={debate}
+      />
+
+      <DebateSummaryModal
+        open={isSummaryModalOpen}
+        onOpenChange={setIsSummaryModalOpen}
         debate={debate}
       />
     </>
