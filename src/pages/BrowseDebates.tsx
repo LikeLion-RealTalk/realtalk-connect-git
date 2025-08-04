@@ -19,6 +19,12 @@ const BrowseDebates = () => {
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredDebates, setFilteredDebates] = useState(extendedMockDebates);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    category: "",
+    type: "",
+    status: ""
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -53,16 +59,43 @@ const BrowseDebates = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query) {
-      setFilteredDebates(extendedMockDebates);
-    } else {
-      const filtered = extendedMockDebates.filter(debate => 
+    applyFilters(query, filters);
+  };
+
+  const handleFilterChange = (filterType: string, value: string) => {
+    const newFilters = { ...filters, [filterType]: value };
+    setFilters(newFilters);
+    applyFilters(searchQuery, newFilters);
+  };
+
+  const applyFilters = (query: string, currentFilters: typeof filters) => {
+    let filtered = extendedMockDebates;
+
+    // 검색어 필터링
+    if (query) {
+      filtered = filtered.filter(debate => 
         debate.title.toLowerCase().includes(query.toLowerCase()) ||
         (debate.description && debate.description.toLowerCase().includes(query.toLowerCase())) ||
         debate.category.toLowerCase().includes(query.toLowerCase())
       );
-      setFilteredDebates(filtered);
     }
+
+    // 카테고리 필터링
+    if (currentFilters.category) {
+      filtered = filtered.filter(debate => debate.category === currentFilters.category);
+    }
+
+    // 토론 방식 필터링
+    if (currentFilters.type) {
+      filtered = filtered.filter(debate => debate.type === currentFilters.type);
+    }
+
+    // 진행 상태 필터링
+    if (currentFilters.status) {
+      filtered = filtered.filter(debate => debate.status === currentFilters.status);
+    }
+
+    setFilteredDebates(filtered);
   };
 
   return (
@@ -105,11 +138,83 @@ const BrowseDebates = () => {
                 className="pl-10"
               />
             </div>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 w-fit">
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              size="sm" 
+              className="flex items-center gap-2 w-fit"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter className="w-4 h-4" />
               <span>필터</span>
             </Button>
           </div>
+
+          {/* Filter Fields */}
+          {showFilters && (
+            <div className="bg-muted border border-border rounded-lg p-4 mb-6 space-y-4">
+              <h3 className="font-semibold text-foreground">필터 옵션</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* 카테고리 필터 */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">카테고리</label>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                  >
+                    <option value="">전체</option>
+                    <option value="기술/AI">기술/AI</option>
+                    <option value="직장/사회">직장/사회</option>
+                    <option value="정치/사회">정치/사회</option>
+                    <option value="경제/재테크">경제/재테크</option>
+                  </select>
+                </div>
+
+                {/* 토론 방식 필터 */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">토론 방식</label>
+                  <select
+                    value={filters.type}
+                    onChange={(e) => handleFilterChange('type', e.target.value)}
+                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                  >
+                    <option value="">전체</option>
+                    <option value="normal">일반토론</option>
+                    <option value="quick">3분토론</option>
+                  </select>
+                </div>
+
+                {/* 진행 상태 필터 */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">진행 상태</label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+                  >
+                    <option value="">전체</option>
+                    <option value="active">진행중</option>
+                    <option value="waiting">대기중</option>
+                    <option value="ended">종료됨</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 필터 초기화 버튼 */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setFilters({ category: "", type: "", status: "" });
+                  setFilteredDebates(extendedMockDebates);
+                }}
+                className="text-muted-foreground"
+              >
+                필터 초기화
+              </Button>
+            </div>
+          )}
 
           {/* Debates Grid/List */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">

@@ -54,8 +54,9 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
   const handleMaxSpeakersChange = (speakers: string) => {
     setFormData(prev => ({ ...prev, maxSpeakers: speakers }));
     
-    // 발언자 수에 따른 토론 시간 자동 설정 (일반 토론일 때만)
+    // 발언자 수에 따른 토론 시간 자동 설정
     if (debateType === 'normal') {
+      // 일반 토론: 발언자 수에 따른 고정 시간
       const speakerCount = parseInt(speakers);
       const timeMapping: Record<number, DebateTime> = {
         2: 20,
@@ -65,6 +66,7 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
       };
       setSelectedTime(timeMapping[speakerCount] || 20);
     }
+    // 3분 토론의 경우 슬라이더가 아닌 텍스트로 표시되므로 selectedTime을 변경하지 않음
   };
 
   const handleCreateDebate = () => {
@@ -191,9 +193,11 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
             <Label className="text-base font-bold text-foreground">토론 시간</Label>
             {debateType === 'quick' ? (
               <div>
-                <div className="text-lg font-bold text-foreground mb-2">3분</div>
+                <div className="text-lg font-bold text-foreground mb-2">
+                  {parseInt(formData.maxSpeakers)}분
+                </div>
                 <div className="text-xs text-muted-foreground text-right">
-                  발언자 수에 따라 연장
+                  발언자 {formData.maxSpeakers}명 × 1분
                 </div>
               </div>
             ) : (
