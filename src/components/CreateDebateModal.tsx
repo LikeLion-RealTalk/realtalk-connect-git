@@ -194,10 +194,13 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
             {debateType === 'quick' ? (
               <div>
                 <div className="text-lg font-bold text-foreground mb-2">
-                  {parseInt(formData.maxSpeakers)}분
+                  {parseInt(formData.maxSpeakers) === 2 ? '3분' : `${parseInt(formData.maxSpeakers)}분`}
                 </div>
                 <div className="text-xs text-muted-foreground text-right">
-                  발언자 {formData.maxSpeakers}명 × 1분
+                  {parseInt(formData.maxSpeakers) === 2 
+                    ? '기본 3분 고정' 
+                    : `발언자 ${formData.maxSpeakers}명 × 1분`
+                  }
                 </div>
               </div>
             ) : (

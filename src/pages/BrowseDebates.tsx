@@ -9,6 +9,7 @@ import { JoinDebateModal } from "@/components/JoinDebateModal";
 import { CreateDebateModal } from "@/components/CreateDebateModal";
 import { DebateSummaryModal } from "@/components/DebateSummaryModal";
 import { extendedMockDebates } from "@/data/extendedMockDebates";
+import { debateCategories } from "@/data/categories";
 import { Debate } from "@/types/debate";
 
 const BrowseDebates = () => {
@@ -164,10 +165,11 @@ const BrowseDebates = () => {
                     className="w-full p-2 border border-border rounded-md bg-background text-foreground"
                   >
                     <option value="">전체</option>
-                    <option value="기술/AI">기술/AI</option>
-                    <option value="직장/사회">직장/사회</option>
-                    <option value="정치/사회">정치/사회</option>
-                    <option value="경제/재테크">경제/재테크</option>
+                    {debateCategories.map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
