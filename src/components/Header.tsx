@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 import { UserProfileDropdown } from "./UserProfileDropdown";
+import { MobileMenuModal } from "./MobileMenuModal";
 
 export const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 상태 관리
 
   // Mock user data
@@ -49,7 +51,12 @@ export const Header = () => {
                 {/* User Profile */}
                 <UserProfileDropdown user={mockUser} onLogout={handleLogout} />
                 {/* Mobile menu button - shown when logged in */}
-                <Button variant="outline" size="icon" className="md:hidden">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="md:hidden"
+                  onClick={() => setIsMobileMenuOpen(true)}
+                >
                   <span className="text-lg">≡</span>
                 </Button>
               </>
@@ -64,7 +71,12 @@ export const Header = () => {
                   로그인
                 </Button>
                 {/* Mobile menu button */}
-                <Button variant="outline" size="icon" className="md:hidden">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="md:hidden"
+                  onClick={() => setIsMobileMenuOpen(true)}
+                >
                   <span className="text-lg">≡</span>
                 </Button>
               </>
@@ -77,6 +89,11 @@ export const Header = () => {
         open={isLoginModalOpen} 
         onOpenChange={setIsLoginModalOpen}
         onLoginSuccess={handleLoginSuccess}
+      />
+      
+      <MobileMenuModal
+        open={isMobileMenuOpen}
+        onOpenChange={setIsMobileMenuOpen}
       />
     </>
   );
