@@ -262,11 +262,8 @@ const BrowseDebates = () => {
                   </div>
                   
                   <Button 
-                    className={`w-full transition-all duration-300 mb-2 ${
-                      debate.status === 'ended' 
-                        ? 'bg-muted text-muted-foreground cursor-not-allowed' 
-                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    }`}
+                    className="w-full transition-all duration-300 mb-2"
+                    variant={debate.status === 'ended' ? "secondary" : "default"}
                     onClick={() => handleJoinDebate(debate)}
                     disabled={debate.status === 'ended'}
                   >
@@ -276,7 +273,7 @@ const BrowseDebates = () => {
                   {debate.status === 'ended' && (
                     <Button 
                       variant="outline"
-                      className="w-full transition-all duration-300 mb-3 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="w-full transition-all duration-300 mb-3"
                       onClick={() => handleShowSummary(debate)}
                     >
                       토론방 요약
