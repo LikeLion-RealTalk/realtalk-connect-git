@@ -36,6 +36,20 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
+    /* RealTalk Design System */
+    --hero-bg: 248 250% 98%;
+    --debate-active: 120 60% 50%;
+    --debate-waiting: 210 40% 60%;
+    --quick-debate: 220 90% 56%;
+    --normal-debate: 270 60% 50%;
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 90% 56%), hsl(270 60% 50%));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(248 250% 98%));
+    
+    /* Interactive */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;

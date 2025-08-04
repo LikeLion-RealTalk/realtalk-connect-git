@@ -52,6 +52,11 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				'hero-bg': 'hsl(var(--hero-bg))',
+				'debate-active': 'hsl(var(--debate-active))',
+				'debate-waiting': 'hsl(var(--debate-waiting))',
+				'quick-debate': 'hsl(var(--quick-debate))',
+				'normal-debate': 'hsl(var(--normal-debate))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
