@@ -142,8 +142,10 @@ const BrowseDebates = () => {
             <Button 
               variant="outline"
               size="sm" 
-              className={`flex items-center gap-2 w-fit text-white ${
-                showFilters ? 'border-join-button' : 'border-border'
+              className={`flex items-center gap-2 w-fit ${
+                showFilters 
+                  ? 'text-white border-join-button' 
+                  : 'text-foreground border-border bg-background hover:bg-accent'
               }`}
               style={showFilters ? { backgroundColor: 'hsl(var(--join-button))' } : {}}
               onClick={() => setShowFilters(!showFilters)}
@@ -155,7 +157,7 @@ const BrowseDebates = () => {
 
           {/* Filter Fields */}
           {showFilters && (
-            <div className="border border-filter-border rounded-xl p-6 mb-6 space-y-4" style={{ backgroundColor: 'hsl(var(--filter-bg))' }}>
+            <div className="bg-card border border-filter-border rounded-xl p-6 mb-6 space-y-4 shadow-sm">
               <h3 className="font-semibold text-foreground">필터 옵션</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
