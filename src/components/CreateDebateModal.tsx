@@ -249,8 +249,8 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  {availableTimeOptions.map((time, index) => (
-                    <span key={time} className={index === 0 ? '' : index === availableTimeOptions.length - 1 ? 'text-right' : 'text-center flex-1'}>
+                  {timeOptions.map((time) => (
+                    <span key={time} className={availableTimeOptions.includes(time) ? '' : 'opacity-50'}>
                       {time}분
                     </span>
                   ))}
