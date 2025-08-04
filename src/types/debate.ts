@@ -3,7 +3,7 @@ export interface Debate {
   title: string;
   category: string;
   type: 'quick' | 'normal';
-  status: 'active' | 'waiting';
+  status: 'active' | 'waiting' | 'ended';
   duration: number; // in minutes
   participants: {
     current: number;
@@ -14,6 +14,8 @@ export interface Debate {
     max: number;
   };
   icon: string;
+  description?: string;
+  date?: string;
 }
 
 export interface DebateCategory {

@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 import { DebateMatchingModal } from "./DebateMatchingModal";
 
 export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
+  const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isDebateMatchingOpen, setIsDebateMatchingOpen] = useState(false);
 
@@ -34,6 +36,7 @@ export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
               variant="outline" 
               size="lg" 
               className="w-full sm:w-auto"
+              onClick={() => navigate('/browse')}
             >
               둘러보기
             </Button>
