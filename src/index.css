@@ -40,10 +40,13 @@ All colors MUST be HSL.
     --hero-bg: 248 250% 98%;
     --debate-active: 142 76% 36%;  /* Active green color for 진행중 */
     --debate-waiting: 210 40% 60%;
-    --debate-ended: 0 0% 60%;      /* Monochrome gray for 종료됨 */
+    --debate-ended: 0 0% 85%;      /* Light monochrome gray for 종료됨 background */
+    --debate-ended-text: 0 0% 35%; /* Dark text for 종료됨 badge */
     --quick-debate: 220 90% 56%;
     --normal-debate: 270 60% 50%;
     --floating-login: 30 100% 55%;  /* Orange color for floating login button */
+    --join-button: 222.2 47.4% 35%; /* Lower saturation for join button */
+    --summary-button: 210 20% 55%;  /* Medium activation for summary button */
     
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(220 90% 56%), hsl(270 60% 50%));

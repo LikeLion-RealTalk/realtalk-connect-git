@@ -63,8 +63,8 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
           </div>
           
           <Button 
-            className="w-full transition-all duration-300 mb-2"
-            variant="default"
+            className="w-full transition-all duration-300 mb-2 text-white"
+            style={{ backgroundColor: 'hsl(var(--join-button))' }}
             onClick={() => setIsJoinModalOpen(true)}
           >
             토론 참여하기
@@ -72,8 +72,8 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
           
           {debate.status === 'ended' && (
             <Button 
-              variant="outline"
-              className="w-full transition-all duration-300"
+              className="w-full transition-all duration-300 text-white"
+              style={{ backgroundColor: 'hsl(var(--summary-button))' }}
               onClick={() => setIsSummaryModalOpen(true)}
             >
               토론방 요약

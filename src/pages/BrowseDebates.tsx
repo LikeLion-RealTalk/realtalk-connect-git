@@ -34,7 +34,7 @@ const BrowseDebates = () => {
       case 'waiting':
         return <Badge className="bg-debate-waiting text-white hover:bg-debate-waiting">대기중</Badge>;
       case 'ended':
-        return <Badge className="bg-debate-ended text-white hover:bg-debate-ended">종료됨</Badge>;
+        return <Badge className="text-debate-ended-text hover:bg-debate-ended" style={{ backgroundColor: 'hsl(var(--debate-ended))' }}>종료됨</Badge>;
       default:
         return null;
     }
@@ -263,8 +263,8 @@ const BrowseDebates = () => {
                   </div>
                   
                   <Button 
-                    className="w-full transition-all duration-300 mb-2"
-                    variant={debate.status === 'ended' ? "secondary" : "default"}
+                    className="w-full transition-all duration-300 mb-2 text-white"
+                    style={{ backgroundColor: debate.status === 'ended' ? 'hsl(var(--summary-button))' : 'hsl(var(--join-button))' }}
                     onClick={() => handleJoinDebate(debate)}
                     disabled={debate.status === 'ended'}
                   >
@@ -273,8 +273,8 @@ const BrowseDebates = () => {
                   
                   {debate.status === 'ended' && (
                     <Button 
-                      variant="outline"
-                      className="w-full transition-all duration-300 mb-3"
+                      className="w-full transition-all duration-300 mb-3 text-white"
+                      style={{ backgroundColor: 'hsl(var(--summary-button))' }}
                       onClick={() => handleShowSummary(debate)}
                     >
                       토론방 요약
