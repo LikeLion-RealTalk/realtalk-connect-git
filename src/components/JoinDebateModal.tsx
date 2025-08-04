@@ -115,13 +115,6 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
               >
                 청중으로 참여하기
               </Button>
-              <Button
-                onClick={() => setShowSummaryModal(true)}
-                variant="outline"
-                className="w-full h-10 sm:h-12 border border-border text-muted-foreground hover:bg-muted hover:text-foreground font-medium text-sm sm:text-base"
-              >
-                토론방 요약
-              </Button>
             </div>
           </div>
         </DialogContent>

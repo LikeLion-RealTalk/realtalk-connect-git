@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { JoinDebateModal } from "@/components/JoinDebateModal";
 import { CreateDebateModal } from "@/components/CreateDebateModal";
+import { DebateSummaryModal } from "@/components/DebateSummaryModal";
 import { extendedMockDebates } from "@/data/extendedMockDebates";
 import { Debate } from "@/types/debate";
 
@@ -12,6 +13,7 @@ const BrowseDebates = () => {
   const [selectedDebate, setSelectedDebate] = useState<Debate | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -37,6 +39,11 @@ const BrowseDebates = () => {
     if (debate.status === 'ended') return;
     setSelectedDebate(debate);
     setIsJoinModalOpen(true);
+  };
+
+  const handleShowSummary = (debate: Debate) => {
+    setSelectedDebate(debate);
+    setIsSummaryModalOpen(true);
   };
 
   return (
@@ -137,7 +144,7 @@ const BrowseDebates = () => {
                   <Button 
                     variant="outline"
                     className="w-full transition-all duration-300 mb-3 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    onClick={() => handleJoinDebate(debate)}
+                    onClick={() => handleShowSummary(debate)}
                   >
                     토론방 요약
                   </Button>
@@ -170,6 +177,12 @@ const BrowseDebates = () => {
       <CreateDebateModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
+      />
+
+      <DebateSummaryModal
+        open={isSummaryModalOpen}
+        onOpenChange={setIsSummaryModalOpen}
+        debate={selectedDebate}
       />
     </div>
   );
