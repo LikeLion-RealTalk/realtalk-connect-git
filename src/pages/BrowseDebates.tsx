@@ -129,30 +129,37 @@ const BrowseDebates = () => {
       <main className="bg-hero-bg p-4 sm:p-6">
         <div className="container mx-auto">
           {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:mb-8">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="토론방이나 주제를 검색하세요..."
-                className="pl-10"
-              />
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="토론방이나 주제를 검색하세요..."
+                    className="pl-12 pr-4 py-3 text-base border-0 bg-muted/50 rounded-full focus:bg-background focus:ring-2 focus:ring-join-button/20 transition-all duration-200"
+                  />
+                </div>
+              </div>
+              
+              {/* Filter Button */}
+              <Button 
+                variant="outline"
+                size="sm" 
+                className={`flex items-center gap-2 px-4 py-3 rounded-full border-0 transition-all duration-200 ${
+                  showFilters 
+                    ? 'text-white shadow-md' 
+                    : 'text-foreground bg-muted/50 hover:bg-muted'
+                }`}
+                style={showFilters ? { backgroundColor: 'hsl(var(--join-button))' } : {}}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="w-4 h-4" />
+                <span className="font-medium">필터</span>
+              </Button>
             </div>
-            <Button 
-              variant="outline"
-              size="sm" 
-              className={`flex items-center gap-2 w-fit ${
-                showFilters 
-                  ? 'text-white border-join-button' 
-                  : 'text-foreground border-border bg-background hover:bg-accent'
-              }`}
-              style={showFilters ? { backgroundColor: 'hsl(var(--join-button))' } : {}}
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="w-4 h-4" />
-              <span>필터</span>
-            </Button>
           </div>
 
           {/* Filter Fields */}
