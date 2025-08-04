@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
+import { DebateMatchingModal } from "./DebateMatchingModal";
 
 export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isDebateMatchingOpen, setIsDebateMatchingOpen] = useState(false);
 
   return (
     <>
@@ -24,7 +26,7 @@ export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
             <Button 
               size="lg" 
               className="w-full sm:w-auto bg-gradient-to-r from-quick-debate to-normal-debate hover:opacity-90 transition-all duration-300"
-              onClick={() => setIsLoginModalOpen(true)}
+              onClick={() => setIsDebateMatchingOpen(true)}
             >
               토론 시작하기
             </Button>
@@ -43,6 +45,11 @@ export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
         open={isLoginModalOpen} 
         onOpenChange={setIsLoginModalOpen}
         onLoginSuccess={onLoginSuccess}
+      />
+      
+      <DebateMatchingModal
+        open={isDebateMatchingOpen}
+        onOpenChange={setIsDebateMatchingOpen}
       />
     </>
   );
