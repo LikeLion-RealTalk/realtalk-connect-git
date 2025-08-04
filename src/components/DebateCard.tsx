@@ -21,7 +21,7 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
       <Card className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-start mb-3">
-            <div className="flex items-start gap-3 flex-1">
+            <div className="flex gap-3">
               <Badge 
                 variant="secondary" 
                 className={`text-xs font-semibold ${
@@ -32,17 +32,18 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
               >
                 {debate.type === 'quick' ? '3분토론' : '일반토론'}
               </Badge>
-              <h3 className="text-lg font-semibold text-card-foreground leading-tight flex-1">
-                {debate.title}
-              </h3>
+              
+              {isActive ? (
+                <Badge className="bg-debate-active text-white">진행중</Badge>
+              ) : (
+                <span className="text-sm text-muted-foreground">대기중</span>
+              )}
             </div>
-            
-            {isActive ? (
-              <Badge className="bg-debate-active text-white">진행중</Badge>
-            ) : (
-              <span className="text-sm text-muted-foreground">대기중</span>
-            )}
           </div>
+          
+          <h3 className="text-lg font-semibold text-card-foreground leading-tight mb-3">
+            {debate.title}
+          </h3>
           
           <div className="text-sm text-muted-foreground font-medium">
             {debate.icon} {debate.category} · {
@@ -63,7 +64,7 @@ export const DebateCard = ({ debate }: DebateCardProps) => {
           
           <Button 
             className="w-full transition-all duration-300 mb-2"
-            variant={isActive ? "default" : "secondary"}
+            variant="default"
             onClick={() => setIsJoinModalOpen(true)}
           >
             토론 참여하기

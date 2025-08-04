@@ -224,7 +224,7 @@ const BrowseDebates = () => {
               <Card key={debate.id} className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-start gap-3 flex-1">
+                    <div className="flex gap-3">
                       <Badge 
                         variant="secondary" 
                         className={`text-xs font-semibold ${
@@ -235,12 +235,13 @@ const BrowseDebates = () => {
                       >
                         {debate.type === 'quick' ? '3분토론' : '일반토론'}
                       </Badge>
-                      <h3 className="text-base sm:text-lg font-bold text-card-foreground leading-tight flex-1">
-                        {debate.title}
-                      </h3>
+                      {getStatusBadge(debate.status)}
                     </div>
-                    {getStatusBadge(debate.status)}
                   </div>
+                  
+                  <h3 className="text-base sm:text-lg font-bold text-card-foreground leading-tight mb-3">
+                    {debate.title}
+                  </h3>
                   
                   <div className="text-sm text-muted-foreground font-medium mb-3">
                     {debate.icon} {debate.category} · {getStatusText(debate)}
