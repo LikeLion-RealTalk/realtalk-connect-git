@@ -15,7 +15,7 @@ export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
         <div className="container text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
             진짜 토론이 시작되는 곳<br />
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-quick-debate to-normal-debate bg-clip-text text-transparent">
               RealTalk
             </span>
           </h1>
@@ -27,7 +27,7 @@ export const Hero = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300"
+              className="w-full sm:w-auto bg-gradient-to-r from-quick-debate to-normal-debate hover:opacity-90 transition-all duration-300"
               onClick={() => setIsDebateMatchingOpen(true)}
             >
               토론 시작하기
