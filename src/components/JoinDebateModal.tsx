@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Debate } from "@/types/debate";
 import { DebateSummaryModal } from "./DebateSummaryModal";
+import { LoginModal } from "./LoginModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface JoinDebateModalProps {
   open: boolean;
@@ -19,18 +23,31 @@ interface JoinDebateModalProps {
 
 export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalProps) => {
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   if (!debate) return null;
 
   const handleJoinAsSpeaker = () => {
+    if (!isLoggedIn) {
+      toast({
+        description: "로그인이 필요합니다.",
+        duration: 3000,
+      });
+      setShowLoginModal(true);
+      return;
+    }
+    
     console.log("발언자로 참여:", debate.id);
-    // TODO: 실제 토론방 입장 로직
+    navigate(`/debate/${debate.id}`);
     onOpenChange(false);
   };
 
   const handleJoinAsAudience = () => {
     console.log("청중으로 참여:", debate.id);
-    // TODO: 실제 토론방 입장 로직
+    navigate(`/debate/${debate.id}`);
     onOpenChange(false);
   };
 
@@ -133,6 +150,18 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
         open={showSummaryModal}
         onOpenChange={setShowSummaryModal}
         debate={debate}
+      />
+
+      {/* Login Modal */}
+      <LoginModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+          // After login, proceed with joining as speaker
+          navigate(`/debate/${debate.id}`);
+          onOpenChange(false);
+        }}
       />
     </>
   );
