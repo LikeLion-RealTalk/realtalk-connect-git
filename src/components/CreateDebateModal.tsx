@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { debateCategories } from "@/data/categories";
 
 interface CreateDebateModalProps {
@@ -180,24 +181,24 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between items-center">
-                {timeOptions.map((time) => (
-                  <div key={time} className="text-center flex-1">
-                    <button
-                      onClick={() => setSelectedTime(time)}
-                      className={`w-5 h-5 rounded-full border-2 mx-auto mb-2 block relative ${
-                        selectedTime === time 
-                          ? 'border-primary' 
-                          : 'border-muted-foreground'
-                      }`}
-                    >
-                      {selectedTime === time && (
-                        <div className="w-2.5 h-2.5 bg-primary rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                      )}
-                    </button>
-                    <div className="text-sm text-muted-foreground">{time}분</div>
-                  </div>
-                ))}
+              <div className="space-y-4">
+                <div className="text-lg font-bold text-foreground text-center">
+                  {selectedTime}분
+                </div>
+                <Slider
+                  value={[selectedTime]}
+                  onValueChange={(value) => setSelectedTime(value[0] as DebateTime)}
+                  min={20}
+                  max={80}
+                  step={20}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>20분</span>
+                  <span>40분</span>
+                  <span>60분</span>
+                  <span>80분</span>
+                </div>
               </div>
             )}
           </div>
