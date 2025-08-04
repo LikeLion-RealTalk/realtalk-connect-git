@@ -75,7 +75,6 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
               onClick={() => onOpenChange(false)}
               className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X size={20} />
             </button>
           </div>
         </DialogHeader>

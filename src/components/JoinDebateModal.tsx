@@ -42,7 +42,6 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
             onClick={() => onOpenChange(false)}
             className="absolute top-4 right-5 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X size={20} />
           </button>
 
           {/* Icon */}
