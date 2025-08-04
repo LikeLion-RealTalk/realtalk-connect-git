@@ -41,28 +41,38 @@ export const MobileMenuModal = ({ open, onOpenChange, isLoggedIn = false, onLogi
       <div className="fixed inset-0 z-50 md:hidden">
         {/* Overlay */}
         <div 
-          className="absolute inset-0 bg-black/30" 
+          className="absolute inset-0 bg-black/50" 
           onClick={() => onOpenChange(false)}
         />
         
-        {/* Menu Modal */}
-        <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[150px] bg-background border-2 border-border rounded-lg shadow-lg">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              className={`
-                px-5 py-4 text-sm text-foreground font-medium cursor-pointer
-                hover:bg-muted transition-colors
-                ${index !== menuItems.length - 1 ? 'border-b border-muted' : ''}
-              `}
-              onClick={() => {
-                item.onClick();
-                onOpenChange(false);
-              }}
+        {/* Menu Modal - Material Design style */}
+        <div className="absolute top-0 right-0 h-full w-64 bg-background shadow-2xl border-l border-border">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">메뉴</h2>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             >
-              {item.label}
-            </div>
-          ))}
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          {/* Menu Items */}
+          <nav className="p-2">
+            {menuItems.map((item, index) => (
+              <button
+                key={index}
+                className="w-full flex items-center px-4 py-3 text-left text-foreground font-medium rounded-lg hover:bg-muted transition-colors"
+                onClick={() => {
+                  item.onClick();
+                  onOpenChange(false);
+                }}
+              >
+                <span className="text-sm">{item.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 

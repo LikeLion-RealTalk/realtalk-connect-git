@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { TrendingDebates } from "@/components/TrendingDebates";
 import { Features } from "@/components/Features";
 import { FloatingProfileButton } from "@/components/FloatingProfileButton";
+import { ScrollFloatingButtons } from "@/components/ScrollFloatingButtons";
 
 const Index = () => {
   return (
@@ -12,6 +13,7 @@ const Index = () => {
       <TrendingDebates />
       <Features />
       <FloatingProfileButton />
+      <ScrollFloatingButtons />
     </div>
   );
 };

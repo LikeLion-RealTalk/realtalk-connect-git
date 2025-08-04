@@ -9,6 +9,7 @@ import { JoinDebateModal } from "@/components/JoinDebateModal";
 import { CreateDebateModal } from "@/components/CreateDebateModal";
 import { DebateSummaryModal } from "@/components/DebateSummaryModal";
 import { FloatingProfileButton } from "@/components/FloatingProfileButton";
+import { ScrollFloatingButtons } from "@/components/ScrollFloatingButtons";
 import { extendedMockDebates } from "@/data/extendedMockDebates";
 import { debateCategories } from "@/data/categories";
 import { Debate } from "@/types/debate";
@@ -299,6 +300,9 @@ const BrowseDebates = () => {
       <div className="md:hidden">
         <FloatingProfileButton />
       </div>
+
+      {/* Scroll Floating Buttons */}
+      <ScrollFloatingButtons />
 
       {/* Modals */}
       <JoinDebateModal
