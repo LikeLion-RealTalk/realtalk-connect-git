@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { LoginModal } from "./LoginModal";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 import { MobileMenuModal } from "./MobileMenuModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 상태 관리
+  const isMobile = useIsMobile();
 
   // Mock user data
   const mockUser = {
@@ -48,9 +50,9 @@ export const Header = () => {
           <div className="flex items-center gap-2">
             {isLoggedIn ? (
               <>
-                {/* User Profile */}
-                <UserProfileDropdown user={mockUser} onLogout={handleLogout} />
-                {/* Mobile menu button - shown when logged in */}
+                {/* User Profile - hidden on mobile */}
+                {!isMobile && <UserProfileDropdown user={mockUser} onLogout={handleLogout} />}
+                {/* Mobile menu button */}
                 <Button 
                   variant="outline" 
                   size="icon" 
@@ -62,14 +64,16 @@ export const Header = () => {
               </>
             ) : (
               <>
-                {/* Login button */}
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsLoginModalOpen(true)}
-                >
-                  로그인
-                </Button>
+                {/* Login button - hidden on mobile */}
+                {!isMobile && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsLoginModalOpen(true)}
+                  >
+                    로그인
+                  </Button>
+                )}
                 {/* Mobile menu button */}
                 <Button 
                   variant="outline" 
