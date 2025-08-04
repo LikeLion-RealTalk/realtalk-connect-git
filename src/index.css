@@ -49,6 +49,9 @@ All colors MUST be HSL.
     
     /* Interactive */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-interactive: 0 4px 15px 0 rgba(0, 0, 0, 0.1);
+    --shadow-interactive-hover: 0 8px 25px 0 rgba(0, 0, 0, 0.15);
 
     --radius: 0.5rem;
 
@@ -116,4 +119,37 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Interactive Components */
+.interactive-button {
+  @apply transform transition-all duration-200 ease-out;
+  @apply hover:scale-105 hover:-translate-y-1;
+  @apply active:scale-95 active:translate-y-0;
+  @apply focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+}
+
+.interactive-card {
+  @apply transform transition-all duration-300 ease-out;
+  @apply hover:scale-[1.02] hover:-translate-y-2;
+  @apply hover:shadow-lg;
+}
+
+.interactive-icon {
+  @apply transform transition-all duration-200 ease-out;
+  @apply hover:scale-110 hover:rotate-3;
+}
+
+.ripple-effect {
+  @apply relative overflow-hidden;
+}
+
+.ripple-effect::before {
+  content: '';
+  @apply absolute inset-0 bg-white/20 scale-0 rounded-full;
+  @apply transition-transform duration-300 ease-out;
+}
+
+.ripple-effect:hover::before {
+  @apply scale-100;
 }
