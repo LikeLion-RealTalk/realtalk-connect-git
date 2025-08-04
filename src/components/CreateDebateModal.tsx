@@ -65,9 +65,9 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] max-w-[375px] mx-4 p-0 gap-0 max-h-[90vh] overflow-hidden bg-muted">
+      <DialogContent className="sm:max-w-[400px] max-w-[375px] mx-4 p-0 gap-0 max-h-[90vh] flex flex-col bg-muted">
         {/* Header */}
-        <DialogHeader className="p-5 sm:p-6 bg-background border-b border-border">
+        <DialogHeader className="p-5 sm:p-6 bg-background border-b border-border flex-shrink-0">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
               토론방 만들기
@@ -82,7 +82,7 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
         </DialogHeader>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-background p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto bg-background p-6 space-y-6 min-h-0">
           {/* 토론 주제 */}
           <div className="space-y-2">
             <Label className="text-base font-bold text-foreground">토론 주제</Label>
@@ -246,7 +246,7 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex gap-4 p-6 bg-background border-t border-border">
+        <div className="flex gap-4 p-6 bg-background border-t border-border flex-shrink-0">
           <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
