@@ -56,7 +56,7 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
     
     // 발언자 수에 따른 토론 시간 자동 설정
     if (debateType === 'normal') {
-      // 일반 토론: 발언자 수에 따른 고정 시간
+      // 일반 토론: 발언자 수에 따른 기본 시간 설정
       const speakerCount = parseInt(speakers);
       const timeMapping: Record<number, DebateTime> = {
         2: 20,
@@ -68,6 +68,27 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
     }
     // 3분 토론의 경우 슬라이더가 아닌 텍스트로 표시되므로 selectedTime을 변경하지 않음
   };
+
+  // 발언자 수에 따른 허용 가능한 시간 옵션
+  const getAvailableTimeOptions = () => {
+    const speakerCount = parseInt(formData.maxSpeakers);
+    switch (speakerCount) {
+      case 2:
+        return [20, 40, 60, 80];
+      case 4:
+        return [40, 60, 80];
+      case 6:
+        return [60, 80];
+      case 8:
+        return [80];
+      default:
+        return [20, 40, 60, 80];
+    }
+  };
+
+  const availableTimeOptions = getAvailableTimeOptions();
+  const minTime = Math.min(...availableTimeOptions);
+  const maxTime = Math.max(...availableTimeOptions);
 
   const handleCreateDebate = () => {
     console.log('토론방 생성:', {
@@ -210,17 +231,23 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
                 </div>
                 <Slider
                   value={[selectedTime]}
-                  onValueChange={(value) => setSelectedTime(value[0] as DebateTime)}
-                  min={20}
-                  max={80}
+                  onValueChange={(value) => {
+                    const newTime = value[0] as DebateTime;
+                    if (availableTimeOptions.includes(newTime)) {
+                      setSelectedTime(newTime);
+                    }
+                  }}
+                  min={minTime}
+                  max={maxTime}
                   step={20}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>20분</span>
-                  <span>40분</span>
-                  <span>60분</span>
-                  <span>80분</span>
+                  {availableTimeOptions.map((time, index) => (
+                    <span key={time} className={index === 0 ? '' : index === availableTimeOptions.length - 1 ? 'text-right' : 'text-center flex-1'}>
+                      {time}분
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
