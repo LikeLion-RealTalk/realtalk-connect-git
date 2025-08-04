@@ -51,6 +51,22 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
     }));
   };
 
+  const handleMaxSpeakersChange = (speakers: string) => {
+    setFormData(prev => ({ ...prev, maxSpeakers: speakers }));
+    
+    // 발언자 수에 따른 토론 시간 자동 설정 (일반 토론일 때만)
+    if (debateType === 'normal') {
+      const speakerCount = parseInt(speakers);
+      const timeMapping: Record<number, DebateTime> = {
+        2: 20,
+        4: 40,
+        6: 60,
+        8: 80
+      };
+      setSelectedTime(timeMapping[speakerCount] || 20);
+    }
+  };
+
   const handleCreateDebate = () => {
     console.log('토론방 생성:', {
       ...formData,
@@ -206,7 +222,7 @@ export const CreateDebateModal = ({ open, onOpenChange }: CreateDebateModalProps
           {/* 최대 발언자 수 */}
           <div className="space-y-2">
             <Label className="text-base font-bold text-foreground">최대 발언자 수</Label>
-            <Select value={formData.maxSpeakers} onValueChange={(value) => setFormData(prev => ({ ...prev, maxSpeakers: value }))}>
+            <Select value={formData.maxSpeakers} onValueChange={handleMaxSpeakersChange}>
               <SelectTrigger className="border border-border">
                 <SelectValue />
               </SelectTrigger>
