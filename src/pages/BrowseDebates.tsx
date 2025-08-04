@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { JoinDebateModal } from "@/components/JoinDebateModal";
 import { CreateDebateModal } from "@/components/CreateDebateModal";
 import { DebateSummaryModal } from "@/components/DebateSummaryModal";
+import { FloatingProfileButton } from "@/components/FloatingProfileButton";
 import { extendedMockDebates } from "@/data/extendedMockDebates";
 import { debateCategories } from "@/data/categories";
 import { Debate } from "@/types/debate";
@@ -294,14 +295,10 @@ const BrowseDebates = () => {
         </div>
       </main>
 
-      {/* Profile Button */}
-      <Button
-        className="fixed bottom-4 left-4 w-12 h-12 rounded-full shadow-lg hover:opacity-90 p-0"
-        style={{ backgroundColor: 'hsl(var(--floating-login))', color: 'white' }}
-        size="icon"
-      >
-        <User className="w-6 h-6" />
-      </Button>
+      {/* Floating Profile Button - Mobile Only */}
+      <div className="md:hidden">
+        <FloatingProfileButton />
+      </div>
 
       {/* Modals */}
       <JoinDebateModal
