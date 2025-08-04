@@ -30,7 +30,7 @@ export const Features = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-4xl mx-auto">
           {features.map((feature, index) => (
             <div key={index} className="text-center group transition-all duration-300 ease-out hover:scale-105 p-6 rounded-xl hover:bg-white/5 hover:shadow-lg">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-primary rounded-xl flex items-center justify-center text-2xl md:text-3xl mx-auto mb-4 md:mb-6 transition-all duration-300 ease-out transform hover:scale-110 hover:-translate-y-2 hover:shadow-lg hover:rotate-3 cursor-pointer">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-2xl md:text-3xl mx-auto mb-4 md:mb-6 transition-all duration-300 ease-out transform hover:scale-110 hover:-translate-y-2 hover:shadow-lg hover:rotate-3 cursor-pointer">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">

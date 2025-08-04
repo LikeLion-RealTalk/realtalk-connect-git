@@ -57,6 +57,9 @@ export default {
 				'debate-waiting': 'hsl(var(--debate-waiting))',
 				'quick-debate': 'hsl(var(--quick-debate))',
 				'normal-debate': 'hsl(var(--normal-debate))',
+				'pro-position': 'hsl(var(--pro-position))',
+				'con-position': 'hsl(var(--con-position))',
+				'neutral-position': 'hsl(var(--neutral-position))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
