@@ -38,6 +38,7 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
             onClick={() => onOpenChange(false)}
             className="absolute top-4 right-5 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
+            <X size={20} />
           </button>
 
           <DialogHeader className="text-center mb-6 sm:mb-10">
