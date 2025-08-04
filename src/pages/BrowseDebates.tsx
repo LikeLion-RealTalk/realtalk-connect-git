@@ -157,72 +157,60 @@ const BrowseDebates = () => {
 
           {/* Filter Fields */}
           {showFilters && (
-            <div className="bg-card border border-filter-border rounded-xl p-6 mb-6 space-y-4 shadow-sm">
-              <h3 className="font-semibold text-foreground">필터 옵션</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-card border border-filter-border rounded-lg p-4 mb-4 shadow-sm">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium text-foreground">필터:</span>
+                
                 {/* 카테고리 필터 */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">카테고리</label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
-                    style={{ borderColor: 'hsl(var(--filter-border))' }}
-                  >
-                    <option value="">전체</option>
-                    {debateCategories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-filter-border rounded-md bg-background text-foreground min-w-[120px] focus:outline-none focus:ring-2 focus:ring-join-button/20 focus:border-join-button"
+                >
+                  <option value="">카테고리</option>
+                  {debateCategories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
 
                 {/* 토론 방식 필터 */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">토론 방식</label>
-                  <select
-                    value={filters.type}
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
-                    style={{ borderColor: 'hsl(var(--filter-border))' }}
-                  >
-                    <option value="">전체</option>
-                    <option value="normal">일반토론</option>
-                    <option value="quick">3분토론</option>
-                  </select>
-                </div>
+                <select
+                  value={filters.type}
+                  onChange={(e) => handleFilterChange('type', e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-filter-border rounded-md bg-background text-foreground min-w-[120px] focus:outline-none focus:ring-2 focus:ring-join-button/20 focus:border-join-button"
+                >
+                  <option value="">토론방식</option>
+                  <option value="normal">일반토론</option>
+                  <option value="quick">3분토론</option>
+                </select>
 
                 {/* 진행 상태 필터 */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">진행 상태</label>
-                  <select
-                    value={filters.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                    className="w-full p-3 border-2 rounded-lg bg-background text-foreground transition-colors hover:border-join-button focus:border-join-button"
-                    style={{ borderColor: 'hsl(var(--filter-border))' }}
-                  >
-                    <option value="">전체</option>
-                    <option value="active">진행중</option>
-                    <option value="waiting">대기중</option>
-                    <option value="ended">종료됨</option>
-                  </select>
-                </div>
-              </div>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-filter-border rounded-md bg-background text-foreground min-w-[120px] focus:outline-none focus:ring-2 focus:ring-join-button/20 focus:border-join-button"
+                >
+                  <option value="">진행상태</option>
+                  <option value="active">진행중</option>
+                  <option value="waiting">대기중</option>
+                  <option value="ended">종료됨</option>
+                </select>
 
-              {/* 필터 초기화 버튼 */}
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  setFilters({ category: "", type: "", status: "" });
-                  setFilteredDebates(extendedMockDebates);
-                }}
-                className="text-muted-foreground"
-              >
-                필터 초기화
-              </Button>
+                {/* 필터 초기화 버튼 */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setFilters({ category: "", type: "", status: "" });
+                    setFilteredDebates(extendedMockDebates);
+                  }}
+                  className="text-muted-foreground hover:text-foreground ml-auto"
+                >
+                  초기화
+                </Button>
+              </div>
             </div>
           )}
 
