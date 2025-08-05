@@ -102,6 +102,7 @@ export const DebateRoom = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [userMode, setUserMode] = useState<UserMode>("audience");
   const [chatHistory, setChatHistory] = useState(mockDebateData.chatMessages);
+  const [myPosition, setMyPosition] = useState<"pros" | "cons">("pros");
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -139,6 +140,7 @@ export const DebateRoom = () => {
 
   const handlePositionSelect = (position: "pros" | "cons") => {
     setUserPosition(position);
+    setMyPosition(position);
     setShowPositionModal(false);
     setHasEnteredDebate(true);
   };
@@ -154,6 +156,10 @@ export const DebateRoom = () => {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+  };
+
+  const handlePositionChange = () => {
+    setMyPosition(prev => prev === "pros" ? "cons" : "pros");
   };
 
   const getFactCheckStyle = (factCheck: string) => {
@@ -331,7 +337,47 @@ export const DebateRoom = () => {
                 style={{ width: `${debate.poll.cons}%` }}
               >
                 반대 {debate.poll.cons}%
+          </div>
+
+          {/* Opinion Poll */}
+          <div className="bg-background p-4 border-b-2 border-border">
+            <div className="flex flex-col gap-2">
+              <div className="flex h-6 rounded overflow-hidden border border-border">
+                <div 
+                  className="bg-green-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500"
+                  style={{ width: `${debate.poll.pros}%` }}
+                >
+                  {debate.poll.pros}%
+                </div>
+                <div 
+                  className="bg-red-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500"
+                  style={{ width: `${debate.poll.cons}%` }}
+                >
+                  {debate.poll.cons}%
+                </div>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">인간 창의성 중요</span>
+                <div className="flex items-center gap-2 bg-muted px-2 py-1 rounded-xl border border-border">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground font-medium">내 입장:</span>
+                    <span className="text-xs text-primary font-semibold bg-primary/10 px-2 py-1 rounded-lg border border-primary/20">
+                      {myPosition === "pros" ? "인간 창의성 중요" : "AI가 더 창의적"}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePositionChange}
+                    className="text-xs px-2 py-1 h-auto text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    변경
+                  </Button>
+                </div>
+                <span className="text-xs text-muted-foreground">AI가 더 창의적</span>
+              </div>
+            </div>
+          </div>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
               <span>인간 창의성 중요</span>
