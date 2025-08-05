@@ -143,8 +143,8 @@ export const DebateRoom = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background flex justify-center">
-        <div className="w-full max-w-sm bg-background rounded-2xl overflow-hidden relative">
+      <div className="min-h-screen bg-background">
+        <div className="w-full bg-background overflow-hidden relative">
           {/* Sidebar Overlay */}
           {sidebarOpen && (
             <div 
@@ -406,15 +406,13 @@ export const DebateRoom = () => {
                   {debate.chatMessages.map((message) => (
                     <div key={message.id} className="bg-muted border border-border rounded-lg p-2 mb-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-semibold">{message.author}</span>
-                        <span className="text-xs text-muted-foreground">{message.time}</span>
+                        <div className="font-semibold text-xs">{message.author}</div>
+                        <div className="text-xs text-muted-foreground">{message.time}</div>
                       </div>
                       <div className="text-xs leading-relaxed">{message.content}</div>
                     </div>
                   ))}
                 </ScrollArea>
-                
-                {/* Chat Input */}
                 <div className="p-3 border-t-2 border-border bg-muted">
                   <div className="flex gap-2">
                     <input
@@ -422,13 +420,12 @@ export const DebateRoom = () => {
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder="채팅 입력..."
-                      className="flex-1 px-3 py-2 border border-border rounded-full text-xs bg-background"
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
+                      className="flex-1 p-2 border border-border rounded text-xs bg-background"
                     />
                     <Button
                       onClick={handleSendChat}
                       disabled={!chatInput.trim()}
-                      className="px-3 py-2 text-xs rounded-full"
+                      className="px-3 py-2 text-xs"
                     >
                       전송
                     </Button>
@@ -440,9 +437,9 @@ export const DebateRoom = () => {
 
           {/* Floating Login Button */}
           {!isLoggedIn && (
-            <div className="absolute bottom-20 left-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg cursor-pointer">
-              <span className="text-primary-foreground text-xs font-semibold">로그인</span>
-            </div>
+            <button className="fixed bottom-20 left-5 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg font-semibold text-xs z-20">
+              로그인
+            </button>
           )}
         </div>
       </div>
@@ -451,8 +448,8 @@ export const DebateRoom = () => {
 
   // Desktop Version
   return (
-    <div className="min-h-screen bg-background flex justify-center">
-      <div className="w-full max-w-6xl bg-background rounded-2xl overflow-hidden">
+    <div className="min-h-screen bg-background">
+      <div className="w-full h-screen bg-background overflow-hidden grid grid-rows-[auto_1fr]">
         {/* Header */}
         <div className="p-6 border-b-2 border-border flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -486,13 +483,13 @@ export const DebateRoom = () => {
         </div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-12 grid-rows-4 h-96">
+        <div className="flex-1 grid grid-cols-[300px_1fr_350px] overflow-hidden">
           {/* Participants Section */}
-          <div className="col-span-3 row-span-4 border-r-2 border-border bg-background">
+          <div className="bg-background border-r-2 border-border flex flex-col h-full">
             <div className="p-4 border-b-2 border-border bg-muted">
               <h3 className="font-semibold">발언자 목록 ({debate.participants.length}명)</h3>
             </div>
-            <ScrollArea className="h-full p-4 min-h-[20vh] max-h-[30vh]">
+            <ScrollArea className="flex-1 p-4">
               {debate.participants.map((participant) => (
                 <div
                   key={participant.id}
@@ -516,150 +513,191 @@ export const DebateRoom = () => {
             </ScrollArea>
           </div>
 
-          {/* Current Speaker Section */}
-          <div className="col-span-6 row-span-2 bg-primary text-primary-foreground flex flex-col justify-center items-center p-6 border-b-2 border-border">
-            <div className="w-20 h-20 rounded-full bg-primary-foreground/20 flex items-center justify-center mb-4 text-2xl font-bold">
-              {debate.currentSpeaker.avatar}
+          {/* Center Column */}
+          <div className="flex flex-col h-full">
+            {/* Current Speaker Section */}
+            <div className="bg-primary text-primary-foreground flex flex-col justify-center items-center p-6 h-48">
+              <div className="w-20 h-20 rounded-full bg-primary-foreground/20 flex items-center justify-center mb-4 text-2xl font-bold">
+                {debate.currentSpeaker.avatar}
+              </div>
+              <div className="text-xl font-bold mb-2">{debate.currentSpeaker.name}님</div>
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="secondary">1. 발언</Badge>
+                <span className="opacity-70">→</span>
+                <Badge variant="outline" className="border-primary-foreground/30">2. 논의</Badge>
+              </div>
+              <div className="w-48 h-5 bg-primary-foreground/20 rounded-full mb-2 overflow-hidden">
+                <div className="h-full bg-primary-foreground rounded-full w-3/5"></div>
+              </div>
+              <div className="opacity-80">{debate.currentSpeaker.timeLeft} 남음</div>
             </div>
-            <div className="text-xl font-bold mb-2">{debate.currentSpeaker.name}님</div>
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="secondary">1. 발언</Badge>
-              <span className="opacity-70">→</span>
-              <Badge variant="outline" className="border-primary-foreground/30">2. 논의</Badge>
-            </div>
-            <div className="w-48 h-5 bg-primary-foreground/20 rounded-full mb-2 overflow-hidden">
-              <div className="h-full bg-primary-foreground rounded-full w-3/5"></div>
-            </div>
-            <div className="opacity-80">{debate.currentSpeaker.timeLeft} 남음</div>
-          </div>
 
-          {/* AI Summary Section */}
-          <div className="col-span-3 row-span-4 border-l-2 border-border bg-background">
-            <div className="p-4 border-b-2 border-border bg-muted">
-              <h3 className="font-semibold">AI 발언 요약</h3>
-            </div>
-            <ScrollArea className="h-full p-4 min-h-[20vh] max-h-[30vh]">
-              {debate.aiSummaries.map((summary) => (
-                <div key={summary.id} className="bg-muted border border-border border-l-4 border-l-primary rounded-lg p-3 mb-3">
-                  <div className="text-sm font-semibold text-primary mb-2">{summary.author}</div>
-                  <div className="text-sm leading-relaxed text-muted-foreground">{summary.content}</div>
+            {/* Opinion Poll Section */}
+            <div className="border-r-2 border-b-2 border-border bg-background flex flex-col justify-center p-4 h-20">
+              <div className="flex h-6 rounded overflow-hidden border mb-1">
+                <div 
+                  className="bg-green-500 text-white flex items-center justify-center text-sm font-semibold"
+                  style={{ width: `${debate.poll.pros}%` }}
+                >
+                  찬성 {debate.poll.pros}%
                 </div>
-              ))}
-            </ScrollArea>
-          </div>
-
-          {/* Opinion Poll Section */}
-          <div className="col-span-6 row-span-1 border-r-2 border-t-2 border-border bg-background flex flex-col justify-center p-4">
-            <div className="flex h-6 rounded overflow-hidden border mb-1">
-              <div 
-                className="bg-green-500 text-white flex items-center justify-center text-sm font-semibold"
-                style={{ width: `${debate.poll.pros}%` }}
-              >
-                찬성 {debate.poll.pros}%
+                <div 
+                  className="bg-red-500 text-white flex items-center justify-center text-sm font-semibold"
+                  style={{ width: `${debate.poll.cons}%` }}
+                >
+                  반대 {debate.poll.cons}%
+                </div>
               </div>
-              <div 
-                className="bg-red-500 text-white flex items-center justify-center text-sm font-semibold"
-                style={{ width: `${debate.poll.cons}%` }}
-              >
-                반대 {debate.poll.cons}%
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>인간 창의성 중요</span>
+                <span>AI가 더 창의적</span>
               </div>
             </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>인간 창의성 중요</span>
-              <span>AI가 더 창의적</span>
-            </div>
-          </div>
 
-          {/* Speech Content Section */}
-          <div className="col-span-6 row-span-1 border-r-2 border-t-2 border-border bg-background flex flex-col">
-            <div className="p-4 border-b-2 border-border bg-muted">
-              <h3 className="font-semibold">발언 내용</h3>
-            </div>
-            <ScrollArea className="flex-1 p-4 min-h-[20vh] max-h-[30vh]">
-              {debate.speeches.map((speech) => (
-                <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
-                  <div className="font-semibold mb-2">{speech.author}</div>
-                  <div className="leading-relaxed mb-2">{speech.content}</div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-semibold px-3 py-1 rounded ${getFactCheckLabelStyle(speech.factCheck)}`}>
-                      팩트체킹: {speech.factCheck}
-                    </span>
-                    <Button variant="outline" size="sm">
-                      출처 보기
+            {/* Speech Content Section */}
+            <div className="flex-1 border-r-2 border-border bg-background flex flex-col overflow-hidden">
+              <div className="p-4 border-b-2 border-border bg-muted">
+                <h3 className="font-semibold">발언 내용</h3>
+              </div>
+              <ScrollArea className="flex-1 p-4">
+                {debate.speeches.map((speech) => (
+                  <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
+                    <div className="font-semibold mb-2">{speech.author}</div>
+                    <div className="leading-relaxed mb-2">{speech.content}</div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-semibold px-3 py-1 rounded ${getFactCheckLabelStyle(speech.factCheck)}`}>
+                        팩트체킹: {speech.factCheck}
+                      </span>
+                      <Button variant="outline" size="sm">
+                        출처 보기
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </ScrollArea>
+              
+              {/* Speech Input */}
+              <div className="p-4 border-t-2 border-border bg-muted">
+                <div className="flex justify-center mb-4">
+                  <div className="flex bg-border rounded-full p-1">
+                    <button
+                      onClick={() => setSpeechMode("text")}
+                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                        speechMode === "text" 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      채팅 발언
+                    </button>
+                    <button
+                      onClick={() => setSpeechMode("voice")}
+                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                        speechMode === "voice" 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      음성 발언
+                    </button>
+                  </div>
+                </div>
+                {speechMode === "text" ? (
+                  <div className="flex gap-3">
+                    <textarea
+                      value={speechInput}
+                      onChange={(e) => setSpeechInput(e.target.value)}
+                      placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
+                      className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background disabled:bg-muted disabled:text-muted-foreground"
+                      disabled={!isLoggedIn}
+                    />
+                    <Button
+                      onClick={handleSendSpeech}
+                      disabled={!speechInput.trim() || !isLoggedIn}
+                      className="px-6 py-3"
+                    >
+                      발언하기
                     </Button>
                   </div>
-                </div>
-              ))}
-            </ScrollArea>
-            
-            {/* Speech Input */}
-            <div className="p-4 border-t-2 border-border bg-muted">
-              <div className="flex justify-center mb-4">
-                <div className="flex bg-border rounded-full p-1">
-                  <button
-                    onClick={() => setSpeechMode("text")}
-                    className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                      speechMode === "text" 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    채팅 발언
-                  </button>
-                  <button
-                    onClick={() => setSpeechMode("voice")}
-                    className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                      speechMode === "voice" 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    음성 발언
-                  </button>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="text-sm font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl cursor-not-allowed shadow-lg opacity-60">
+                        🎤
+                      </div>
+                      <div className="text-base font-semibold text-muted-foreground">
+                        {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                      </div>
+                      <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-1 h-3 bg-muted-foreground/30 rounded"></div>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      disabled={true}
+                      className="px-6 py-3 opacity-60 cursor-not-allowed"
+                    >
+                      발언 완료
+                    </Button>
+                  </div>
+                )}
               </div>
-              {speechMode === "text" ? (
-                <div className="flex gap-3">
-                  <textarea
-                    value={speechInput}
-                    onChange={(e) => setSpeechInput(e.target.value)}
-                    placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
-                    className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background disabled:bg-muted disabled:text-muted-foreground"
-                    disabled={!isLoggedIn}
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col h-full">
+            {/* AI Summary Section */}
+            <div className="border-l-2 border-border bg-background flex flex-col min-h-[240px] max-h-[400px]">
+              <div className="p-4 border-b-2 border-border bg-muted">
+                <h3 className="font-semibold">AI 발언 요약</h3>
+              </div>
+              <ScrollArea className="flex-1 p-4">
+                {debate.aiSummaries.map((summary) => (
+                  <div key={summary.id} className="bg-muted border border-border border-l-4 border-l-primary rounded-lg p-3 mb-3">
+                    <div className="text-sm font-semibold text-primary mb-2">{summary.author}</div>
+                    <div className="text-sm leading-relaxed text-muted-foreground">{summary.content}</div>
+                  </div>
+                ))}
+              </ScrollArea>
+            </div>
+
+            {/* General Chat Section */}
+            <div className="flex-1 border-l-2 border-t-2 border-border bg-background flex flex-col overflow-hidden">
+              <div className="p-4 border-b-2 border-border bg-muted">
+                <h3 className="font-semibold">청중 (12명)</h3>
+              </div>
+              <ScrollArea className="flex-1 p-4">
+                {debate.chatMessages.map((message) => (
+                  <div key={message.id} className="bg-muted border border-border rounded-lg p-3 mb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="font-semibold text-sm">{message.author}</div>
+                      <div className="text-xs text-muted-foreground">{message.time}</div>
+                    </div>
+                    <div className="text-sm leading-relaxed">{message.content}</div>
+                  </div>
+                ))}
+              </ScrollArea>
+              <div className="p-4 border-t-2 border-border bg-muted">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="채팅 입력..."
+                    className="flex-1 p-3 border border-border rounded bg-background"
                   />
                   <Button
-                    onClick={handleSendSpeech}
-                    disabled={!speechInput.trim() || !isLoggedIn}
-                    className="px-6 py-3"
+                    onClick={handleSendChat}
+                    disabled={!chatInput.trim()}
                   >
-                    발언하기
+                    전송
                   </Button>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="text-sm font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl cursor-not-allowed shadow-lg opacity-60">
-                      🎤
-                    </div>
-                    <div className="text-base font-semibold text-muted-foreground">
-                      {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
-                    </div>
-                    <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="w-1 h-3 bg-muted-foreground/30 rounded"></div>
-                      ))}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    disabled={true}
-                    className="px-6 py-3 opacity-60 cursor-not-allowed"
-                  >
-                    발언 완료
-                  </Button>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
