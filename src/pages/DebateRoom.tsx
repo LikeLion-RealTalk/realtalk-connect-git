@@ -7,6 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DebatePositionModal } from "@/components/DebatePositionModal";
+import { LoginModal } from "@/components/LoginModal";
+import { FloatingProfileButton } from "@/components/FloatingProfileButton";
+import { UserProfileDropdown } from "@/components/UserProfileDropdown";
 
 // Mock debate data
 const mockDebateData = {
