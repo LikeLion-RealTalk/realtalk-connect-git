@@ -144,7 +144,7 @@ export const DebateRoom = () => {
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background flex justify-center p-4">
-        <div className="w-full max-w-sm bg-background border-4 border-primary rounded-2xl overflow-hidden relative">
+        <div className="w-full max-w-sm bg-background rounded-2xl overflow-hidden relative">
           {/* Sidebar Overlay */}
           {sidebarOpen && (
             <div 
@@ -372,24 +372,24 @@ export const DebateRoom = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="text-xs font-semibold text-primary">음성 발언 준비됨</div>
+                      <div className="text-xs font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
                       <div className="flex flex-col items-center gap-2">
-                        <div className="w-15 h-15 rounded-full bg-green-500 flex items-center justify-center text-white text-xl cursor-pointer shadow-lg transition-transform hover:scale-105">
+                        <div className="w-15 h-15 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xl cursor-not-allowed opacity-60">
                           🎤
                         </div>
                         <div className="text-xs font-semibold text-muted-foreground">
                           {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
                         </div>
-                        <div className="w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1">
+                        <div className="w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
                           {[...Array(5)].map((_, i) => (
                             <div key={i} className="w-0.5 h-2 bg-muted-foreground/30 rounded"></div>
                           ))}
                         </div>
                       </div>
                       <Button
-                        variant={isRecording ? "default" : "outline"}
-                        disabled={!isLoggedIn}
-                        className="text-xs px-4 py-2"
+                        variant="outline"
+                        disabled={true}
+                        className="text-xs px-4 py-2 opacity-60 cursor-not-allowed"
                       >
                         발언 완료
                       </Button>
@@ -452,7 +452,7 @@ export const DebateRoom = () => {
   // Desktop Version
   return (
     <div className="min-h-screen bg-background flex justify-center p-5">
-      <div className="w-full max-w-6xl bg-background border-4 border-primary rounded-2xl overflow-hidden">
+      <div className="w-full max-w-6xl bg-background rounded-2xl overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b-2 border-border flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -637,24 +637,24 @@ export const DebateRoom = () => {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-4">
-                  <div className="text-sm font-semibold text-primary">음성 발언 준비됨</div>
+                  <div className="text-sm font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white text-2xl cursor-pointer shadow-lg transition-transform hover:scale-105">
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl cursor-not-allowed shadow-lg opacity-60">
                       🎤
                     </div>
                     <div className="text-base font-semibold text-muted-foreground">
                       {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
                     </div>
-                    <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1">
+                    <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
                       {[...Array(5)].map((_, i) => (
                         <div key={i} className="w-1 h-3 bg-muted-foreground/30 rounded"></div>
                       ))}
                     </div>
                   </div>
                   <Button
-                    variant={isRecording ? "default" : "outline"}
-                    disabled={!isLoggedIn}
-                    className="px-6 py-3"
+                    variant="outline"
+                    disabled={true}
+                    className="px-6 py-3 opacity-60 cursor-not-allowed"
                   >
                     발언 완료
                   </Button>
