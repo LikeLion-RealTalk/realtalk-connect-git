@@ -143,7 +143,7 @@ export const DebateRoom = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background flex justify-center p-4">
+      <div className="min-h-screen bg-background flex justify-center">
         <div className="w-full max-w-sm bg-background rounded-2xl overflow-hidden relative">
           {/* Sidebar Overlay */}
           {sidebarOpen && (
@@ -451,7 +451,7 @@ export const DebateRoom = () => {
 
   // Desktop Version
   return (
-    <div className="min-h-screen bg-background flex justify-center p-5">
+    <div className="min-h-screen bg-background flex justify-center">
       <div className="w-full max-w-6xl bg-background rounded-2xl overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b-2 border-border flex justify-between items-center">
