@@ -88,6 +88,8 @@ export const DebateRoom = () => {
   const [speechInput, setSpeechInput] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [speechMode, setSpeechMode] = useState<"text" | "voice">("text");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -351,22 +353,48 @@ export const DebateRoom = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <textarea
-                      value={speechInput}
-                      onChange={(e) => setSpeechInput(e.target.value)}
-                      placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
-                      className="flex-1 p-2 border border-border rounded text-xs resize-none h-12 bg-background disabled:bg-muted disabled:text-muted-foreground"
-                      disabled={!isLoggedIn}
-                    />
-                    <Button
-                      onClick={handleSendSpeech}
-                      disabled={!speechInput.trim() || !isLoggedIn}
-                      className="px-3 py-2 text-xs"
-                    >
-                      발언
-                    </Button>
-                  </div>
+                  {speechMode === "text" ? (
+                    <div className="flex gap-2">
+                      <textarea
+                        value={speechInput}
+                        onChange={(e) => setSpeechInput(e.target.value)}
+                        placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
+                        className="flex-1 p-2 border border-border rounded text-xs resize-none h-12 bg-background disabled:bg-muted disabled:text-muted-foreground"
+                        disabled={!isLoggedIn}
+                      />
+                      <Button
+                        onClick={handleSendSpeech}
+                        disabled={!speechInput.trim() || !isLoggedIn}
+                        className="px-3 py-2 text-xs"
+                      >
+                        발언
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="text-xs font-semibold text-primary">음성 발언 준비됨</div>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-15 h-15 rounded-full bg-green-500 flex items-center justify-center text-white text-xl cursor-pointer shadow-lg transition-transform hover:scale-105">
+                          🎤
+                        </div>
+                        <div className="text-xs font-semibold text-muted-foreground">
+                          {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                        </div>
+                        <div className="w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className="w-0.5 h-2 bg-muted-foreground/30 rounded"></div>
+                          ))}
+                        </div>
+                      </div>
+                      <Button
+                        variant={isRecording ? "default" : "outline"}
+                        disabled={!isLoggedIn}
+                        className="text-xs px-4 py-2"
+                      >
+                        발언 완료
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -590,22 +618,48 @@ export const DebateRoom = () => {
                   </button>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <textarea
-                  value={speechInput}
-                  onChange={(e) => setSpeechInput(e.target.value)}
-                  placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
-                  className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background disabled:bg-muted disabled:text-muted-foreground"
-                  disabled={!isLoggedIn}
-                />
-                <Button
-                  onClick={handleSendSpeech}
-                  disabled={!speechInput.trim() || !isLoggedIn}
-                  className="px-6 py-3"
-                >
-                  발언하기
-                </Button>
-              </div>
+              {speechMode === "text" ? (
+                <div className="flex gap-3">
+                  <textarea
+                    value={speechInput}
+                    onChange={(e) => setSpeechInput(e.target.value)}
+                    placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
+                    className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background disabled:bg-muted disabled:text-muted-foreground"
+                    disabled={!isLoggedIn}
+                  />
+                  <Button
+                    onClick={handleSendSpeech}
+                    disabled={!speechInput.trim() || !isLoggedIn}
+                    className="px-6 py-3"
+                  >
+                    발언하기
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="text-sm font-semibold text-primary">음성 발언 준비됨</div>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white text-2xl cursor-pointer shadow-lg transition-transform hover:scale-105">
+                      🎤
+                    </div>
+                    <div className="text-base font-semibold text-muted-foreground">
+                      {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                    </div>
+                    <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="w-1 h-3 bg-muted-foreground/30 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    variant={isRecording ? "default" : "outline"}
+                    disabled={!isLoggedIn}
+                    className="px-6 py-3"
+                  >
+                    발언 완료
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
