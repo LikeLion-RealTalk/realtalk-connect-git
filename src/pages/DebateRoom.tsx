@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DebatePositionModal } from "@/components/DebatePositionModal";
 
 // Mock debate data
 const mockDebateData = {
@@ -90,6 +91,9 @@ export const DebateRoom = () => {
   const [speechMode, setSpeechMode] = useState<"text" | "voice">("text");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [showPositionModal, setShowPositionModal] = useState(true);
+  const [userPosition, setUserPosition] = useState<"pros" | "cons" | null>(null);
+  const [hasEnteredDebate, setHasEnteredDebate] = useState(false);
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -113,6 +117,16 @@ export const DebateRoom = () => {
       console.log("Send chat:", chatInput);
       setChatInput("");
     }
+  };
+
+  const handlePositionSelect = (position: "pros" | "cons") => {
+    setUserPosition(position);
+    setShowPositionModal(false);
+    setHasEnteredDebate(true);
+  };
+
+  const handleClosePositionModal = () => {
+    setShowPositionModal(false);
   };
 
   const getFactCheckStyle = (factCheck: string) => {
@@ -144,6 +158,16 @@ export const DebateRoom = () => {
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Position Selection Modal */}
+        <DebatePositionModal
+          isOpen={showPositionModal}
+          onClose={handleClosePositionModal}
+          onEnter={handlePositionSelect}
+          debateTitle={debate.title}
+          category={debate.category}
+          type="3분"
+        />
+
         <div className="w-full bg-background overflow-hidden relative">
           {/* Sidebar Overlay */}
           {sidebarOpen && (
@@ -430,24 +454,29 @@ export const DebateRoom = () => {
                     </div>
                   ))}
                 </ScrollArea>
-                <div className="p-3 border-t-2 border-border bg-muted">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="채팅 입력..."
-                      className="flex-1 p-2 border border-border rounded text-xs bg-background"
-                    />
-                    <Button
-                      onClick={handleSendChat}
-                      disabled={!chatInput.trim()}
-                      className="px-3 py-2 text-xs"
-                    >
-                      전송
-                    </Button>
+                
+                {/* Chat Input - Only show if user has entered debate */}
+                {hasEnteredDebate && (
+                  <div className="p-3 border-t-2 border-border bg-muted">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder="채팅 입력..."
+                        className="flex-1 px-3 py-2 border border-border rounded-2xl text-xs bg-background"
+                      />
+                      <Button
+                        onClick={handleSendChat}
+                        disabled={!chatInput.trim()}
+                        size="sm"
+                        className="px-3 py-2 text-xs rounded-xl"
+                      >
+                        전송
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -466,6 +495,16 @@ export const DebateRoom = () => {
   // Desktop Version
   return (
     <div className="min-h-screen bg-background">
+      {/* Position Selection Modal */}
+      <DebatePositionModal
+        isOpen={showPositionModal}
+        onClose={handleClosePositionModal}
+        onEnter={handlePositionSelect}
+        debateTitle={debate.title}
+        category={debate.category}
+        type="3분"
+      />
+
       <div className="w-full h-screen bg-background overflow-hidden grid grid-rows-[auto_1fr]">
         {/* Header */}
         <div className="p-6 border-b-2 border-border flex justify-between items-center">
@@ -715,23 +754,27 @@ export const DebateRoom = () => {
                   </div>
                 ))}
               </ScrollArea>
-              <div className="p-4 border-t-2 border-border bg-muted">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="채팅 입력..."
-                    className="flex-1 p-3 border border-border rounded bg-background"
-                  />
-                  <Button
-                    onClick={handleSendChat}
-                    disabled={!chatInput.trim()}
-                  >
-                    전송
-                  </Button>
+              
+              {/* Chat Input - Only show if user has entered debate */}
+              {hasEnteredDebate && (
+                <div className="p-4 border-t-2 border-border bg-muted">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="채팅 입력..."
+                      className="flex-1 p-3 border border-border rounded bg-background"
+                    />
+                    <Button
+                      onClick={handleSendChat}
+                      disabled={!chatInput.trim()}
+                    >
+                      전송
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
