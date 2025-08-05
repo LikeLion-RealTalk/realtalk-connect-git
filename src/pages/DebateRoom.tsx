@@ -239,6 +239,22 @@ export const DebateRoom = () => {
                 </div>
               ))}
             </ScrollArea>
+            
+            {/* Start Debate Button */}
+            <div className="p-3 border-t border-border">
+              <Button 
+                className="w-full" 
+                disabled={debate.participants.length < 4}
+                onClick={() => {
+                  if (window.confirm("토론을 시작하겠습니까?\n시작하면 토론이 종료되기 전까지 중단할 수 없습니다.")) {
+                    // 토론 시작 로직
+                    console.log("토론이 시작되었습니다!");
+                  }
+                }}
+              >
+                토론 시작
+              </Button>
+            </div>
           </div>
 
           {/* Slide Handle */}
@@ -668,6 +684,22 @@ export const DebateRoom = () => {
                 </div>
               ))}
             </ScrollArea>
+            
+            {/* Start Debate Button */}
+            <div className="p-4 border-t border-border">
+              <Button 
+                className="w-full" 
+                disabled={debate.participants.length < 4}
+                onClick={() => {
+                  if (window.confirm("토론을 시작하겠습니까?\n시작하면 토론이 종료되기 전까지 중단할 수 없습니다.")) {
+                    // 토론 시작 로직
+                    console.log("토론이 시작되었습니다!");
+                  }
+                }}
+              >
+                토론 시작
+              </Button>
+            </div>
           </div>
 
           {/* Center Column */}
