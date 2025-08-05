@@ -319,23 +319,41 @@ export const DebateRoom = () => {
 
           {/* Opinion Poll */}
           <div className="p-4 border-b-2 border-border">
-            <div className="flex h-5 rounded overflow-hidden border">
-              <div 
-                className="bg-green-500 text-white flex items-center justify-center text-xs font-semibold"
-                style={{ width: `${debate.poll.pros}%` }}
-              >
-                찬성 {debate.poll.pros}%
+            <div className="flex flex-col gap-2">
+              <div className="flex h-5 rounded overflow-hidden border border-border">
+                <div 
+                  className="bg-green-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500"
+                  style={{ width: `${debate.poll.pros}%` }}
+                >
+                  {debate.poll.pros}%
+                </div>
+                <div 
+                  className="bg-red-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500"
+                  style={{ width: `${debate.poll.cons}%` }}
+                >
+                  {debate.poll.cons}%
+                </div>
               </div>
-              <div 
-                className="bg-red-500 text-white flex items-center justify-center text-xs font-semibold"
-                style={{ width: `${debate.poll.cons}%` }}
-              >
-                반대 {debate.poll.cons}%
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">인간 창의성 중요</span>
+                <div className="flex items-center gap-2 bg-muted px-2 py-1 rounded-xl border">
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground font-medium text-xs">내 입장:</span>
+                    <span className="text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded text-xs border border-primary">
+                      {userPosition === "pros" ? "인간 창의성 중요" : userPosition === "cons" ? "AI가 더 창의적" : "미선택"}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowPositionModal(true)}
+                    className="text-xs px-2 py-0.5 h-auto border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    변경
+                  </Button>
+                </div>
+                <span className="text-muted-foreground">AI가 더 창의적</span>
               </div>
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>인간 창의성 중요</span>
-              <span>AI가 더 창의적</span>
             </div>
           </div>
 
@@ -673,23 +691,41 @@ export const DebateRoom = () => {
 
             {/* Opinion Poll Section */}
             <div className="border-r-2 border-b-2 border-border bg-background flex flex-col justify-center p-4 h-20">
-              <div className="flex h-6 rounded overflow-hidden border mb-1">
-                <div 
-                  className="bg-green-500 text-white flex items-center justify-center text-sm font-semibold"
-                  style={{ width: `${debate.poll.pros}%` }}
-                >
-                  찬성 {debate.poll.pros}%
+              <div className="flex flex-col gap-1">
+                <div className="flex h-6 rounded overflow-hidden border border-border">
+                  <div 
+                    className="bg-green-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500"
+                    style={{ width: `${debate.poll.pros}%` }}
+                  >
+                    {debate.poll.pros}%
+                  </div>
+                  <div 
+                    className="bg-red-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500"
+                    style={{ width: `${debate.poll.cons}%` }}
+                  >
+                    {debate.poll.cons}%
+                  </div>
                 </div>
-                <div 
-                  className="bg-red-500 text-white flex items-center justify-center text-sm font-semibold"
-                  style={{ width: `${debate.poll.cons}%` }}
-                >
-                  반대 {debate.poll.cons}%
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">인간 창의성 중요</span>
+                  <div className="flex items-center gap-2 bg-muted px-2 py-1 rounded-xl border">
+                    <div className="flex items-center gap-1">
+                      <span className="text-muted-foreground font-medium text-xs">내 입장:</span>
+                      <span className="text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded text-xs border border-primary">
+                        {userPosition === "pros" ? "인간 창의성 중요" : userPosition === "cons" ? "AI가 더 창의적" : "미선택"}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowPositionModal(true)}
+                      className="text-xs px-2 py-0.5 h-auto border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    >
+                      변경
+                    </Button>
+                  </div>
+                  <span className="text-muted-foreground">AI가 더 창의적</span>
                 </div>
-              </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>인간 창의성 중요</span>
-                <span>AI가 더 창의적</span>
               </div>
             </div>
 
