@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Menu, X, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Share2, Menu, X, ChevronUp, ChevronDown, Users, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -80,6 +80,7 @@ const mockDebateData = {
 };
 
 type TabType = "ai-summary" | "speech" | "chat";
+type UserMode = "audience" | "speaker";
 
 export const DebateRoom = () => {
   const { id } = useParams();
@@ -99,6 +100,7 @@ export const DebateRoom = () => {
   const [hasEnteredDebate, setHasEnteredDebate] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [userMode, setUserMode] = useState<UserMode>("audience");
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -110,6 +112,10 @@ export const DebateRoom = () => {
     console.log("Share debate");
   };
 
+  const toggleUserMode = () => {
+    setUserMode(prev => prev === "audience" ? "speaker" : "audience");
+  };
+
   const handleSendSpeech = () => {
     if (speechInput.trim()) {
       console.log("Send speech:", speechInput);
@@ -118,7 +124,7 @@ export const DebateRoom = () => {
   };
 
   const handleSendChat = () => {
-    if (chatInput.trim()) {
+    if (chatInput.trim() && userMode === "audience") {
       console.log("Send chat:", chatInput);
       setChatInput("");
     }
@@ -247,6 +253,22 @@ export const DebateRoom = () => {
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
+              <div className="w-8 h-6 border-2 border-border bg-background flex items-center justify-center text-xs text-muted-foreground rounded">
+                로고
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleUserMode}
+                className="w-8 h-8"
+                title={userMode === "audience" ? "청중 모드" : "발언자 모드"}
+              >
+                {userMode === "audience" ? (
+                  <Users className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </Button>
             </div>
             <div className="flex-1 text-center px-2">
               <div className="text-sm font-semibold leading-tight">{debate.title}</div>
@@ -348,7 +370,7 @@ export const DebateRoom = () => {
             {/* Speech Content Tab */}
             {activeTab === "speech" && (
               <div className="flex flex-col h-64">
-                <ScrollArea className="flex-1 p-3 min-h-[20vh] max-h-[30vh]">
+                <ScrollArea className="flex-1 p-3 min-h-[15vh] max-h-[20vh]">
                   {debate.speeches.map((speech) => (
                     <div key={speech.id} className={`bg-muted border rounded-lg p-3 mb-3 ${getFactCheckStyle(speech.factCheck)}`}>
                       <div className="text-xs font-semibold mb-2">{speech.author}</div>
@@ -365,8 +387,8 @@ export const DebateRoom = () => {
                   ))}
                 </ScrollArea>
                 
-                {/* Speech Input - 로그인한 상태에만 표시 */}
-                {isLoggedIn && (
+                {/* Speech Input - 발언자 모드이고 로그인한 상태에만 표시 */}
+                {isLoggedIn && userMode === "speaker" && (
                   <div className="p-3 border-t-2 border-border bg-muted">
                     <div className="flex justify-center mb-3">
                       <div className="flex bg-border rounded-full p-1">
@@ -470,19 +492,27 @@ export const DebateRoom = () => {
                   ))}
                 </div>
                 
-                {/* Chat Input - 항상 표시 */}
+                {/* Chat Input - 항상 표시되지만 발언자 모드에서는 비활성화 */}
                 <div className="p-3 border-t-2 border-border bg-muted">
+                  {userMode === "speaker" && (
+                    <div className="text-xs text-muted-foreground text-center mb-2">
+                      발언자 모드에서는 채팅을 사용할 수 없습니다.
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="채팅 입력..."
-                      className="flex-1 px-3 py-2 border border-border rounded-2xl text-xs bg-background"
+                      placeholder={userMode === "speaker" ? "발언자 모드에서는 채팅 불가" : "채팅 입력..."}
+                      disabled={userMode === "speaker"}
+                      className={`flex-1 px-3 py-2 border border-border rounded-2xl text-xs bg-background ${
+                        userMode === "speaker" ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     />
                     <Button
                       onClick={handleSendChat}
-                      disabled={!chatInput.trim()}
+                      disabled={!chatInput.trim() || userMode === "speaker"}
                       size="sm"
                       className="px-3 py-2 text-xs rounded-xl"
                     >
@@ -545,6 +575,18 @@ export const DebateRoom = () => {
             <div className="w-25 h-8 border-2 border-border bg-background flex items-center justify-center text-xs text-muted-foreground rounded">
               로고
             </div>
+            <Button
+              variant="outline"
+              onClick={toggleUserMode}
+              className="w-10 h-10"
+              title={userMode === "audience" ? "청중 모드" : "발언자 모드"}
+            >
+              {userMode === "audience" ? (
+                <Users className="w-5 h-5" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </Button>
           </div>
           <div className="flex-1 text-center">
             <div className="text-lg font-semibold mb-1">{debate.title}</div>
@@ -666,8 +708,8 @@ export const DebateRoom = () => {
                 ))}
               </ScrollArea>
               
-              {/* Speech Input - 로그인한 상태에만 표시 */}
-              {isLoggedIn && (
+              {/* Speech Input - 발언자 모드이고 로그인한 상태에만 표시 */}
+              {isLoggedIn && userMode === "speaker" && (
                 <div className="p-4 border-t-2 border-border bg-muted">
                   <div className="flex justify-center mb-4">
                     <div className="flex bg-border rounded-full p-1">
@@ -790,19 +832,27 @@ export const DebateRoom = () => {
                 ))}
               </div>
               
-              {/* Chat Input - 항상 표시 */}
+              {/* Chat Input - 항상 표시되지만 발언자 모드에서는 비활성화 */}
               <div className="p-4 border-t-2 border-border bg-muted">
+                {userMode === "speaker" && (
+                  <div className="text-sm text-muted-foreground text-center mb-3">
+                    발언자 모드에서는 채팅을 사용할 수 없습니다.
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="채팅 입력..."
-                    className="flex-1 p-3 border border-border rounded bg-background"
+                    placeholder={userMode === "speaker" ? "발언자 모드에서는 채팅 불가" : "채팅 입력..."}
+                    disabled={userMode === "speaker"}
+                    className={`flex-1 p-3 border border-border rounded bg-background ${
+                      userMode === "speaker" ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   />
                   <Button
                     onClick={handleSendChat}
-                    disabled={!chatInput.trim()}
+                    disabled={!chatInput.trim() || userMode === "speaker"}
                   >
                     전송
                   </Button>
