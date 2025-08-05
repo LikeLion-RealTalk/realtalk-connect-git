@@ -101,6 +101,7 @@ export const DebateRoom = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [userMode, setUserMode] = useState<UserMode>("audience");
+  const [chatHistory, setChatHistory] = useState(mockDebateData.chatMessages);
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -125,7 +126,13 @@ export const DebateRoom = () => {
 
   const handleSendChat = () => {
     if (chatInput.trim() && userMode === "audience") {
-      console.log("Send chat:", chatInput);
+      const newMessage = {
+        id: String(Date.now()),
+        author: "나",
+        content: chatInput,
+        time: "방금"
+      };
+      setChatHistory(prev => [...prev, newMessage]);
       setChatInput("");
     }
   };
@@ -177,7 +184,7 @@ export const DebateRoom = () => {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="h-screen bg-background flex flex-col overflow-hidden">
         {/* Position Selection Modal */}
         <DebatePositionModal
           isOpen={showPositionModal}
@@ -188,7 +195,7 @@ export const DebateRoom = () => {
           type="3분"
         />
 
-        <div className="w-full bg-background overflow-hidden relative">
+        <div className="w-full bg-background flex flex-col flex-1 overflow-hidden relative">
           {/* Sidebar Overlay */}
           {sidebarOpen && (
             <div 
