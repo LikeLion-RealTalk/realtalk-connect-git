@@ -372,24 +372,41 @@ export const DebateRoom = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="text-xs font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
+                      <div className={`text-xs font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                      </div>
                       <div className="flex flex-col items-center gap-2">
-                        <div className="w-15 h-15 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xl cursor-not-allowed opacity-60">
+                        <div className={`w-15 h-15 rounded-full flex items-center justify-center text-xl cursor-pointer transition-all ${
+                          isRecording 
+                            ? 'bg-red-500 text-white animate-pulse shadow-lg' 
+                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        }`}>
                           🎤
                         </div>
-                        <div className="text-xs font-semibold text-muted-foreground">
+                        <div className={`text-sm font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
                           {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
                         </div>
-                        <div className="w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
+                        <div className={`w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
                           {[...Array(5)].map((_, i) => (
-                            <div key={i} className="w-0.5 h-2 bg-muted-foreground/30 rounded"></div>
+                            <div 
+                              key={i} 
+                              className={`w-0.5 rounded ${
+                                isRecording 
+                                  ? 'bg-primary animate-pulse' 
+                                  : 'bg-muted-foreground/30'
+                              }`}
+                              style={{
+                                height: isRecording ? `${Math.random() * 16 + 8}px` : '8px',
+                                animationDelay: `${i * 0.1}s`
+                              }}
+                            />
                           ))}
                         </div>
                       </div>
                       <Button
-                        variant="outline"
-                        disabled={true}
-                        className="text-xs px-4 py-2 opacity-60 cursor-not-allowed"
+                        variant={isRecording ? "default" : "outline"}
+                        disabled={!isRecording}
+                        className={`text-xs px-4 py-2 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
                       >
                         발언 완료
                       </Button>
@@ -562,8 +579,8 @@ export const DebateRoom = () => {
               <ScrollArea className="flex-1 p-4">
                 {debate.speeches.map((speech) => (
                   <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
-                    <div className="font-semibold mb-2">{speech.author}</div>
-                    <div className="leading-relaxed mb-2">{speech.content}</div>
+                    <div className="text-sm font-semibold mb-2">{speech.author}</div>
+                    <div className="text-sm leading-relaxed mb-2">{speech.content}</div>
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-semibold px-3 py-1 rounded ${getFactCheckLabelStyle(speech.factCheck)}`}>
                         팩트체킹: {speech.factCheck}
@@ -621,24 +638,41 @@ export const DebateRoom = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4">
-                    <div className="text-sm font-semibold text-muted-foreground">발언 차례를 기다리는 중...</div>
+                    <div className={`text-sm font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                      {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                    </div>
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl cursor-not-allowed shadow-lg opacity-60">
+                      <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl cursor-pointer transition-all shadow-lg ${
+                        isRecording 
+                          ? 'bg-red-500 text-white animate-pulse' 
+                          : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                      }`}>
                         🎤
                       </div>
-                      <div className="text-base font-semibold text-muted-foreground">
+                      <div className={`text-base font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
                         {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
                       </div>
-                      <div className="w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 opacity-60">
+                      <div className={`w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
                         {[...Array(5)].map((_, i) => (
-                          <div key={i} className="w-1 h-3 bg-muted-foreground/30 rounded"></div>
+                          <div 
+                            key={i} 
+                            className={`w-1 rounded ${
+                              isRecording 
+                                ? 'bg-primary animate-pulse' 
+                                : 'bg-muted-foreground/30'
+                            }`}
+                            style={{
+                              height: isRecording ? `${Math.random() * 20 + 12}px` : '12px',
+                              animationDelay: `${i * 0.1}s`
+                            }}
+                          />
                         ))}
                       </div>
                     </div>
                     <Button
-                      variant="outline"
-                      disabled={true}
-                      className="px-6 py-3 opacity-60 cursor-not-allowed"
+                      variant={isRecording ? "default" : "outline"}
+                      disabled={!isRecording}
+                      className={`px-6 py-3 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       발언 완료
                     </Button>
