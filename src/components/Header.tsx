@@ -47,11 +47,13 @@ export const Header = () => {
     <>
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          {/* Logo */}
+          {/* Logo with Image */}
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded border-2 border-muted-foreground bg-background text-xs text-muted-foreground">
-              로고
-            </div>
+            <img 
+              src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+              alt="RealTalk Logo" 
+              className="h-8 w-auto"
+            />
             <span className="text-xl font-bold text-foreground">RealTalk</span>
           </div>
 

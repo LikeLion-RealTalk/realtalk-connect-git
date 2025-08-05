@@ -42,6 +42,11 @@ const mockDebateData = {
     cons: 42,
     totalVotes: 89
   },
+  maxDebaters: {
+    pros: 2,
+    cons: 2,
+    total: 4
+  },
   aiSummaries: [
     {
       id: "1",
@@ -111,7 +116,26 @@ export const DebateRoom = () => {
   const [hoveredPosition, setHoveredPosition] = useState<"pros" | "cons" | null>(null);
   const [speechInputMode, setSpeechInputMode] = useState<"text" | "voice">("text");
 
-  const debate = mockDebateData; // In real app, fetch by id
+  const debate = mockDebateData;
+
+  // Check if debate can start (max debaters reached for both positions)
+  const canStartDebate = () => {
+    const prosCount = debate.participants.filter(p => p.position === "찬성").length;
+    const consCount = debate.participants.filter(p => p.position === "반대").length;
+    return prosCount >= debate.maxDebaters.pros && consCount >= debate.maxDebaters.cons;
+  };
+
+  // Get position styling based on user selection
+  const getPositionStyling = (position: "pros" | "cons") => {
+    if (userPosition === position) {
+      return position === "pros" 
+        ? "bg-green-100 text-green-800 font-semibold border-green-300" 
+        : "bg-red-100 text-red-800 font-semibold border-red-300";
+    }
+    return hoveredPosition === position 
+      ? "bg-muted/50 text-foreground" 
+      : "text-muted-foreground";
+  };
 
   // Timer effect for remaining time
   useEffect(() => {
@@ -287,27 +311,29 @@ export const DebateRoom = () => {
               ))}
             </ScrollArea>
             
-            {/* Start Debate Button */}
-            <div className="p-3 border-t border-border">
-              {debateStarted && debateStartTime && (
-                <div className="text-xs text-muted-foreground text-center mb-2">
-                  토론 시작: {debateStartTime.toLocaleTimeString()}
-                </div>
-              )}
-              <Button 
-                className="w-full" 
-                disabled={debate.participants.length < 4 || debateStarted}
-                onClick={handleStartDebate}
-              >
-                {debateStarted ? "토론 중" : "토론 시작"}
-              </Button>
-            </div>
+            {/* Start Debate Button - Only show in speaker mode */}
+            {userMode === "speaker" && (
+              <div className="p-3 border-t border-border">
+                {debateStarted && debateStartTime && (
+                  <div className="text-xs text-muted-foreground text-center mb-2">
+                    토론 시작: {debateStartTime.toLocaleTimeString()}
+                  </div>
+                )}
+                <Button 
+                  className="w-full" 
+                  disabled={!canStartDebate() || debateStarted}
+                  onClick={handleStartDebate}
+                >
+                  {debateStarted ? "토론 중" : "토론 시작"}
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Slide Handle */}
+          {/* Enhanced Slide Handle - 4x height */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-15 bg-primary text-primary-foreground rounded-r-xl flex items-center justify-center z-30 shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-60 bg-primary text-primary-foreground rounded-r-xl flex items-center justify-center z-30 shadow-lg"
           >
             <ChevronDown className="w-3 h-3 rotate-90" />
           </button>
@@ -323,9 +349,11 @@ export const DebateRoom = () => {
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <div className="w-8 h-6 border-2 border-border bg-background flex items-center justify-center text-xs text-muted-foreground rounded">
-                로고
-              </div>
+              <img 
+                src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+                alt="RealTalk Logo" 
+                className="h-6 w-auto"
+              />
               <Button
                 variant="outline"
                 size="icon"
@@ -363,8 +391,8 @@ export const DebateRoom = () => {
             <span className="text-red-600 font-semibold">{debateStarted ? formatTime(remainingTime) : debate.timeRemaining} 남음</span>
           </div>
 
-          {/* Current Speaker */}
-          <div className="bg-primary text-primary-foreground p-4 text-center">
+          {/* Current Speaker - Store height for calculations */}
+          <div className="bg-primary text-primary-foreground p-4 text-center h-48" id="speaker-section">
             <div className="w-15 h-15 rounded-full bg-primary-foreground/20 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
               {debate.currentSpeaker.avatar}
             </div>
@@ -380,14 +408,12 @@ export const DebateRoom = () => {
             <div className="text-xs opacity-80">{debate.currentSpeaker.timeLeft} 남음</div>
           </div>
 
-          {/* Opinion Poll */}
+          {/* Opinion Poll with Enhanced Position Styling */}
           <div className="p-4 border-b-2 border-border">
             <div className="flex flex-col gap-2">
               <div className="flex h-5 rounded overflow-hidden border border-border">
                 <div 
-                  className={`bg-green-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${
-                    hoveredPosition === "pros" ? "ring-2 ring-primary ring-offset-2" : ""
-                  } ${userPosition === "pros" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                  className={`bg-green-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("pros")}`}
                   style={{ width: `${debate.poll.pros}%` }}
                   onMouseEnter={() => setHoveredPosition("pros")}
                   onMouseLeave={() => setHoveredPosition(null)}
@@ -396,9 +422,7 @@ export const DebateRoom = () => {
                   {debate.poll.pros}%
                 </div>
                 <div 
-                  className={`bg-red-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${
-                    hoveredPosition === "cons" ? "ring-2 ring-primary ring-offset-2" : ""
-                  } ${userPosition === "cons" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                  className={`bg-red-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("cons")}`}
                   style={{ width: `${debate.poll.cons}%` }}
                   onMouseEnter={() => setHoveredPosition("cons")}
                   onMouseLeave={() => setHoveredPosition(null)}
@@ -408,26 +432,22 @@ export const DebateRoom = () => {
                 </div>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span 
-                  className={`text-muted-foreground cursor-pointer transition-all ${
-                    hoveredPosition === "pros" ? "text-green-600 font-semibold" : ""
-                  } ${userPosition === "pros" ? "text-green-600 font-semibold" : ""}`}
+                <div 
+                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("pros")}`}
                   onMouseEnter={() => setHoveredPosition("pros")}
                   onMouseLeave={() => setHoveredPosition(null)}
                   onClick={() => handlePositionClick("pros")}
                 >
                   인간 창의성 중요
-                </span>
-                <span 
-                  className={`text-muted-foreground cursor-pointer transition-all ${
-                    hoveredPosition === "cons" ? "text-red-600 font-semibold" : ""
-                  } ${userPosition === "cons" ? "text-red-600 font-semibold" : ""}`}
+                </div>
+                <div 
+                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("cons")}`}
                   onMouseEnter={() => setHoveredPosition("cons")}
                   onMouseLeave={() => setHoveredPosition(null)}
                   onClick={() => handlePositionClick("cons")}
                 >
                   AI가 더 창의적
-                </span>
+                </div>
               </div>
             </div>
           </div>
@@ -453,11 +473,11 @@ export const DebateRoom = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
+          {/* Tab Content - Dynamic sizing based on screen height and speaker section */}
+          <div className="flex-1 overflow-hidden" style={{ minHeight: 'calc(192px * 1.2)' }}>
             {/* AI Summary Tab */}
             {activeTab === "ai-summary" && (
-              <ScrollArea className="h-64 p-3 min-h-[20vh] max-h-[30vh]">
+              <ScrollArea className="h-full p-3">
                 {debate.aiSummaries.map((summary) => (
                   <div key={summary.id} className="bg-muted border border-border border-l-4 border-l-primary rounded-lg p-3 mb-3">
                     <div className="text-xs font-semibold text-primary mb-2">{summary.author}</div>
@@ -469,8 +489,8 @@ export const DebateRoom = () => {
 
             {/* Speech Content Tab */}
             {activeTab === "speech" && (
-              <div className="flex flex-col h-64">
-                <ScrollArea className="flex-1 p-3 min-h-[15vh] max-h-[20vh]">
+              <div className="flex flex-col h-full">
+                <ScrollArea className="flex-1 p-3" style={{ minHeight: 'calc(192px * 1.2)' }}>
                   {debate.speeches.map((speech) => (
                     <div key={speech.id} className={`bg-muted border rounded-lg p-3 mb-3 ${getFactCheckStyle(speech.factCheck)}`}>
                       <div className="text-xs font-semibold mb-2">{speech.author}</div>
@@ -487,8 +507,9 @@ export const DebateRoom = () => {
                   ))}
                 </ScrollArea>
                 
-                {/* Speech Input - Always visible */}
-                <div className="p-3 border-t-2 border-border bg-muted">
+                {/* Speech Input - Dynamic height */}
+                <div className="p-3 border-t-2 border-border bg-muted" 
+                     style={{ height: 'calc(100vh - 192px - calc(192px * 1.2))' }}>
                   <div className="flex justify-center mb-3">
                     <div className="flex bg-border rounded-full p-1">
                       <button
@@ -578,7 +599,7 @@ export const DebateRoom = () => {
 
             {/* Chat Tab */}
             {activeTab === "chat" && (
-              <div className="flex flex-col h-[calc(100vh-280px)]">
+              <div className="flex flex-col h-full">
                 <div className="flex-1 p-3 overflow-y-auto">
                   {debate.chatMessages.map((message) => (
                     <div key={message.id} className="bg-muted border border-border rounded-lg p-2 mb-2">
@@ -591,7 +612,6 @@ export const DebateRoom = () => {
                   ))}
                 </div>
                 
-                {/* Chat Input - 항상 표시되지만 발언자 모드에서는 비활성화 */}
                 <div className="p-3 border-t-2 border-border bg-muted">
                   {userMode === "speaker" && (
                     <div className="text-xs text-muted-foreground text-center mb-2">
@@ -664,8 +684,8 @@ export const DebateRoom = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Floating Profile Button */}
-        <FloatingProfileButton />
+        {/* Floating Profile Button - hidden when sidebar is open */}
+        {!sidebarOpen && <FloatingProfileButton />}
       </div>
     );
   }
@@ -694,9 +714,11 @@ export const DebateRoom = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="w-25 h-8 border-2 border-border bg-background flex items-center justify-center text-xs text-muted-foreground rounded">
-              로고
-            </div>
+            <img 
+              src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+              alt="RealTalk Logo" 
+              className="h-8 w-auto"
+            />
             <Button
               variant="outline"
               onClick={toggleUserMode}
@@ -766,21 +788,23 @@ export const DebateRoom = () => {
               ))}
             </ScrollArea>
             
-            {/* Start Debate Button */}
-            <div className="p-4 border-t border-border">
-              {debateStarted && debateStartTime && (
-                <div className="text-sm text-muted-foreground text-center mb-3">
-                  토론 시작: {debateStartTime.toLocaleTimeString()}
-                </div>
-              )}
-              <Button 
-                className="w-full" 
-                disabled={debate.participants.length < 4 || debateStarted}
-                onClick={handleStartDebate}
-              >
-                {debateStarted ? "토론 중" : "토론 시작"}
-              </Button>
-            </div>
+            {/* Start Debate Button - Only show in speaker mode */}
+            {userMode === "speaker" && (
+              <div className="p-4 border-t border-border">
+                {debateStarted && debateStartTime && (
+                  <div className="text-sm text-muted-foreground text-center mb-3">
+                    토론 시작: {debateStartTime.toLocaleTimeString()}
+                  </div>
+                )}
+                <Button 
+                  className="w-full" 
+                  disabled={!canStartDebate() || debateStarted}
+                  onClick={handleStartDebate}
+                >
+                  {debateStarted ? "토론 중" : "토론 시작"}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Center Column */}
@@ -802,14 +826,12 @@ export const DebateRoom = () => {
               <div className="opacity-80">{debate.currentSpeaker.timeLeft} 남음</div>
             </div>
 
-            {/* Opinion Poll Section */}
+            {/* Opinion Poll Section with Enhanced Styling */}
             <div className="border-r-2 border-b-2 border-border bg-background flex flex-col justify-center p-4 h-20">
               <div className="flex flex-col gap-1">
                 <div className="flex h-6 rounded overflow-hidden border border-border">
                   <div 
-                    className={`bg-green-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${
-                      hoveredPosition === "pros" ? "ring-2 ring-primary ring-offset-2" : ""
-                    } ${userPosition === "pros" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                    className={`bg-green-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("pros")}`}
                     style={{ width: `${debate.poll.pros}%` }}
                     onMouseEnter={() => setHoveredPosition("pros")}
                     onMouseLeave={() => setHoveredPosition(null)}
@@ -818,9 +840,7 @@ export const DebateRoom = () => {
                     {debate.poll.pros}%
                   </div>
                   <div 
-                    className={`bg-red-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${
-                      hoveredPosition === "cons" ? "ring-2 ring-primary ring-offset-2" : ""
-                    } ${userPosition === "cons" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                    className={`bg-red-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("cons")}`}
                     style={{ width: `${debate.poll.cons}%` }}
                     onMouseEnter={() => setHoveredPosition("cons")}
                     onMouseLeave={() => setHoveredPosition(null)}
@@ -830,36 +850,32 @@ export const DebateRoom = () => {
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span 
-                    className={`text-muted-foreground cursor-pointer transition-all ${
-                      hoveredPosition === "pros" ? "text-green-600 font-semibold" : ""
-                    } ${userPosition === "pros" ? "text-green-600 font-semibold" : ""}`}
+                  <div 
+                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("pros")}`}
                     onMouseEnter={() => setHoveredPosition("pros")}
                     onMouseLeave={() => setHoveredPosition(null)}
                     onClick={() => handlePositionClick("pros")}
                   >
                     인간 창의성 중요
-                  </span>
-                  <span 
-                    className={`text-muted-foreground cursor-pointer transition-all ${
-                      hoveredPosition === "cons" ? "text-red-600 font-semibold" : ""
-                    } ${userPosition === "cons" ? "text-red-600 font-semibold" : ""}`}
+                  </div>
+                  <div 
+                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("cons")}`}
                     onMouseEnter={() => setHoveredPosition("cons")}
                     onMouseLeave={() => setHoveredPosition(null)}
                     onClick={() => handlePositionClick("cons")}
                   >
                     AI가 더 창의적
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Speech Content Section */}
+            {/* Speech Content Section with Dynamic Sizing */}
             <div className="flex-1 border-r-2 border-border bg-background flex flex-col overflow-hidden">
               <div className="p-4 border-b-2 border-border bg-muted">
                 <h3 className="font-semibold">발언 내용</h3>
               </div>
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 p-4" style={{ minHeight: 'calc(192px * 1.2)' }}>
                 {debate.speeches.map((speech) => (
                   <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
                     <div className="text-sm font-semibold mb-2">{speech.author}</div>
@@ -876,8 +892,9 @@ export const DebateRoom = () => {
                 ))}
               </ScrollArea>
               
-              {/* Speech Input - Always visible */}
-              <div className="p-4 border-t-2 border-border bg-muted">
+              {/* Speech Input with Dynamic Height */}
+              <div className="p-4 border-t-2 border-border bg-muted"
+                   style={{ height: 'calc(100vh - 192px - calc(192px * 1.2))' }}>
                 <div className="flex justify-center mb-4">
                   <div className="flex bg-border rounded-full p-1">
                     <button
@@ -999,7 +1016,6 @@ export const DebateRoom = () => {
                 ))}
               </div>
               
-              {/* Chat Input - 항상 표시되지만 발언자 모드에서는 비활성화 */}
               <div className="p-4 border-t-2 border-border bg-muted">
                 {userMode === "speaker" && (
                   <div className="text-sm text-muted-foreground text-center mb-3">
