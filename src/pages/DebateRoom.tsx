@@ -166,7 +166,7 @@ export const DebateRoom = () => {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <ScrollArea className="flex-1 p-3 max-h-[30vh]">
+            <ScrollArea className="flex-1 p-3 min-h-[20vh] max-h-[30vh]">
               {debate.participants.map((participant) => (
                 <div
                   key={participant.id}
@@ -297,7 +297,7 @@ export const DebateRoom = () => {
           <div className="flex-1 overflow-hidden">
             {/* AI Summary Tab */}
             {activeTab === "ai-summary" && (
-              <ScrollArea className="h-64 p-3 max-h-[30vh]">
+              <ScrollArea className="h-64 p-3 min-h-[20vh] max-h-[30vh]">
                 {debate.aiSummaries.map((summary) => (
                   <div key={summary.id} className="bg-muted border border-border border-l-4 border-l-primary rounded-lg p-3 mb-3">
                     <div className="text-xs font-semibold text-primary mb-2">{summary.author}</div>
@@ -310,7 +310,7 @@ export const DebateRoom = () => {
             {/* Speech Content Tab */}
             {activeTab === "speech" && (
               <div className="flex flex-col h-64">
-                <ScrollArea className="flex-1 p-3 max-h-[30vh]">
+                <ScrollArea className="flex-1 p-3 min-h-[20vh] max-h-[30vh]">
                   {debate.speeches.map((speech) => (
                     <div key={speech.id} className={`bg-muted border rounded-lg p-3 mb-3 ${getFactCheckStyle(speech.factCheck)}`}>
                       <div className="text-xs font-semibold mb-2">{speech.author}</div>
@@ -402,7 +402,7 @@ export const DebateRoom = () => {
             {/* Chat Tab */}
             {activeTab === "chat" && (
               <div className="flex flex-col h-64">
-                <ScrollArea className="flex-1 p-3 max-h-[30vh]">
+                <ScrollArea className="flex-1 p-3 min-h-[20vh] max-h-[30vh]">
                   {debate.chatMessages.map((message) => (
                     <div key={message.id} className="bg-muted border border-border rounded-lg p-2 mb-2">
                       <div className="flex justify-between items-center mb-1">
@@ -492,7 +492,7 @@ export const DebateRoom = () => {
             <div className="p-4 border-b-2 border-border bg-muted">
               <h3 className="font-semibold">발언자 목록 ({debate.participants.length}명)</h3>
             </div>
-            <ScrollArea className="h-full p-4 max-h-[30vh]">
+            <ScrollArea className="h-full p-4 min-h-[20vh] max-h-[30vh]">
               {debate.participants.map((participant) => (
                 <div
                   key={participant.id}
@@ -538,7 +538,7 @@ export const DebateRoom = () => {
             <div className="p-4 border-b-2 border-border bg-muted">
               <h3 className="font-semibold">AI 발언 요약</h3>
             </div>
-            <ScrollArea className="h-full p-4 max-h-[30vh]">
+            <ScrollArea className="h-full p-4 min-h-[20vh] max-h-[30vh]">
               {debate.aiSummaries.map((summary) => (
                 <div key={summary.id} className="bg-muted border border-border border-l-4 border-l-primary rounded-lg p-3 mb-3">
                   <div className="text-sm font-semibold text-primary mb-2">{summary.author}</div>
@@ -575,7 +575,7 @@ export const DebateRoom = () => {
             <div className="p-4 border-b-2 border-border bg-muted">
               <h3 className="font-semibold">발언 내용</h3>
             </div>
-            <ScrollArea className="flex-1 p-4 max-h-[30vh]">
+            <ScrollArea className="flex-1 p-4 min-h-[20vh] max-h-[30vh]">
               {debate.speeches.map((speech) => (
                 <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
                   <div className="font-semibold mb-2">{speech.author}</div>
