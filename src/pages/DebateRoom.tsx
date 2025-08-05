@@ -84,7 +84,7 @@ type TabType = "ai-summary" | "speech" | "chat";
 export const DebateRoom = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn: authIsLoggedIn } = useAuth();
   const isMobile = useIsMobile();
   
   const [activeTab, setActiveTab] = useState<TabType>("ai-summary");
@@ -97,6 +97,8 @@ export const DebateRoom = () => {
   const [showPositionModal, setShowPositionModal] = useState(true);
   const [userPosition, setUserPosition] = useState<"pros" | "cons" | null>(null);
   const [hasEnteredDebate, setHasEnteredDebate] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const debate = mockDebateData; // In real app, fetch by id
 
@@ -130,6 +132,15 @@ export const DebateRoom = () => {
 
   const handleClosePositionModal = () => {
     setShowPositionModal(false);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
   };
 
   const getFactCheckStyle = (factCheck: string) => {
@@ -354,99 +365,100 @@ export const DebateRoom = () => {
                   ))}
                 </ScrollArea>
                 
-                {/* Speech Input */}
-                <div className="p-3 border-t-2 border-border bg-muted">
-                  <div className="flex justify-center mb-3">
-                    <div className="flex bg-border rounded-full p-1">
-                      <button
-                        onClick={() => setSpeechMode("text")}
-                        className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
-                          speechMode === "text" 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        채팅 발언
-                      </button>
-                      <button
-                        onClick={() => setSpeechMode("voice")}
-                        className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
-                          speechMode === "voice" 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        음성 발언
-                      </button>
+                {/* Speech Input - 로그인한 상태에만 표시 */}
+                {isLoggedIn && (
+                  <div className="p-3 border-t-2 border-border bg-muted">
+                    <div className="flex justify-center mb-3">
+                      <div className="flex bg-border rounded-full p-1">
+                        <button
+                          onClick={() => setSpeechMode("text")}
+                          className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
+                            speechMode === "text" 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          채팅 발언
+                        </button>
+                        <button
+                          onClick={() => setSpeechMode("voice")}
+                          className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
+                            speechMode === "voice" 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          음성 발언
+                        </button>
+                      </div>
                     </div>
+                    {speechMode === "text" ? (
+                      <div className="flex gap-2">
+                        <textarea
+                          value={speechInput}
+                          onChange={(e) => setSpeechInput(e.target.value)}
+                          placeholder="발언 내용을 입력하세요..."
+                          className="flex-1 p-2 border border-border rounded text-xs resize-none h-12 bg-background"
+                        />
+                        <Button
+                          onClick={handleSendSpeech}
+                          disabled={!speechInput.trim()}
+                          className="px-3 py-2 text-xs"
+                        >
+                          발언
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`text-xs font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className={`w-15 h-15 rounded-full flex items-center justify-center text-xl cursor-pointer transition-all ${
+                            isRecording 
+                              ? 'bg-red-500 text-white animate-pulse shadow-lg' 
+                              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                          }`}>
+                            🎤
+                          </div>
+                          <div className={`text-sm font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
+                            {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                          </div>
+                          <div className={`w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
+                            {[...Array(5)].map((_, i) => (
+                              <div 
+                                key={i} 
+                                className={`w-0.5 rounded ${
+                                  isRecording 
+                                    ? 'bg-primary animate-pulse' 
+                                    : 'bg-muted-foreground/30'
+                                }`}
+                                style={{
+                                  height: isRecording ? `${Math.random() * 16 + 8}px` : '8px',
+                                  animationDelay: `${i * 0.1}s`
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <Button
+                          variant={isRecording ? "default" : "outline"}
+                          disabled={!isRecording}
+                          className={`text-xs px-4 py-2 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                          발언 완료
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  {speechMode === "text" ? (
-                    <div className="flex gap-2">
-                      <textarea
-                        value={speechInput}
-                        onChange={(e) => setSpeechInput(e.target.value)}
-                        placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
-                        className="flex-1 p-2 border border-border rounded text-xs resize-none h-12 bg-background disabled:bg-muted disabled:text-muted-foreground"
-                        disabled={!isLoggedIn}
-                      />
-                      <Button
-                        onClick={handleSendSpeech}
-                        disabled={!speechInput.trim() || !isLoggedIn}
-                        className="px-3 py-2 text-xs"
-                      >
-                        발언
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <div className={`text-xs font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-15 h-15 rounded-full flex items-center justify-center text-xl cursor-pointer transition-all ${
-                          isRecording 
-                            ? 'bg-red-500 text-white animate-pulse shadow-lg' 
-                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                        }`}>
-                          🎤
-                        </div>
-                        <div className={`text-sm font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
-                          {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
-                        </div>
-                        <div className={`w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
-                          {[...Array(5)].map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`w-0.5 rounded ${
-                                isRecording 
-                                  ? 'bg-primary animate-pulse' 
-                                  : 'bg-muted-foreground/30'
-                              }`}
-                              style={{
-                                height: isRecording ? `${Math.random() * 16 + 8}px` : '8px',
-                                animationDelay: `${i * 0.1}s`
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <Button
-                        variant={isRecording ? "default" : "outline"}
-                        disabled={!isRecording}
-                        className={`text-xs px-4 py-2 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      >
-                        발언 완료
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
 
             {/* Chat Tab */}
             {activeTab === "chat" && (
-              <div className="flex flex-col h-64">
-                <ScrollArea className="flex-1 p-3 min-h-[20vh] max-h-[30vh]">
+              <div className="flex flex-col h-[calc(100vh-280px)]">
+                <div className="flex-1 p-3 overflow-y-auto">
                   {debate.chatMessages.map((message) => (
                     <div key={message.id} className="bg-muted border border-border rounded-lg p-2 mb-2">
                       <div className="flex justify-between items-center mb-1">
@@ -456,41 +468,52 @@ export const DebateRoom = () => {
                       <div className="text-xs leading-relaxed">{message.content}</div>
                     </div>
                   ))}
-                </ScrollArea>
+                </div>
                 
-                {/* Chat Input - Only show if user has entered debate */}
-                {hasEnteredDebate && (
-                  <div className="p-3 border-t-2 border-border bg-muted">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="채팅 입력..."
-                        className="flex-1 px-3 py-2 border border-border rounded-2xl text-xs bg-background"
-                      />
-                      <Button
-                        onClick={handleSendChat}
-                        disabled={!chatInput.trim()}
-                        size="sm"
-                        className="px-3 py-2 text-xs rounded-xl"
-                      >
-                        전송
-                      </Button>
-                    </div>
+                {/* Chat Input - 항상 표시 */}
+                <div className="p-3 border-t-2 border-border bg-muted">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="채팅 입력..."
+                      className="flex-1 px-3 py-2 border border-border rounded-2xl text-xs bg-background"
+                    />
+                    <Button
+                      onClick={handleSendChat}
+                      disabled={!chatInput.trim()}
+                      size="sm"
+                      className="px-3 py-2 text-xs rounded-xl"
+                    >
+                      전송
+                    </Button>
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>
 
           {/* Floating Login Button */}
           {!isLoggedIn && (
-            <button className="fixed bottom-20 left-5 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg font-semibold text-xs z-20">
+            <button 
+              onClick={() => setIsLoginModalOpen(true)}
+              className="fixed bottom-20 left-5 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg font-semibold text-xs z-20"
+            >
               로그인
             </button>
           )}
         </div>
+
+        {/* Login Modal */}
+        <LoginModal 
+          open={isLoginModalOpen} 
+          onOpenChange={setIsLoginModalOpen}
+          onLoginSuccess={handleLoginSuccess}
+        />
+        
+        {/* Floating Profile Button */}
+        <FloatingProfileButton />
       </div>
     );
   }
@@ -533,8 +556,16 @@ export const DebateRoom = () => {
             <Button variant="outline" onClick={handleShare}>
               공유
             </Button>
-            {!isLoggedIn && (
-              <Button variant="outline">
+            {isLoggedIn ? (
+              <UserProfileDropdown 
+                user={{ name: "홍길동", email: "user@example.com" }} 
+                onLogout={handleLogout}
+              />
+            ) : (
+              <Button 
+                variant="outline"
+                onClick={() => setIsLoginModalOpen(true)}
+              >
                 로그인
               </Button>
             )}
@@ -635,92 +666,93 @@ export const DebateRoom = () => {
                 ))}
               </ScrollArea>
               
-              {/* Speech Input */}
-              <div className="p-4 border-t-2 border-border bg-muted">
-                <div className="flex justify-center mb-4">
-                  <div className="flex bg-border rounded-full p-1">
-                    <button
-                      onClick={() => setSpeechMode("text")}
-                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                        speechMode === "text" 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      채팅 발언
-                    </button>
-                    <button
-                      onClick={() => setSpeechMode("voice")}
-                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                        speechMode === "voice" 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      음성 발언
-                    </button>
+              {/* Speech Input - 로그인한 상태에만 표시 */}
+              {isLoggedIn && (
+                <div className="p-4 border-t-2 border-border bg-muted">
+                  <div className="flex justify-center mb-4">
+                    <div className="flex bg-border rounded-full p-1">
+                      <button
+                        onClick={() => setSpeechMode("text")}
+                        className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                          speechMode === "text" 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        채팅 발언
+                      </button>
+                      <button
+                        onClick={() => setSpeechMode("voice")}
+                        className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                          speechMode === "voice" 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        음성 발언
+                      </button>
+                    </div>
                   </div>
+                  {speechMode === "text" ? (
+                    <div className="flex gap-3">
+                      <textarea
+                        value={speechInput}
+                        onChange={(e) => setSpeechInput(e.target.value)}
+                        placeholder="발언 내용을 입력하세요..."
+                        className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background"
+                      />
+                      <Button
+                        onClick={handleSendSpeech}
+                        disabled={!speechInput.trim()}
+                        className="px-6 py-3"
+                      >
+                        발언하기
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className={`text-sm font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                      </div>
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl cursor-pointer transition-all shadow-lg ${
+                          isRecording 
+                            ? 'bg-red-500 text-white animate-pulse' 
+                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        }`}>
+                          🎤
+                        </div>
+                        <div className={`text-base font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
+                          {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                        </div>
+                        <div className={`w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
+                          {[...Array(5)].map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={`w-1 rounded ${
+                                isRecording 
+                                  ? 'bg-primary animate-pulse' 
+                                  : 'bg-muted-foreground/30'
+                              }`}
+                              style={{
+                                height: isRecording ? `${Math.random() * 20 + 12}px` : '12px',
+                                animationDelay: `${i * 0.1}s`
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <Button
+                        variant={isRecording ? "default" : "outline"}
+                        disabled={!isRecording}
+                        className={`px-6 py-3 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        발언 완료
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {speechMode === "text" ? (
-                  <div className="flex gap-3">
-                    <textarea
-                      value={speechInput}
-                      onChange={(e) => setSpeechInput(e.target.value)}
-                      placeholder="발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."
-                      className="flex-1 p-3 border border-border rounded resize-none h-15 bg-background disabled:bg-muted disabled:text-muted-foreground"
-                      disabled={!isLoggedIn}
-                    />
-                    <Button
-                      onClick={handleSendSpeech}
-                      disabled={!speechInput.trim() || !isLoggedIn}
-                      className="px-6 py-3"
-                    >
-                      발언하기
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className={`text-sm font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
-                    </div>
-                    <div className="flex flex-col items-center gap-3">
-                      <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl cursor-pointer transition-all shadow-lg ${
-                        isRecording 
-                          ? 'bg-red-500 text-white animate-pulse' 
-                          : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                      }`}>
-                        🎤
-                      </div>
-                      <div className={`text-base font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
-                        {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
-                      </div>
-                      <div className={`w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
-                        {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={`w-1 rounded ${
-                              isRecording 
-                                ? 'bg-primary animate-pulse' 
-                                : 'bg-muted-foreground/30'
-                            }`}
-                            style={{
-                              height: isRecording ? `${Math.random() * 20 + 12}px` : '12px',
-                              animationDelay: `${i * 0.1}s`
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <Button
-                      variant={isRecording ? "default" : "outline"}
-                      disabled={!isRecording}
-                      className={`px-6 py-3 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
-                    >
-                      발언 완료
-                    </Button>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
 
@@ -746,7 +778,7 @@ export const DebateRoom = () => {
               <div className="p-4 border-b-2 border-border bg-muted">
                 <h3 className="font-semibold">청중 (12명)</h3>
               </div>
-              <ScrollArea className="flex-1 p-4">
+              <div className="flex-1 p-4 overflow-y-auto">
                 {debate.chatMessages.map((message) => (
                   <div key={message.id} className="bg-muted border border-border rounded-lg p-3 mb-3">
                     <div className="flex justify-between items-center mb-2">
@@ -756,32 +788,40 @@ export const DebateRoom = () => {
                     <div className="text-sm leading-relaxed">{message.content}</div>
                   </div>
                 ))}
-              </ScrollArea>
+              </div>
               
-              {/* Chat Input - Only show if user has entered debate */}
-              {hasEnteredDebate && (
-                <div className="p-4 border-t-2 border-border bg-muted">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="채팅 입력..."
-                      className="flex-1 p-3 border border-border rounded bg-background"
-                    />
-                    <Button
-                      onClick={handleSendChat}
-                      disabled={!chatInput.trim()}
-                    >
-                      전송
-                    </Button>
-                  </div>
+              {/* Chat Input - 항상 표시 */}
+              <div className="p-4 border-t-2 border-border bg-muted">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="채팅 입력..."
+                    className="flex-1 p-3 border border-border rounded bg-background"
+                  />
+                  <Button
+                    onClick={handleSendChat}
+                    disabled={!chatInput.trim()}
+                  >
+                    전송
+                  </Button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Login Modal */}
+      <LoginModal 
+        open={isLoginModalOpen} 
+        onOpenChange={setIsLoginModalOpen}
+        onLoginSuccess={handleLoginSuccess}
+      />
+      
+      {/* Floating Profile Button */}
+      <FloatingProfileButton />
     </div>
   );
 };
