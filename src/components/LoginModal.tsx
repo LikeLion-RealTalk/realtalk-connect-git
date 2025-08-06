@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +43,7 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] max-w-[320px] p-0 gap-0 border-4 border-quick-debate rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <DialogContent className="sm:max-w-[400px] max-w-[320px] p-0 gap-0 border-2 border-border rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="relative p-6 sm:p-10">
           {/* Close button */}
           <button

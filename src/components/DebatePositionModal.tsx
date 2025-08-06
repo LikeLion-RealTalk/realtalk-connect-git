@@ -1,8 +1,12 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { generateNickname } from "@/lib/nickname/generator";
+import { validateUserNickname } from "@/lib/nickname/validate-user-nickname";
+import { adjectives, nouns } from "@/lib/nickname/wordlists";
 
 interface DebatePositionModalProps {
   isOpen: boolean;
@@ -11,6 +15,11 @@ interface DebatePositionModalProps {
   debateTitle: string;
   category: string;
   type: string;
+}
+
+function getSafeNickname(): string {
+  const nick = generateNickname(adjectives, nouns, true, 50);
+  return nick ?? getSafeNickname();
 }
 
 export const DebatePositionModal = ({
@@ -22,6 +31,7 @@ export const DebatePositionModal = ({
   type
 }: DebatePositionModalProps) => {
   const [selectedPosition, setSelectedPosition] = useState<"pros" | "cons" | null>(null);
+  const [nickname, setNickname] = useState("");
   const navigate = useNavigate();
 
   const handleCancel = () => {
@@ -29,9 +39,20 @@ export const DebatePositionModal = ({
   };
 
   const handleEnter = () => {
-    if (selectedPosition) {
-      onEnter(selectedPosition);
+    if (selectedPosition && nickname.trim()) {
+      const result = validateUserNickname(nickname);
+      if (result.isValid) {
+        onEnter(selectedPosition);
+      } else {
+        console.log(`❌ 유효하지 않은 닉네임입니다. 이유: ${result.reason}`);
+      }
     }
+  };
+
+  const handleGenerateNickname = () => {
+    const generatedNickname = getSafeNickname();
+    setNickname(generatedNickname);
+    console.log(`✅ 닉네임 생성됨: ${generatedNickname}`);
   };
 
   if (!isOpen) return null;
@@ -98,6 +119,27 @@ export const DebatePositionModal = ({
             </div>
           </div>
 
+          {/* Nickname Section */}
+          <div className="mb-6">
+            <h4 className="text-base font-semibold mb-3">닉네임</h4>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="닉네임을 입력하세요"
+                className="w-full px-3 py-2 border-2 border-border rounded-lg focus:border-primary focus:outline-none"
+              />
+              <Button
+                onClick={handleGenerateNickname}
+                variant="outline"
+                className="w-full"
+              >
+                임의생성
+              </Button>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex gap-3 justify-center">
             <Button
@@ -109,7 +151,7 @@ export const DebatePositionModal = ({
             </Button>
             <Button
               onClick={handleEnter}
-              disabled={!selectedPosition}
+              disabled={!selectedPosition || !nickname.trim()}
               className="px-6"
             >
               토론 입장하기
