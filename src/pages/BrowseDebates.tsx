@@ -108,10 +108,14 @@ const BrowseDebates = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex flex-col cursor-pointer" onClick={() => navigate("/")}>
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded border-2 border-muted-foreground bg-background text-xs text-muted-foreground">
-                로고
-              </div>
+              <img
+                  src="/banner_11.png"
+                  alt="RealTalk Logo"
+                  className="h-8 w-auto"
+              />
+{/*
               <span className="text-xl sm:text-2xl font-bold text-foreground">RealTalk</span>
+*/}
             </div>
             <p className="text-sm text-muted-foreground mt-1 ml-11 hidden sm:block">
               실시간 토론에 참여하세요

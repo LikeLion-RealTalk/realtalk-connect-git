@@ -381,11 +381,11 @@ export const DebateRoom = () => {
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <img 
-                src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+{/*              <img
+                src="/banner_11.png" 
                 alt="RealTalk Logo" 
                 className="h-6 w-auto"
-              />
+              />*/}
               <Button
                 variant="outline"
                 size="icon"
@@ -529,7 +529,7 @@ export const DebateRoom = () => {
                       <div className="text-xs leading-relaxed mb-2">{speech.content}</div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-semibold px-2 py-1 rounded ${getFactCheckLabelStyle(speech.factCheck)}`}>
-                          팩트체킹: {speech.factCheck}
+                          {speech.factCheck}
                         </span>
                         <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
                           출처 보기
@@ -767,7 +767,7 @@ export const DebateRoom = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <img 
-              src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+              src="/banner_11.png" 
               alt="RealTalk Logo" 
               className="h-8 w-auto"
             />
@@ -934,7 +934,7 @@ export const DebateRoom = () => {
                     <div className="text-sm leading-relaxed mb-2">{speech.content}</div>
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-semibold px-3 py-1 rounded ${getFactCheckLabelStyle(speech.factCheck)}`}>
-                        팩트체킹: {speech.factCheck}
+                        {speech.factCheck}
                       </span>
                       <Button variant="outline" size="sm">
                         출처 보기
