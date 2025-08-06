@@ -1,8 +1,13 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { generateNickname } from "@/lib/nickname/generator";
+import { validateUserNickname } from "@/lib/nickname/validate-user-nickname";
+import { adjectives, nouns } from "@/lib/nickname/wordlists";
 
 interface DebatePositionModalProps {
   isOpen: boolean;
@@ -22,16 +27,42 @@ export const DebatePositionModal = ({
   type
 }: DebatePositionModalProps) => {
   const [selectedPosition, setSelectedPosition] = useState<"pros" | "cons" | null>(null);
+  const [nickname, setNickname] = useState("");
+  const [nicknameError, setNicknameError] = useState("");
   const navigate = useNavigate();
+
+  const getSafeNickname = (): string => {
+    const nick = generateNickname(adjectives, nouns, true, 50);
+    return nick ?? getSafeNickname();
+  };
+
+  const handleGenerateNickname = () => {
+    const generatedNickname = getSafeNickname();
+    setNickname(generatedNickname);
+    setNicknameError("");
+  };
 
   const handleCancel = () => {
     navigate("/browse");
   };
 
   const handleEnter = () => {
-    if (selectedPosition) {
-      onEnter(selectedPosition);
+    if (!selectedPosition) return;
+    
+    if (!nickname.trim()) {
+      setNicknameError("닉네임을 입력해주세요.");
+      return;
     }
+
+    const validationResult = validateUserNickname(nickname);
+    if (!validationResult.isValid) {
+      setNicknameError(validationResult.reason || "유효하지 않은 닉네임입니다.");
+      return;
+    }
+
+    console.log(`입력된 닉네임: ${nickname}`);
+    console.log("✅ 유효한 닉네임입니다.");
+    onEnter(selectedPosition);
   };
 
   if (!isOpen) return null;
@@ -96,6 +127,32 @@ export const DebatePositionModal = ({
                 <div className="font-semibold">AI가 더 창의적</div>
               </button>
             </div>
+          </div>
+
+          {/* Nickname Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">닉네임</label>
+            <div className="flex gap-2">
+              <Input
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setNicknameError("");
+                }}
+                placeholder="닉네임을 입력하세요"
+                className="flex-1"
+              />
+              <Button
+                onClick={handleGenerateNickname}
+                variant="outline"
+                className="whitespace-nowrap"
+              >
+                임의생성
+              </Button>
+            </div>
+            {nicknameError && (
+              <p className="text-sm text-destructive mt-1">{nicknameError}</p>
+            )}
           </div>
 
           {/* Actions */}
