@@ -48,9 +48,11 @@ export const DebatePositionModal = ({
     if (selectedPosition && nickname.trim()) {
       const result = validateUserNickname(nickname);
       if (result.isValid) {
+        console.log("✅ 유효한 닉네임입니다.");
         onEnter(selectedPosition);
       } else {
-        console.log("❌ 유효하지 않은 닉네임:", result.reason);
+        console.log("❌ 유효하지 않은 닉네임입니다.");
+        console.log(`   이유: ${result.reason}`);
         // You can add toast notification here if needed
       }
     }
