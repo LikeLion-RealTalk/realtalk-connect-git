@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ChevronRight, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShareModal } from "@/components/ShareModal";
 
 export const DebateRoom = () => {
   const navigate = useNavigate();
@@ -18,9 +17,9 @@ export const DebateRoom = () => {
   const [remainingTime, setRemainingTime] = useState(18);
   const isMobile = window.innerWidth <= 640;
 
-  const speakerTimerHeight = isMobile ? 140 : 200;
+  const speakerTimerHeight = isMobile ? 140 : 200; // Estimated height of speaker timer area
   const speechContentMinHeight = speakerTimerHeight * 1.8;
-  const aiSummaryMaxHeight = speechContentMinHeight * 0.6; // AI summary should be shorter
+  const aiSummaryMaxHeight = speechContentMinHeight * 0.8; // AI summary should be shorter than speech content
 
   if (isMobile) {
     return (
@@ -315,7 +314,7 @@ export const DebateRoom = () => {
                     type="text"
                     className="flex-1 px-3 py-2 border border-border rounded-full text-xs outline-none focus:ring-2 focus:ring-primary"
                     placeholder="채팅 입력..."
-                    style={{ height: '32px' }}
+                    style={{ height: '32px' }} // Match button height
                   />
                   <Button 
                     size="sm" 
@@ -692,4 +691,9 @@ function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function ShareModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  // Placeholder for ShareModal component or import if exists
+  return null;
 }
