@@ -28,8 +28,11 @@ export const DebatePositionModal = ({
 }: DebatePositionModalProps) => {
   const [selectedPosition, setSelectedPosition] = useState<"pros" | "cons" | null>(null);
   const [nickname, setNickname] = useState("");
-  const [nicknameError, setNicknameError] = useState("");
   const navigate = useNavigate();
+
+  const handleCancel = () => {
+    navigate("/browse");
+  };
 
   const getSafeNickname = (): string => {
     const nick = generateNickname(adjectives, nouns, true, 50);
@@ -39,37 +42,25 @@ export const DebatePositionModal = ({
   const handleGenerateNickname = () => {
     const generatedNickname = getSafeNickname();
     setNickname(generatedNickname);
-    setNicknameError("");
-  };
-
-  const handleCancel = () => {
-    navigate("/browse");
   };
 
   const handleEnter = () => {
-    if (!selectedPosition) return;
-    
-    if (!nickname.trim()) {
-      setNicknameError("닉네임을 입력해주세요.");
-      return;
+    if (selectedPosition && nickname.trim()) {
+      const result = validateUserNickname(nickname);
+      if (result.isValid) {
+        onEnter(selectedPosition);
+      } else {
+        console.log("❌ 유효하지 않은 닉네임:", result.reason);
+        // You can add toast notification here if needed
+      }
     }
-
-    const validationResult = validateUserNickname(nickname);
-    if (!validationResult.isValid) {
-      setNicknameError(validationResult.reason || "유효하지 않은 닉네임입니다.");
-      return;
-    }
-
-    console.log(`입력된 닉네임: ${nickname}`);
-    console.log("✅ 유효한 닉네임입니다.");
-    onEnter(selectedPosition);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background border-3 border-primary rounded-xl w-full max-w-md relative shadow-2xl">
+      <div className="bg-background rounded-xl w-full max-w-md relative shadow-2xl">
         {/* Header */}
         <div className="bg-muted px-6 py-4 border-b-2 border-border flex justify-between items-center">
           <h2 className="text-lg font-semibold">토론 입장 선택</h2>
@@ -134,25 +125,21 @@ export const DebatePositionModal = ({
             <label className="block text-sm font-medium mb-2">닉네임</label>
             <div className="flex gap-2">
               <Input
+                type="text"
                 value={nickname}
-                onChange={(e) => {
-                  setNickname(e.target.value);
-                  setNicknameError("");
-                }}
+                onChange={(e) => setNickname(e.target.value)}
                 placeholder="닉네임을 입력하세요"
                 className="flex-1"
               />
               <Button
-                onClick={handleGenerateNickname}
+                type="button"
                 variant="outline"
+                onClick={handleGenerateNickname}
                 className="whitespace-nowrap"
               >
                 임의생성
               </Button>
             </div>
-            {nicknameError && (
-              <p className="text-sm text-destructive mt-1">{nicknameError}</p>
-            )}
           </div>
 
           {/* Actions */}
@@ -166,7 +153,7 @@ export const DebatePositionModal = ({
             </Button>
             <Button
               onClick={handleEnter}
-              disabled={!selectedPosition}
+              disabled={!selectedPosition || !nickname.trim()}
               className="px-6"
             >
               토론 입장하기
