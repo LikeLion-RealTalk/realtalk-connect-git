@@ -43,7 +43,7 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] max-w-[320px] p-0 gap-0 border-2 border-border rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <DialogContent className="sm:max-w-[400px] max-w-[320px] p-0 gap-0 rounded-2xl bg-background fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="relative p-6 sm:p-10">
           {/* Close button */}
           <button
@@ -63,7 +63,7 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
             {/* Kakao Login */}
             <Button
               onClick={handleKakaoLogin}
-              className="w-full h-12 sm:h-14 bg-[#FEE500] hover:bg-[#FEE500]/90 text-black border-2 border-[#FEE500] font-bold text-sm sm:text-base flex items-center justify-center gap-3"
+              className="w-full h-12 sm:h-14 bg-[#FEE500] hover:bg-[#FEE500]/90 text-black border border-border font-bold text-sm sm:text-base flex items-center justify-center gap-3"
               variant="outline"
             >
               <div className="w-5 h-5 sm:w-6 sm:h-6 bg-black rounded flex items-center justify-center text-white text-xs sm:text-sm font-bold">
@@ -80,7 +80,7 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
             {/* Google Login */}
             <Button
               onClick={handleGoogleLogin}
-              className="w-full h-12 sm:h-14 bg-background hover:bg-muted text-foreground border-2 border-border font-bold text-sm sm:text-base flex items-center justify-center gap-3"
+              className="w-full h-12 sm:h-14 bg-background hover:bg-muted text-foreground border border-border font-bold text-sm sm:text-base flex items-center justify-center gap-3"
               variant="outline"
             >
               <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#4285f4] rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
