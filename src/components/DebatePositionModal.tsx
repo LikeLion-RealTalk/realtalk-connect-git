@@ -1,13 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { generateNickname } from "@/lib/nickname/generator";
-import { validateUserNickname } from "@/lib/nickname/validate-user-nickname";
-import { adjectives, nouns } from "@/lib/nickname/wordlists";
 
 interface DebatePositionModalProps {
   isOpen: boolean;
@@ -27,34 +22,15 @@ export const DebatePositionModal = ({
   type
 }: DebatePositionModalProps) => {
   const [selectedPosition, setSelectedPosition] = useState<"pros" | "cons" | null>(null);
-  const [nickname, setNickname] = useState("");
   const navigate = useNavigate();
 
   const handleCancel = () => {
     navigate("/browse");
   };
 
-  const getSafeNickname = (): string => {
-    const nick = generateNickname(adjectives, nouns, true, 50);
-    return nick ?? getSafeNickname();
-  };
-
-  const handleGenerateNickname = () => {
-    const generatedNickname = getSafeNickname();
-    setNickname(generatedNickname);
-  };
-
   const handleEnter = () => {
-    if (selectedPosition && nickname.trim()) {
-      const result = validateUserNickname(nickname);
-      if (result.isValid) {
-        console.log("✅ 유효한 닉네임입니다.");
-        onEnter(selectedPosition);
-      } else {
-        console.log("❌ 유효하지 않은 닉네임입니다.");
-        console.log(`   이유: ${result.reason}`);
-        // You can add toast notification here if needed
-      }
+    if (selectedPosition) {
+      onEnter(selectedPosition);
     }
   };
 
@@ -62,7 +38,7 @@ export const DebatePositionModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-xl w-full max-w-md relative shadow-2xl">
+      <div className="bg-background border-3 border-primary rounded-xl w-full max-w-md relative shadow-2xl">
         {/* Header */}
         <div className="bg-muted px-6 py-4 border-b-2 border-border flex justify-between items-center">
           <h2 className="text-lg font-semibold">토론 입장 선택</h2>
@@ -122,28 +98,6 @@ export const DebatePositionModal = ({
             </div>
           </div>
 
-          {/* Nickname Input */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">닉네임</label>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="닉네임을 입력하세요"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGenerateNickname}
-                className="whitespace-nowrap"
-              >
-                임의생성
-              </Button>
-            </div>
-          </div>
-
           {/* Actions */}
           <div className="flex gap-3 justify-center">
             <Button
@@ -155,7 +109,7 @@ export const DebatePositionModal = ({
             </Button>
             <Button
               onClick={handleEnter}
-              disabled={!selectedPosition || !nickname.trim()}
+              disabled={!selectedPosition}
               className="px-6"
             >
               토론 입장하기
