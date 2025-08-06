@@ -11,6 +11,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DebatePositionModal } from "@/components/DebatePositionModal";
 import { LoginModal } from "@/components/LoginModal";
 import { UserProfileDropdown } from "@/components/UserProfileDropdown";
+import { FloatingProfileButton } from "@/components/FloatingProfileButton";
+
 
 // Mock debate data
 const mockDebateData = {
@@ -733,6 +735,9 @@ export const DebateRoom = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Floating Profile Button - hidden when sidebar is open */}
+        {!sidebarOpen && <FloatingProfileButton />}
       </div>
     );
   }
