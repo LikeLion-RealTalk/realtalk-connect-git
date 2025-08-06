@@ -14,11 +14,20 @@ import { DebateSummaryModal } from "./DebateSummaryModal";
 import { LoginModal } from "./LoginModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { generateNickname } from "@/lib/nickname/generator";
+import { adjectives, nouns } from "@/lib/nickname/wordlists";
+import {Input} from "postcss";
 
 interface JoinDebateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   debate: Debate | null;
+}
+
+/* 닉네임 무작위 생성 기능 */
+function getSafeNickname(): string {
+  const nick = generateNickname(adjectives, nouns, true, 50);
+  return nick ?? getSafeNickname(); // 재귀적으로 안전 닉네임 생성
 }
 
 export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalProps) => {
@@ -121,6 +130,19 @@ export const JoinDebateModal = ({ open, onOpenChange, debate }: JoinDebateModalP
                 </Badge>
               </div>
             </div>
+
+{/*            {!isLoggedIn && (
+                <div className="flex flex-col gap-2 mt-4">
+                  <Input
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      placeholder="닉네임을 입력하세요"
+                  />
+                  <Button variant="outline" onClick={() => setNickname(getSafeNickname())}>
+                    랜덤 닉네임 생성
+                  </Button>
+                </div>
+            )}*/}
 
             {/* Join Buttons */}
             <div className="flex flex-col gap-3 sm:gap-4">

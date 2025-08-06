@@ -10,6 +10,8 @@ interface UserContextType {
   user: User | null;
   login: (user: User) => void;
   logout: () => void;
+  guestNickname: string;
+  setGuestNickname: (nickname: string) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -20,6 +22,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [guestNickname, setGuestNickname] = useState<string>("");
+
   const login = (user: User) => {
     sessionStorage.setItem("user", JSON.stringify(user));
     setUser(user);
@@ -28,10 +32,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     sessionStorage.removeItem("user");
     setUser(null);
+    setGuestNickname(""); // 로그아웃 시 guestNickname도 초기화
   };
 
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider
+        value={{ user, login, logout, guestNickname, setGuestNickname }}
+    >
       {children}
     </UserContext.Provider>
   );
