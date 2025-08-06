@@ -1,13 +1,8 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import {Button} from "@/components/ui/button";
+import {Dialog, DialogContent, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {X} from "lucide-react";
+import {useToast} from "@/hooks/use-toast";
+import {useUser} from "@/providers/UserProvider";
 
 interface LoginModalProps {
   open: boolean;
@@ -17,10 +12,31 @@ interface LoginModalProps {
 
 export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalProps) => {
   const { toast } = useToast();
-  
-  const handleKakaoLogin = () => {
+  const { login } = useUser(); // 전역 로그인 함수 가져오기
+
+  const handleKakaoLogin = async () => {
+    // TODO: 백엔드 연동 시 여기를 수정하세요
+    /*
+    try {
+      const response = await axios.post("https://api.example.com/auth/kakao", {
+        token: "임시토큰", // 실제로는 카카오 SDK에서 받은 토큰을 전송
+      });
+      const userData = response.data; // 서버에서 내려주는 유저 정보
+
+      login(userData);
+      toast({ description: `${userData.name}님, 어서오세요.` });
+      onLoginSuccess?.();
+      onOpenChange(false);
+    } catch (error) {
+      toast({ description: "로그인에 실패했어요. 다시 시도해주세요." });
+    }
+    */
+
+    // [MOCK] 임시 로그인 흐름
     // 카카오 로그인 로직
     console.log("카카오 로그인");
+    const kakaoUser = { name: "홍길동", email: "kakao@example.com" };
+    login(kakaoUser);
     toast({
       description: "카카오님, 어서오세요.",
       duration: 3000,
@@ -29,9 +45,29 @@ export const LoginModal = ({ open, onOpenChange, onLoginSuccess }: LoginModalPro
     onOpenChange(false);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    // TODO: 백엔드 연동 시 여기를 수정하세요
+    /*
+    try {
+      const response = await axios.post("https://api.example.com/auth/google", {
+        token: "임시토큰", // 실제로는 Google SDK에서 받은 토큰을 전송
+      });
+      const userData = response.data;
+
+      login(userData);
+      toast({ description: `${userData.name}님, 어서오세요.` });
+      onLoginSuccess?.();
+      onOpenChange(false);
+    } catch (error) {
+      toast({ description: "로그인에 실패했어요. 다시 시도해주세요." });
+    }
+    */
+
+    // [MOCK] 임시 로그인 흐름
     // 구글 로그인 로직
     console.log("구글 로그인");
+    const googleUser = { name: "홍길동", email: "google@example.com" };
+    login(googleUser);
     toast({
       description: "구글님, 어서오세요.",
       duration: 3000,

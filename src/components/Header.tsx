@@ -6,12 +6,16 @@ import { MobileMenuModal } from "./MobileMenuModal";
 import { CreateDebateModal } from "./CreateDebateModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/providers/UserProvider";
 
 export const Header = () => {
+  const { user, login, logout } = useUser();
+  const isLoggedIn = !!user;
+  
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCreateDebateOpen, setIsCreateDebateOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 상태 관리
+  // const [isLoggedIn, setIsLoggedIn] = useState(false); // 상태 관리 --> UserProvider로 대체
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
@@ -23,12 +27,15 @@ export const Header = () => {
   };
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
+    // setIsLoggedIn(true);
+    // 추후 로그인 로직에서 실제 유저 정보 설정 예정
+    login(mockUser);
     setIsLoginModalOpen(false);
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    // setIsLoggedIn(false);
+    logout(); // ✅ UserProvider 훅의 logout 호출
   };
 
   const handleCreateDebate = () => {
@@ -50,11 +57,11 @@ export const Header = () => {
           {/* Logo with Image */}
           <div className="flex items-center gap-3">
             <img 
-              src="/lovable-uploads/4a693203-7a3a-43f4-983c-b37e65f765bf.png" 
+              src="/banner_11.png" 
               alt="RealTalk Logo" 
               className="h-8 w-auto"
             />
-            <span className="text-xl font-bold text-foreground">RealTalk</span>
+            {/*<span className="text-xl font-bold text-foreground">RealTalk</span>*/}
           </div>
 
           {/* Navigation - Hidden on mobile */}
