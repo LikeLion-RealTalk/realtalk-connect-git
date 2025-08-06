@@ -42,6 +42,7 @@ export const DebatePositionModal = ({
     if (selectedPosition && nickname.trim()) {
       const result = validateUserNickname(nickname);
       if (result.isValid) {
+        console.log(`✅ 유효한 닉네임입니다: ${nickname}`);
         onEnter(selectedPosition);
       } else {
         console.log(`❌ 유효하지 않은 닉네임입니다. 이유: ${result.reason}`);
@@ -52,7 +53,15 @@ export const DebatePositionModal = ({
   const handleGenerateNickname = () => {
     const generatedNickname = getSafeNickname();
     setNickname(generatedNickname);
-    console.log(`✅ 닉네임 생성됨: ${generatedNickname}`);
+    
+    const result = validateUserNickname(generatedNickname);
+    console.log(`\n입력된 닉네임: ${generatedNickname}`);
+    if (result.isValid) {
+      console.log('✅ 유효한 닉네임입니다.');
+    } else {
+      console.log('❌ 유효하지 않은 닉네임입니다.');
+      console.log(`   이유: ${result.reason}`);
+    }
   };
 
   if (!isOpen) return null;

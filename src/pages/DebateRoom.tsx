@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -146,11 +147,11 @@ export default function DebateRoom() {
                       <p className="text-foreground mb-2">{statement.content}</p>
                       <div className="text-xs text-muted-foreground">
                         <div>👍 {statement.likes} 👎 {statement.dislikes}</div>
-                        <div className="mt-1">
-                          {statement.factCheck === "사실" && "사실"}
-                          {statement.factCheck === "부분적 오류" && "부분적 오류"}
-                          {statement.factCheck === "불분명" && "불분명"}
-                        </div>
+                        {statement.factCheck && (
+                          <div className="mt-1">
+                            {statement.factCheck}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -177,7 +178,7 @@ export default function DebateRoom() {
               {/* Center - AI Summary */}
               <div className="bg-card border border-border rounded-lg p-4">
                 <h3 className="font-semibold text-center mb-4">AI 발언 요약</h3>
-                <div className="h-[300px] overflow-y-auto space-y-3">
+                <div className="h-[250px] overflow-y-auto space-y-3">
                   <div className="bg-muted p-3 rounded-lg">
                     <h4 className="font-medium mb-2">찬성 측 주요 논점</h4>
                     <ul className="text-sm space-y-1">
@@ -223,11 +224,11 @@ export default function DebateRoom() {
                       <p className="text-foreground mb-2">{statement.content}</p>
                       <div className="text-xs text-muted-foreground">
                         <div>👍 {statement.likes} 👎 {statement.dislikes}</div>
-                        <div className="mt-1">
-                          {statement.factCheck === "사실" && "사실"}
-                          {statement.factCheck === "부분적 오류" && "부분적 오류"}
-                          {statement.factCheck === "불분명" && "불분명"}
-                        </div>
+                        {statement.factCheck && (
+                          <div className="mt-1">
+                            {statement.factCheck}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -276,38 +277,19 @@ export default function DebateRoom() {
             ))}
           </div>
 
-          {/* Chat Input - Web version */}
-          <div className="lg:block hidden">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="채팅을 입력하세요..."
-                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-sm h-10"
-                onKeyPress={(e) => e.key === "Enter" && handleChatSubmit()}
-              />
-              <Button onClick={handleChatSubmit} size="sm" className="h-10">
-                전송
-              </Button>
-            </div>
-          </div>
-
-          {/* Chat Input - Mobile version */}
-          <div className="lg:hidden block">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="채팅을 입력하세요..."
-                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-sm h-10"
-                onKeyPress={(e) => e.key === "Enter" && handleChatSubmit()}
-              />
-              <Button onClick={handleChatSubmit} size="sm" className="h-10">
-                전송
-              </Button>
-            </div>
+          {/* Chat Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="채팅을 입력하세요..."
+              className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-sm h-9"
+              onKeyPress={(e) => e.key === "Enter" && handleChatSubmit()}
+            />
+            <Button onClick={handleChatSubmit} size="sm" className="h-9">
+              전송
+            </Button>
           </div>
         </div>
       </div>
