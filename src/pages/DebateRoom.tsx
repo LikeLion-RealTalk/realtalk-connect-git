@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Menu, X, ChevronUp, ChevronDown, Users, Mic } from "lucide-react";
+import { ArrowLeft, Share2, Menu, X, ChevronUp, ChevronDown, Users, Mic, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,8 +10,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DebatePositionModal } from "@/components/DebatePositionModal";
 import { LoginModal } from "@/components/LoginModal";
-import { FloatingProfileButton } from "@/components/FloatingProfileButton";
 import { UserProfileDropdown } from "@/components/UserProfileDropdown";
+import { FloatingProfileButton } from "@/components/FloatingProfileButton";
+
 
 // Mock debate data
 const mockDebateData = {
@@ -115,8 +116,11 @@ export const DebateRoom = () => {
   const [remainingTime, setRemainingTime] = useState(3 * 60); // 3 minutes in seconds
   const [hoveredPosition, setHoveredPosition] = useState<"pros" | "cons" | null>(null);
   const [speechInputMode, setSpeechInputMode] = useState<"text" | "voice">("text");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrlCopied, setShareUrlCopied] = useState(false);
 
   const debate = mockDebateData;
+  const shareUrl = "https://api.realtalks.co.kr/debate/b7b2e571-7939-47cf-a599-cb2f3bdd508cb";
 
   // Check if debate can start (max debaters reached for both positions)
   const canStartDebate = () => {
@@ -135,6 +139,24 @@ export const DebateRoom = () => {
     return hoveredPosition === position 
       ? "bg-muted/50 text-foreground" 
       : "text-muted-foreground";
+  };
+
+  // Enhanced position styling for hover effects
+  const getEnhancedPositionStyling = (position: "pros" | "cons") => {
+    if (userPosition === position) {
+      return position === "pros" 
+        ? "bg-green-100 text-green-800 font-semibold border-green-300" 
+        : "bg-red-100 text-red-800 font-semibold border-red-300";
+    }
+    
+    // When hovering opposite position, show selection colors
+    if (hoveredPosition === position) {
+      return position === "pros"
+        ? "bg-green-100 text-green-800 font-semibold border-green-300"
+        : "bg-red-100 text-red-800 font-semibold border-red-300";
+    }
+    
+    return "text-muted-foreground";
   };
 
   // Timer effect for remaining time
@@ -167,7 +189,17 @@ export const DebateRoom = () => {
   };
 
   const handleShare = () => {
-    console.log("Share debate");
+    setShareModalOpen(true);
+  };
+
+  const handleCopyShareUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareUrlCopied(true);
+      setTimeout(() => setShareUrlCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
   };
 
   const toggleUserMode = () => {
@@ -330,10 +362,10 @@ export const DebateRoom = () => {
             )}
           </div>
 
-          {/* Enhanced Slide Handle - 4x height */}
+          {/* Enhanced Slide Handle - Reduced height and transparency */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-60 bg-primary text-primary-foreground rounded-r-xl flex items-center justify-center z-30 shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-40 bg-primary/20 text-primary-foreground/80 rounded-r-xl flex items-center justify-center z-30 shadow-sm"
           >
             <ChevronDown className="w-3 h-3 rotate-90" />
           </button>
@@ -413,7 +445,7 @@ export const DebateRoom = () => {
             <div className="flex flex-col gap-2">
               <div className="flex h-5 rounded overflow-hidden border border-border">
                 <div 
-                  className={`bg-green-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("pros")}`}
+                  className={`${hoveredPosition === "pros" && userPosition !== "pros" ? "bg-green-500" : "bg-green-500"} text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer`}
                   style={{ width: `${debate.poll.pros}%` }}
                   onMouseEnter={() => setHoveredPosition("pros")}
                   onMouseLeave={() => setHoveredPosition(null)}
@@ -422,7 +454,7 @@ export const DebateRoom = () => {
                   {debate.poll.pros}%
                 </div>
                 <div 
-                  className={`bg-red-500 text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("cons")}`}
+                  className={`${hoveredPosition === "cons" && userPosition !== "cons" ? "bg-red-500" : "bg-red-500"} text-white flex items-center justify-center text-xs font-semibold transition-all duration-500 cursor-pointer`}
                   style={{ width: `${debate.poll.cons}%` }}
                   onMouseEnter={() => setHoveredPosition("cons")}
                   onMouseLeave={() => setHoveredPosition(null)}
@@ -433,7 +465,7 @@ export const DebateRoom = () => {
               </div>
               <div className="flex justify-between items-center text-xs">
                 <div 
-                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("pros")}`}
+                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getEnhancedPositionStyling("pros")}`}
                   onMouseEnter={() => setHoveredPosition("pros")}
                   onMouseLeave={() => setHoveredPosition(null)}
                   onClick={() => handlePositionClick("pros")}
@@ -441,7 +473,7 @@ export const DebateRoom = () => {
                   인간 창의성 중요
                 </div>
                 <div 
-                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("cons")}`}
+                  className={`cursor-pointer transition-all px-2 py-1 rounded border ${getEnhancedPositionStyling("cons")}`}
                   onMouseEnter={() => setHoveredPosition("cons")}
                   onMouseLeave={() => setHoveredPosition(null)}
                   onClick={() => handlePositionClick("cons")}
@@ -474,7 +506,7 @@ export const DebateRoom = () => {
           </div>
 
           {/* Tab Content - Dynamic sizing based on screen height and speaker section */}
-          <div className="flex-1 overflow-hidden" style={{ minHeight: 'calc(192px * 1.2)' }}>
+          <div className="flex-1 overflow-hidden" style={{ minHeight: 'calc(192px * 1.8)' }}>
             {/* AI Summary Tab */}
             {activeTab === "ai-summary" && (
               <ScrollArea className="h-full p-3">
@@ -490,7 +522,7 @@ export const DebateRoom = () => {
             {/* Speech Content Tab */}
             {activeTab === "speech" && (
               <div className="flex flex-col h-full">
-                <ScrollArea className="flex-1 p-3" style={{ minHeight: 'calc(192px * 1.2)' }}>
+                <ScrollArea className="flex-1 p-3" style={{ minHeight: 'calc(192px * 1.8)' }}>
                   {debate.speeches.map((speech) => (
                     <div key={speech.id} className={`bg-muted border rounded-lg p-3 mb-3 ${getFactCheckStyle(speech.factCheck)}`}>
                       <div className="text-xs font-semibold mb-2">{speech.author}</div>
@@ -507,93 +539,95 @@ export const DebateRoom = () => {
                   ))}
                 </ScrollArea>
                 
-                {/* Speech Input - Dynamic height */}
-                <div className="p-3 border-t-2 border-border bg-muted" 
-                     style={{ height: 'calc(100vh - 192px - calc(192px * 1.2))' }}>
-                  <div className="flex justify-center mb-3">
-                    <div className="flex bg-border rounded-full p-1">
-                      <button
-                        onClick={() => setSpeechInputMode("text")}
-                        className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
-                          speechInputMode === "text" 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        채팅 발언
-                      </button>
-                      <button
-                        onClick={() => setSpeechInputMode("voice")}
-                        className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
-                          speechInputMode === "voice" 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        음성 발언
-                      </button>
+                {/* Speech Input - Only show in speaker mode with dynamic height */}
+                {userMode === "speaker" && (
+                  <div className="p-3 border-t-2 border-border bg-muted min-h-32" 
+                       style={{ height: speechInputMode === "text" ? 'auto' : 'auto', minHeight: speechInputMode === "text" ? '140px' : '200px' }}>
+                    <div className="flex justify-center mb-3">
+                      <div className="flex bg-border rounded-full p-1">
+                        <button
+                          onClick={() => setSpeechInputMode("text")}
+                          className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
+                            speechInputMode === "text" 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          채팅 발언
+                        </button>
+                        <button
+                          onClick={() => setSpeechInputMode("voice")}
+                          className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${
+                            speechInputMode === "voice" 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          음성 발언
+                        </button>
+                      </div>
                     </div>
+                    {speechInputMode === "text" ? (
+                      <div className="flex gap-2">
+                        <Textarea
+                          value={speechInput}
+                          onChange={(e) => setSpeechInput(e.target.value)}
+                          placeholder={isLoggedIn && userMode === "speaker" ? "발언 내용을 입력하세요..." : "발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."}
+                          disabled={!isLoggedIn || userMode !== "speaker"}
+                          className="flex-1 text-xs resize-none h-12"
+                        />
+                        <Button
+                          onClick={handleSendSpeech}
+                          disabled={!speechInput.trim() || !isLoggedIn || userMode !== "speaker"}
+                          className="px-3 py-2 text-xs"
+                        >
+                          발언하기
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`text-xs font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className={`w-15 h-15 rounded-full flex items-center justify-center text-xl cursor-pointer transition-all ${
+                            isRecording 
+                              ? 'bg-red-500 text-white animate-pulse shadow-lg' 
+                              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                          }`}>
+                            🎤
+                          </div>
+                          <div className={`text-sm font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
+                            {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                          </div>
+                          <div className={`w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
+                            {[...Array(5)].map((_, i) => (
+                              <div 
+                                key={i} 
+                                className={`w-0.5 rounded ${
+                                  isRecording 
+                                    ? 'bg-primary animate-pulse' 
+                                    : 'bg-muted-foreground/30'
+                                }`}
+                                style={{
+                                  height: isRecording ? `${Math.random() * 16 + 8}px` : '8px',
+                                  animationDelay: `${i * 0.1}s`
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <Button
+                          variant={isRecording ? "default" : "outline"}
+                          disabled={!isRecording}
+                          className={`text-xs px-4 py-2 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                          발언 완료
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  {speechInputMode === "text" ? (
-                    <div className="flex gap-2">
-                      <Textarea
-                        value={speechInput}
-                        onChange={(e) => setSpeechInput(e.target.value)}
-                        placeholder={isLoggedIn && userMode === "speaker" ? "발언 내용을 입력하세요..." : "발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."}
-                        disabled={!isLoggedIn || userMode !== "speaker"}
-                        className="flex-1 text-xs resize-none h-12"
-                      />
-                      <Button
-                        onClick={handleSendSpeech}
-                        disabled={!speechInput.trim() || !isLoggedIn || userMode !== "speaker"}
-                        className="px-3 py-2 text-xs"
-                      >
-                        발언하기
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <div className={`text-xs font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-15 h-15 rounded-full flex items-center justify-center text-xl cursor-pointer transition-all ${
-                          isRecording 
-                            ? 'bg-red-500 text-white animate-pulse shadow-lg' 
-                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                        }`}>
-                          🎤
-                        </div>
-                        <div className={`text-sm font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
-                          {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
-                        </div>
-                        <div className={`w-36 h-7 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
-                          {[...Array(5)].map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`w-0.5 rounded ${
-                                isRecording 
-                                  ? 'bg-primary animate-pulse' 
-                                  : 'bg-muted-foreground/30'
-                              }`}
-                              style={{
-                                height: isRecording ? `${Math.random() * 16 + 8}px` : '8px',
-                                animationDelay: `${i * 0.1}s`
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <Button
-                        variant={isRecording ? "default" : "outline"}
-                        disabled={!isRecording}
-                        className={`text-xs px-4 py-2 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      >
-                        발언 완료
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )}
 
@@ -642,16 +676,6 @@ export const DebateRoom = () => {
               </div>
             )}
           </div>
-
-          {/* Floating Login Button */}
-          {!isLoggedIn && (
-            <button 
-              onClick={() => setIsLoginModalOpen(true)}
-              className="fixed bottom-20 left-5 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg font-semibold text-xs z-20"
-            >
-              로그인
-            </button>
-          )}
         </div>
 
         {/* Login Modal */}
@@ -684,6 +708,34 @@ export const DebateRoom = () => {
           </DialogContent>
         </Dialog>
         
+        {/* Share URL Modal */}
+        <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>토론 공유</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                이 토론의 공유 링크입니다:
+              </div>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-border rounded text-xs bg-muted"
+                />
+                <Button onClick={handleCopyShareUrl} size="sm" className="px-3">
+                  {shareUrlCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+              {shareUrlCopied && (
+                <div className="text-xs text-green-600">URL이 복사되었습니다!</div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Floating Profile Button - hidden when sidebar is open */}
         {!sidebarOpen && <FloatingProfileButton />}
       </div>
@@ -831,7 +883,7 @@ export const DebateRoom = () => {
               <div className="flex flex-col gap-1">
                 <div className="flex h-6 rounded overflow-hidden border border-border">
                   <div 
-                    className={`bg-green-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("pros")}`}
+                    className={`${hoveredPosition === "pros" && userPosition !== "pros" ? "bg-green-500" : "bg-green-500"} text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer`}
                     style={{ width: `${debate.poll.pros}%` }}
                     onMouseEnter={() => setHoveredPosition("pros")}
                     onMouseLeave={() => setHoveredPosition(null)}
@@ -840,7 +892,7 @@ export const DebateRoom = () => {
                     {debate.poll.pros}%
                   </div>
                   <div 
-                    className={`bg-red-500 text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer ${getPositionStyling("cons")}`}
+                    className={`${hoveredPosition === "cons" && userPosition !== "cons" ? "bg-red-500" : "bg-red-500"} text-white flex items-center justify-center text-sm font-semibold transition-all duration-500 cursor-pointer`}
                     style={{ width: `${debate.poll.cons}%` }}
                     onMouseEnter={() => setHoveredPosition("cons")}
                     onMouseLeave={() => setHoveredPosition(null)}
@@ -851,7 +903,7 @@ export const DebateRoom = () => {
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <div 
-                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("pros")}`}
+                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getEnhancedPositionStyling("pros")}`}
                     onMouseEnter={() => setHoveredPosition("pros")}
                     onMouseLeave={() => setHoveredPosition(null)}
                     onClick={() => handlePositionClick("pros")}
@@ -859,7 +911,7 @@ export const DebateRoom = () => {
                     인간 창의성 중요
                   </div>
                   <div 
-                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getPositionStyling("cons")}`}
+                    className={`cursor-pointer transition-all px-2 py-1 rounded border ${getEnhancedPositionStyling("cons")}`}
                     onMouseEnter={() => setHoveredPosition("cons")}
                     onMouseLeave={() => setHoveredPosition(null)}
                     onClick={() => handlePositionClick("cons")}
@@ -875,7 +927,7 @@ export const DebateRoom = () => {
               <div className="p-4 border-b-2 border-border bg-muted">
                 <h3 className="font-semibold">발언 내용</h3>
               </div>
-              <ScrollArea className="flex-1 p-4" style={{ minHeight: 'calc(192px * 1.2)' }}>
+              <ScrollArea className="flex-1 p-4" style={{ minHeight: 'calc(192px * 1.8)' }}>
                 {debate.speeches.map((speech) => (
                   <div key={speech.id} className={`bg-muted border rounded-lg p-4 mb-4 ${getFactCheckStyle(speech.factCheck)}`}>
                     <div className="text-sm font-semibold mb-2">{speech.author}</div>
@@ -892,93 +944,95 @@ export const DebateRoom = () => {
                 ))}
               </ScrollArea>
               
-              {/* Speech Input with Dynamic Height */}
-              <div className="p-4 border-t-2 border-border bg-muted"
-                   style={{ height: 'calc(100vh - 192px - calc(192px * 1.2))' }}>
-                <div className="flex justify-center mb-4">
-                  <div className="flex bg-border rounded-full p-1">
-                    <button
-                      onClick={() => setSpeechInputMode("text")}
-                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                        speechInputMode === "text" 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      채팅 발언
-                    </button>
-                    <button
-                      onClick={() => setSpeechInputMode("voice")}
-                      className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-                        speechInputMode === "voice" 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      음성 발언
-                    </button>
+              {/* Speech Input with Dynamic Height - Only show in speaker mode */}
+              {userMode === "speaker" && (
+                <div className="p-4 border-t-2 border-border bg-muted"
+                     style={{ height: speechInputMode === "text" ? 'auto' : 'auto', minHeight: speechInputMode === "text" ? '160px' : '220px' }}>
+                  <div className="flex justify-center mb-4">
+                    <div className="flex bg-border rounded-full p-1">
+                      <button
+                        onClick={() => setSpeechInputMode("text")}
+                        className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                          speechInputMode === "text" 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        채팅 발언
+                      </button>
+                      <button
+                        onClick={() => setSpeechInputMode("voice")}
+                        className={`px-6 py-2 rounded-full font-semibold transition-colors ${
+                          speechInputMode === "voice" 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        음성 발언
+                      </button>
+                    </div>
                   </div>
+                  {speechInputMode === "text" ? (
+                    <div className="flex gap-3">
+                      <Textarea
+                        value={speechInput}
+                        onChange={(e) => setSpeechInput(e.target.value)}
+                        placeholder={isLoggedIn && userMode === "speaker" ? "발언 내용을 입력하세요..." : "발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."}
+                        disabled={!isLoggedIn || userMode !== "speaker"}
+                        className="flex-1 resize-none min-h-[60px]"
+                      />
+                      <Button
+                        onClick={handleSendSpeech}
+                        disabled={!speechInput.trim() || !isLoggedIn || userMode !== "speaker"}
+                        className="px-6 py-3"
+                      >
+                        발언하기
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className={`text-sm font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
+                      </div>
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl cursor-pointer transition-all shadow-lg ${
+                          isRecording 
+                            ? 'bg-red-500 text-white animate-pulse' 
+                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        }`}>
+                          🎤
+                        </div>
+                        <div className={`text-base font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
+                          {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
+                        </div>
+                        <div className={`w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
+                          {[...Array(5)].map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={`w-1 rounded ${
+                                isRecording 
+                                  ? 'bg-primary animate-pulse' 
+                                  : 'bg-muted-foreground/30'
+                              }`}
+                              style={{
+                                height: isRecording ? `${Math.random() * 20 + 12}px` : '12px',
+                                animationDelay: `${i * 0.1}s`
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <Button
+                        variant={isRecording ? "default" : "outline"}
+                        disabled={!isRecording}
+                        className={`px-6 py-3 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        발언 완료
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {speechInputMode === "text" ? (
-                  <div className="flex gap-3">
-                    <Textarea
-                      value={speechInput}
-                      onChange={(e) => setSpeechInput(e.target.value)}
-                      placeholder={isLoggedIn && userMode === "speaker" ? "발언 내용을 입력하세요..." : "발언자로 지정되면 여기에 발언 내용을 입력할 수 있습니다..."}
-                      disabled={!isLoggedIn || userMode !== "speaker"}
-                      className="flex-1 resize-none min-h-[60px]"
-                    />
-                    <Button
-                      onClick={handleSendSpeech}
-                      disabled={!speechInput.trim() || !isLoggedIn || userMode !== "speaker"}
-                      className="px-6 py-3"
-                    >
-                      발언하기
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className={`text-sm font-semibold ${isRecording ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {isRecording ? '음성 녹음 중...' : '발언 차례를 기다리는 중...'}
-                    </div>
-                    <div className="flex flex-col items-center gap-3">
-                      <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl cursor-pointer transition-all shadow-lg ${
-                        isRecording 
-                          ? 'bg-red-500 text-white animate-pulse' 
-                          : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                      }`}>
-                        🎤
-                      </div>
-                      <div className={`text-base font-semibold ${isRecording ? 'text-red-600' : 'text-muted-foreground'}`}>
-                        {String(Math.floor(recordingTime / 60)).padStart(2, '0')}:{String(recordingTime % 60).padStart(2, '0')}
-                      </div>
-                      <div className={`w-48 h-10 bg-muted border rounded flex items-center justify-center gap-1 ${isRecording ? '' : 'opacity-60'}`}>
-                        {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={`w-1 rounded ${
-                              isRecording 
-                                ? 'bg-primary animate-pulse' 
-                                : 'bg-muted-foreground/30'
-                            }`}
-                            style={{
-                              height: isRecording ? `${Math.random() * 20 + 12}px` : '12px',
-                              animationDelay: `${i * 0.1}s`
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <Button
-                      variant={isRecording ? "default" : "outline"}
-                      disabled={!isRecording}
-                      className={`px-6 py-3 ${!isRecording ? 'opacity-60 cursor-not-allowed' : ''}`}
-                    >
-                      발언 완료
-                    </Button>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
 
@@ -1075,9 +1129,34 @@ export const DebateRoom = () => {
           </div>
         </DialogContent>
       </Dialog>
-      
-      {/* Floating Profile Button */}
-      <FloatingProfileButton />
+
+      {/* Share URL Modal */}
+      <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>토론 공유</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              이 토론의 공유 링크입니다:
+            </div>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                className="flex-1 px-3 py-2 border border-border rounded text-sm bg-muted"
+              />
+              <Button onClick={handleCopyShareUrl} size="sm" className="px-3">
+                {shareUrlCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+            {shareUrlCopied && (
+              <div className="text-sm text-green-600">URL이 복사되었습니다!</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
