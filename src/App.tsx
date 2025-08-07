@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import BrowseDebates from "./pages/BrowseDebates";
 import { DebateRoom } from "./pages/DebateRoom";
 import NotFound from "./pages/NotFound";
+import {UserProvider} from "@/providers/UserProvider.tsx";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <UserProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -24,6 +26,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </UserProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
