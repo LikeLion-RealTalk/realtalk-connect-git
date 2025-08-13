@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { User, Share2, Users, Mic, LogOut, UserCircle, Settings, Menu } from 'lucide-react';
-import { LoginModal } from '../LoginModal';
+import { LoginModal } from '../modal/LoginModal';
 import { useUser } from '../UserProvider';
 import { MaterialAppBar, MaterialButton } from '../MaterialDesign';
 import realTalkLogo from '/images/realtalkLogo.png';
