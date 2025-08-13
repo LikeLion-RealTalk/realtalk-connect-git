@@ -12,9 +12,11 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { User, Share2, Users, Mic, LogOut, UserCircle, Settings, Menu } from 'lucide-react';
-import { LoginModal } from '../LoginModal';
+import { LoginModal } from '../modal/LoginModal';
 import { useUser } from '../UserProvider';
 import { MaterialAppBar, MaterialButton } from '../MaterialDesign';
+import realTalkLogo from '/images/realtalkLogo.png';
+import {ImageWithFallback} from "./../figma/ImageWithFallback";
 
 interface DebateHeaderProps {
   title: string;
@@ -52,13 +54,23 @@ export function DebateHeader({
     <MaterialAppBar position="sticky" color="surface" className="border-b border-divider backdrop-blur supports-[backdrop-filter]:bg-surface/95">
       {/* 왼쪽 영역 */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* 로고 - 모바일에서 숨김 */}
-        <div 
+        {/* 로고 - 모바일에서 숨김(기존) */}
+{/*        <div
           className="font-bold text-xl text-primary cursor-pointer hover:opacity-80 transition-material hidden lg:block"
           onClick={() => onNavigate?.('landing')}
         >
           RealTalk
-        </div>
+        </div>*/}
+        <button
+            className="cursor-pointer hover:opacity-80 transition-material hidden lg:block"
+            onClick={() => onNavigate?.('landing')}
+        >
+          <ImageWithFallback
+              src={realTalkLogo}
+              alt="RealTalk"
+              className="h-8 w-auto"
+          />
+        </button>
       </div>
 
       {/* 중앙 영역 */}
