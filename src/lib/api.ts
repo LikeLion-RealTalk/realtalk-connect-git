@@ -5,6 +5,7 @@ const API_BASE_URL = 'https://api.realtalks.co.kr:8443';
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true, // 쿠키 자동 포함
   headers: {
     'Content-Type': 'application/json',
   },

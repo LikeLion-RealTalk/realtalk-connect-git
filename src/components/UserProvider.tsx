@@ -47,53 +47,81 @@ export function UserProvider({ children }: UserProviderProps) {
   // refresh_token으로 access_token 발급
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = getCookie('refresh_token');
-      if (!refreshToken) {
-        return false;
-      }
+      console.log('📡 /api/auth/refresh API 호출... (쿠키 자동 전송)');
+      const response = await api.post('/api/auth/refresh');
 
-      const response = await api.post('/api/auth/refresh', {}, {
-        headers: {
-          'Authorization': `Bearer ${refreshToken}`
-        }
-      });
-
+      console.log('📡 refresh API 응답:', response.data);
       const { accessToken } = response.data;
       if (accessToken) {
         localStorage.setItem('access_token', accessToken);
+        console.log('💾 새 access_token 저장됨');
         return true;
       }
+      console.log('❌ 응답에 accessToken이 없음');
       return false;
     } catch (error) {
-      console.error('토큰 갱신 실패:', error);
+      console.error('❌ 토큰 갱신 실패:', error);
       return false;
     }
   };
 
   // 자동 로그인 로직
   const checkAuthStatus = async () => {
+    console.log('🔍 checkAuthStatus 시작');
+    
     // 1. 로컬스토리지에 access_token이 있는지 확인
     const accessToken = localStorage.getItem('access_token');
+    console.log('💾 로컬스토리지 access_token:', accessToken ? '있음' : '없음');
     
     if (accessToken) {
       // access_token이 있으면 유저 정보 조회
+      console.log('🔄 유저 정보 조회 시도...');
       const success = await fetchUserInfo();
       if (success) {
+        console.log('✅ 기존 토큰으로 로그인 성공');
         return; // 로그인 성공
       }
+      console.log('❌ 기존 토큰으로 로그인 실패');
     }
 
     // 2. access_token이 없거나 유효하지 않으면 refresh_token으로 재발급
+    console.log('🔄 refresh_token으로 토큰 재발급 시도...');
     const refreshSuccess = await refreshAccessToken();
     if (refreshSuccess) {
       // 토큰 갱신 성공 후 유저 정보 조회
+      console.log('✅ 토큰 재발급 성공, 유저 정보 조회...');
       await fetchUserInfo();
+    } else {
+      console.log('❌ 토큰 재발급 실패');
     }
   };
 
   // 컴포넌트 마운트 시 인증 상태 확인
   useEffect(() => {
+    console.log('🚀 UserProvider useEffect 실행됨');
+    console.log('🍪 현재 모든 쿠키:', document.cookie);
     checkAuthStatus();
+
+    // 페이지가 다시 포커스될 때도 인증 상태 확인
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📱 페이지가 다시 포커스됨, 인증 상태 재확인');
+        checkAuthStatus();
+      }
+    };
+
+    const handleFocus = () => {
+      console.log('🔍 윈도우 포커스됨, 인증 상태 재확인');
+      checkAuthStatus();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const login = (provider: 'kakao' | 'google') => {
