@@ -6,6 +6,8 @@ import { TopNavMenu } from './TopNavMenu';
 import { LoginModal } from './modal/LoginModal';
 import { useUser } from './UserProvider';
 import { MaterialAppBar } from './MaterialDesign';
+import realTalkLogo from '/images/realtalkLogo.png';
+import {ImageWithFallback} from "./figma/ImageWithFallback";
 
 interface TopNavProps {
   onNavigate?: (page: 'landing' | 'browser' | 'debate') => void;
@@ -29,8 +31,8 @@ export function TopNav({ onNavigate, onJoinDebate, onCreateDebate }: TopNavProps
   return (
     <>
       <MaterialAppBar color="surface" className="sticky top-0 z-50 w-full px-4 py-2">
-        {/* 좌측 로고 */}
-        <div className="flex items-center">
+        {/* 좌측 로고(기존 텍스트) */}
+{/*        <div className="flex items-center">
           <button 
             onClick={() => onNavigate?.('landing')}
             className="flex items-center gap-3 hover:opacity-80 transition-material"
@@ -39,6 +41,20 @@ export function TopNav({ onNavigate, onJoinDebate, onCreateDebate }: TopNavProps
               <span className="text-primary-foreground font-medium text-sm">R</span>
             </div>
             <span className="text-xl font-medium text-on-surface">RealTalk</span>
+          </button>
+        </div>*/}
+
+        {/* 좌측 로고 */}
+        <div className="flex items-center">
+          <button
+              onClick={() => onNavigate?.('landing')}
+              className="flex items-center hover:opacity-80 transition-material"
+          >
+            <ImageWithFallback
+                src={realTalkLogo}
+                alt="RealTalk"
+                className="h-10 w-auto"
+            />
           </button>
         </div>
 
@@ -75,13 +91,23 @@ export function TopNav({ onNavigate, onJoinDebate, onCreateDebate }: TopNavProps
               </SheetDescription>
               
               <div className="flex flex-col h-full">
-                {/* 사이드바 헤더 */}
-                <div className="p-6 border-b border-divider bg-surface">
+                {/* 사이드바 헤더(기존) */}
+                {/*<div className="p-6 border-b border-divider bg-surface">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                       <span className="text-primary-foreground font-medium text-sm">R</span>
                     </div>
                     <h2 className="text-lg font-medium text-on-surface">RealTalk</h2>
+                  </div>
+                </div>*/}
+                {/* 사이드바 헤더 */}
+                <div className="p-6 border-b border-divider bg-surface">
+                  <div className="flex items-center justify-center">
+                    <ImageWithFallback
+                        src={realTalkLogo}
+                        alt="RealTalk"
+                        className="h-8 w-auto"
+                    />
                   </div>
                 </div>
                 
