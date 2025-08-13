@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { useUser } from '../UserProvider';
+import api from '../../lib/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -11,21 +12,37 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const { login } = useUser();
 
-  const handleKakaoLogin = () => {
-    login('kakao');
-    onClose();
-    // 로그인 성공 시 콜백 호출
-    if (onLoginSuccess) {
-      onLoginSuccess();
+  const handleKakaoLogin = async () => {
+    try {
+      const response = await api.get('/oauth2/authorization/kakao');
+      
+      if (response.data.authUrl) {
+        window.location.href = response.data.authUrl;
+      }
+      
+      onClose();
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
     }
   };
 
-  const handleGoogleLogin = () => {
-    login('google');
-    onClose();
-    // 로그인 성공 시 콜백 호출
-    if (onLoginSuccess) {
-      onLoginSuccess();
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await api.get('/oauth2/authorization/google');
+      
+      if (response.data.authUrl) {
+        window.location.href = response.data.authUrl;
+      }
+      
+      onClose();
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+    } catch (error) {
+      console.error('구글 로그인 실패:', error);
     }
   };
 

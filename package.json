@@ -43,6 +43,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "axios": "^1.11.0",
     "badwords-list": "^2.0.1-4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { getCookie, deleteCookie } from '../lib/cookies';
 
 interface User {
   id: string;
@@ -17,6 +18,7 @@ interface UserContextType {
   logout: () => void;
   openProfile: () => void;
   openSettings: () => void;
+  checkAuthStatus: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -28,6 +30,30 @@ interface UserProviderProps {
 export function UserProvider({ children }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [nickname, setNickname] = useState('');
+
+  // 로그인 상태 체크 (refresh_token 쿠키 확인)
+  const checkAuthStatus = () => {
+    const refreshToken = getCookie('refresh_token');
+    if (refreshToken) {
+      // refresh_token이 있으면 로그인 상태로 간주
+      // TODO: 실제로는 여기서 access_token 발급 API를 호출해야 함
+      console.log('refresh_token 발견:', refreshToken);
+      
+      // 임시로 Mock 사용자 설정 (나중에 실제 사용자 정보로 교체)
+      const mockUser: User = {
+        id: 'authenticated_user',
+        name: '로그인된 사용자',
+        email: 'user@example.com',
+        provider: 'kakao'
+      };
+      setUser(mockUser);
+    }
+  };
+
+  // 컴포넌트 마운트 시 인증 상태 확인
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
 
   const login = (provider: 'kakao' | 'google') => {
     // Mock 사용자 데이터 생성
@@ -44,6 +70,10 @@ export function UserProvider({ children }: UserProviderProps) {
   };
 
   const logout = () => {
+    // 로그아웃 시 refresh_token 쿠키 삭제
+    deleteCookie('refresh_token');
+    // 로컬스토리지의 access_token도 삭제
+    localStorage.removeItem('auth_token');
     setUser(null);
   };
 
@@ -65,7 +95,8 @@ export function UserProvider({ children }: UserProviderProps) {
     login,
     logout,
     openProfile,
-    openSettings
+    openSettings,
+    checkAuthStatus
   };
 
   return (
