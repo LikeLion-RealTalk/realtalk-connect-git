@@ -38,8 +38,8 @@ export function PositionSelectionModal({
     if (isOpen) {
       if (isLoggedIn && user) {
         // 로그인한 사용자는 사용자 이름을 사용
-        setLocalNickname(user.name);
-        setGlobalNickname(user.name);
+        setLocalNickname(user.username);
+        setGlobalNickname(user.username);
       } else {
         // 비로그인 사용자는 기존 닉네임 사용
         setLocalNickname(nickname);
@@ -51,7 +51,7 @@ export function PositionSelectionModal({
     if (selectedPosition) {
       // 로그인한 사용자인 경우 닉네임 검증 스킵
       if (isLoggedIn && user) {
-        setGlobalNickname(user.name);
+        setGlobalNickname(user.username);
         onConfirm(selectedPosition);
       } else if (localNickname.trim()) {
         // 비로그인 사용자는 닉네임 필요
@@ -125,11 +125,11 @@ export function PositionSelectionModal({
                 <div className="flex items-center gap-3">
                   <img 
                     src={user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'} 
-                    alt={user.name}
+                    alt={user.username}
                     className="w-10 h-10 rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-on-surface">{user.name}</p>
+                    <p className="font-medium text-on-surface">{user.username}</p>
                     <p className="text-sm text-on-surface-variant">
                       {user.provider === 'kakao' ? '카카오' : '구글'}로 로그인됨
                     </p>

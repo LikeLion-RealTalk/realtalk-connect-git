@@ -244,8 +244,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsLeaveModalOpen(false);
     
     // 발언자로 참여했던 경우 퇴장 메시지 표시
-    if (participationMode === PARTICIPATION_ROLES[0] && (isLoggedIn ? user?.name : nickname)) {
-      const userName = isLoggedIn ? user?.name : nickname;
+    if (participationMode === PARTICIPATION_ROLES[0] && (isLoggedIn ? user?.username : nickname)) {
+      const userName = isLoggedIn ? user?.username : nickname;
       toast.info(`${userName}님이 토론방에서 퇴장했습니다.`, {
         position: 'bottom-right',
         duration: 3000,
@@ -263,7 +263,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   };
 
   const handlePositionChange = (position: Position) => {
-    const userName = isLoggedIn ? user?.name : nickname;
+    const userName = isLoggedIn ? user?.username : nickname;
     
     // 발언자 모드인 경우 현재 발언 중인지 확인
     if (participationMode === PARTICIPATION_ROLES[0]) { // '발언자'
@@ -355,7 +355,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setParticipationMode(PARTICIPATION_ROLES[0]); // '발언자'
     
     // 현재 사용자 이름 결정 (로그인한 경우 사용자 이름, 아니면 닉네임)
-    const userName = isLoggedIn ? user?.name : nickname;
+    const userName = isLoggedIn ? user?.username : nickname;
     
     if (userName) {
       // 새로운 발언자를 speakers 목록에 추가
@@ -651,7 +651,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   debateType={debateRoomInfo.debateType}
                   aDescription={debateRoomInfo.aDescription}
                   bDescription={debateRoomInfo.bDescription}
-                  isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.name : nickname)}
+                  isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.username : nickname)}
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
                 />
               </div>
@@ -703,7 +703,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   debateType={debateRoomInfo.debateType}
                   aDescription={debateRoomInfo.aDescription}
                   bDescription={debateRoomInfo.bDescription}
-                  isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.name : nickname)}
+                  isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.username : nickname)}
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
                 />
               </div>

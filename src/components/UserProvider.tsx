@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { getCookie, deleteCookie } from '../lib/cookies';
+import api from '../lib/api';
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  provider: 'kakao' | 'google';
+  id: number;
+  username: string;
+  role: string;
+  provider: string;
 }
 
 interface UserContextType {
@@ -31,22 +31,63 @@ export function UserProvider({ children }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [nickname, setNickname] = useState('');
 
-  // 로그인 상태 체크 (refresh_token 쿠키 확인)
-  const checkAuthStatus = () => {
-    const refreshToken = getCookie('refresh_token');
-    if (refreshToken) {
-      // refresh_token이 있으면 로그인 상태로 간주
-      // TODO: 실제로는 여기서 access_token 발급 API를 호출해야 함
-      console.log('refresh_token 발견:', refreshToken);
-      
-      // 임시로 Mock 사용자 설정 (나중에 실제 사용자 정보로 교체)
-      const mockUser: User = {
-        id: 'authenticated_user',
-        name: '로그인된 사용자',
-        email: 'user@example.com',
-        provider: 'kakao'
-      };
-      setUser(mockUser);
+  // 유저 정보 조회 API
+  const fetchUserInfo = async () => {
+    try {
+      const response = await api.get('/api/auth/me');
+      const userData: User = response.data;
+      setUser(userData);
+      return true;
+    } catch (error) {
+      console.error('유저 정보 조회 실패:', error);
+      return false;
+    }
+  };
+
+  // refresh_token으로 access_token 발급
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = getCookie('refresh_token');
+      if (!refreshToken) {
+        return false;
+      }
+
+      const response = await api.post('/api/auth/refresh', {}, {
+        headers: {
+          'Authorization': `Bearer ${refreshToken}`
+        }
+      });
+
+      const { accessToken } = response.data;
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('토큰 갱신 실패:', error);
+      return false;
+    }
+  };
+
+  // 자동 로그인 로직
+  const checkAuthStatus = async () => {
+    // 1. 로컬스토리지에 access_token이 있는지 확인
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (accessToken) {
+      // access_token이 있으면 유저 정보 조회
+      const success = await fetchUserInfo();
+      if (success) {
+        return; // 로그인 성공
+      }
+    }
+
+    // 2. access_token이 없거나 유효하지 않으면 refresh_token으로 재발급
+    const refreshSuccess = await refreshAccessToken();
+    if (refreshSuccess) {
+      // 토큰 갱신 성공 후 유저 정보 조회
+      await fetchUserInfo();
     }
   };
 
@@ -73,7 +114,7 @@ export function UserProvider({ children }: UserProviderProps) {
     // 로그아웃 시 refresh_token 쿠키 삭제
     deleteCookie('refresh_token');
     // 로컬스토리지의 access_token도 삭제
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('access_token');
     setUser(null);
   };
 

@@ -139,11 +139,11 @@ export function TopNav({ onNavigate, onJoinDebate, onCreateDebate }: TopNavProps
                     <>
                       <div className="flex items-center gap-3 mb-4">
                         <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                          {user?.name[0]}
+                          {user?.username[0]}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-on-surface truncate">{user?.name}</p>
-                          <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                          <p className="font-medium text-on-surface truncate">{user?.username}</p>
+                          <p className="text-sm text-muted-foreground truncate">{user?.provider}로 로그인</p>
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -211,9 +211,9 @@ export function TopNav({ onNavigate, onJoinDebate, onCreateDebate }: TopNavProps
                   className="flex items-center gap-2 hover:bg-primary/10 transition-material"
                 >
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
-                    {user?.name[0]}
+                    {user?.username[0]}
                   </div>
-                  <span className="text-sm">{user?.name}</span>
+                  <span className="text-sm">{user?.username}</span>
                 </Button>
                 <Button 
                   variant="ghost" 

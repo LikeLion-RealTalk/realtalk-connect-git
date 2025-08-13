@@ -156,16 +156,16 @@ export function DebateHeader({
               <Button variant="ghost" className="flex items-center gap-2 h-auto p-2 hover:bg-primary/10 transition-material">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user?.avatar} />
-                  <AvatarFallback>{user?.name[0]}</AvatarFallback>
+                  <AvatarFallback>{user?.username[0]}</AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:inline text-sm">{user?.name}</span>
+                <span className="hidden sm:inline text-sm">{user?.username}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 elevation-8 rounded-lg">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <p className="text-sm font-medium leading-none">{user?.username}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.provider}로 로그인</p>
                   {nickname && (
                     <p className="text-xs leading-none text-muted-foreground">
                       토론명: <span className="text-primary font-medium">{nickname}</span>
