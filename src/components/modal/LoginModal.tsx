@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { useUser } from '../UserProvider';
-import api from '../../lib/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,38 +11,18 @@ interface LoginModalProps {
 export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const { login } = useUser();
 
-  const handleKakaoLogin = async () => {
-    try {
-      const response = await api.get('/oauth2/authorization/kakao');
-      
-      if (response.data.authUrl) {
-        window.location.href = response.data.authUrl;
-      }
-      
-      onClose();
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-    } catch (error) {
-      console.error('카카오 로그인 실패:', error);
-    }
+  const handleKakaoLogin = () => {
+    const kakaoAuthUrl = 'https://api.realtalks.co.kr:8443/oauth2/authorization/kakao';
+    
+    onClose();
+    window.location.href = kakaoAuthUrl;
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await api.get('/oauth2/authorization/google');
-      
-      if (response.data.authUrl) {
-        window.location.href = response.data.authUrl;
-      }
-      
-      onClose();
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-    } catch (error) {
-      console.error('구글 로그인 실패:', error);
-    }
+  const handleGoogleLogin = () => {
+    const googleAuthUrl = 'https://api.realtalks.co.kr:8443/oauth2/authorization/google';
+    
+    onClose();
+    window.location.href = googleAuthUrl;
   };
 
   return (
