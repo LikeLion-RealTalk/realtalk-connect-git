@@ -13,4 +13,18 @@ export const debateApi = {
     const response = await axiosInstance.get('/api/debate-rooms/all');
     return response.data;
   },
+  
+  // 토론방 생성
+  createDebateRoom: async (data: any) => {
+    const response = await axiosInstance.post('/api/debate-rooms', data);
+    return response.data;
+  },
+};
+
+export const categoryApi = {
+  // 카테고리 전체 조회
+  getAllCategories: async () => {
+    const response = await axiosInstance.get('/api/categories/all');
+    return response.data;
+  },
 };

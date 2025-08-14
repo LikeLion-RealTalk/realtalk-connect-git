@@ -22,6 +22,8 @@ import {
   type DebateType,
   type Position
 } from '../../types/discussion';
+import { categoryApi, debateApi } from '../../lib/api/apiClient';
+import { useUser } from '../UserProvider';
 
 interface CreateDiscussionModalProps {
   isOpen: boolean;
@@ -35,6 +37,9 @@ export function CreateDiscussionModal({
   onCreate 
 }: CreateDiscussionModalProps) {
   const isMobile = useIsMobile();
+  const { user } = useUser();
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(1);
   const [formData, setFormData] = useState<DiscussionData>({
     title: '',
     description: '',
@@ -47,6 +52,25 @@ export function CreateDiscussionModal({
     maxSpeakers: 2,
     maxAudience: 20
   });
+
+  // 카테고리 데이터 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoryData = await categoryApi.getAllCategories();
+        setCategories(categoryData);
+        if (categoryData.length > 0) {
+          setSelectedCategoryId(categoryData[0].id);
+        }
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadCategories();
+    }
+  }, [isOpen]);
 
   // 토론방 카드와 동일한 뱃지 색상 함수
   const getDebateTypeBadgeClass = (type: string, isSelected: boolean) => {
@@ -117,16 +141,45 @@ export function CreateDiscussionModal({
     return formData.position === 'A입장' ? formData.aPosition : formData.bPosition;
   };
 
-  const handleSubmit = () => {
-    // 필수 필드 검증 - 선택한 입장의 텍스트가 입력되어야 함
-    const currentPositionText = getCurrentPositionText();
-    if (!formData.title.trim() || !formData.category || !currentPositionText.trim()) {
+  const handleSubmit = async () => {
+    // 필수 필드 검증
+    if (!formData.title.trim() || !selectedCategoryId || !formData.aPosition.trim() || !formData.bPosition.trim()) {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
 
-    onCreate(formData);
-    handleClose();
+    if (!user?.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      // API 요청 데이터 구성
+      const requestData = {
+        userId: user.id,
+        title: formData.title.trim(),
+        debateDescription: formData.description.trim() || formData.title.trim(),
+        category: {
+          id: selectedCategoryId
+        },
+        sideA: formData.aPosition.trim() || '찬성',
+        sideB: formData.bPosition.trim() || '반대',
+        debateType: formData.debateType === '3분토론' ? 'FAST' : 'NORMAL',
+        durationSeconds: formData.duration * 60, // 분을 초로 변환
+        maxSpeaker: formData.maxSpeakers,
+        maxAudience: formData.maxAudience
+      };
+
+      // API 호출
+      await debateApi.createDebateRoom(requestData);
+      
+      // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
+      onCreate(formData);
+      handleClose();
+    } catch (error) {
+      console.error('토론방 생성 실패:', error);
+      alert('토론방 생성에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleClose = () => {
@@ -203,14 +256,14 @@ export function CreateDiscussionModal({
             {/* 카테고리 */}
             <div className="space-y-2">
               <Label>카테고리 *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+              <Select value={selectedCategoryId.toString()} onValueChange={(value) => setSelectedCategoryId(parseInt(value))}>
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DISCUSSION_CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -501,14 +554,14 @@ export function CreateDiscussionModal({
             {/* 카테고리 */}
             <div className="space-y-2">
               <Label>카테고리 *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+              <Select value={selectedCategoryId.toString()} onValueChange={(value) => setSelectedCategoryId(parseInt(value))}>
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DISCUSSION_CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
