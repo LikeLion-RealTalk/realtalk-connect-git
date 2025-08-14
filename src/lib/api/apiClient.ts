@@ -10,7 +10,7 @@ export const apiClient = {
 export const debateApi = {
   // 토론방 전체 조회
   getAllDebateRooms: async () => {
-    const response = await axiosInstance.get('/debate-rooms/all');
+    const response = await axiosInstance.get('/api/debate-rooms/all');
     return response.data;
   },
 };
