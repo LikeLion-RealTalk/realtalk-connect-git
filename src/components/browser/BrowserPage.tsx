@@ -15,7 +15,7 @@ import { debateApi } from '../../lib/api/apiClient';
 
 
 interface BrowserPageProps {
-  onNavigate?: (page: 'landing' | 'browser' | 'debate') => void;
+  onNavigate?: (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: any) => void;
   onJoinDebate?: () => void;
 }
 
@@ -246,6 +246,7 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
         onClose={() => setIsJoinModalOpen(false)}
         discussion={selectedDiscussion}
         onJoin={handleJoinConfirm}
+        onNavigate={onNavigate}
       />
 
       <CreateDiscussionModal

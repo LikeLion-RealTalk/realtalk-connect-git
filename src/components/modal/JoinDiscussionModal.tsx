@@ -86,11 +86,21 @@ export function JoinDiscussionModal({
     setIsJoining(true);
 
     try {
-      // WebSocket 연결
-      await connect();
+      console.log('[토론방입장] 입장 시도:', { discussionId: discussion.id, role: selectedRole, side: selectedSide });
+      
+      // WebSocket 연결 (역할에 따른 연결)
+      await connect(selectedRole);
+      
+      if (!isConnected) {
+        throw new Error('WebSocket 연결에 실패했습니다');
+      }
+      
+      console.log('[토론방입장] WebSocket 연결 완료, JOIN 요청 전송');
       
       // 방 참여 요청
       const result = await joinRoom(discussion.id, selectedRole, selectedSide);
+      
+      console.log('[토론방입장] JOIN 응답:', result);
       
       if (result?.type === 'JOIN_ACCEPTED') {
         toast.success('토론방에 입장했습니다!', {
@@ -115,8 +125,8 @@ export function JoinDiscussionModal({
         });
       }
     } catch (error) {
-      console.error('Join room error:', error);
-      toast.error('토론방 입장 중 오류가 발생했습니다.', {
+      console.error('[토론방입장] 오류:', error);
+      toast.error(`토론방 입장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`, {
         position: 'bottom-right',
         duration: 3000,
       });

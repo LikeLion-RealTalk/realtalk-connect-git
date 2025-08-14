@@ -33,15 +33,38 @@ function AppWithPermissions() {
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
 
-  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfo?: DebateRoomInfo) => {
+  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string) => {
     if (page !== currentPage) {
       setPageHistory(prev => [...prev, currentPage]);
     }
     setCurrentPage(page);
 
-    if (page === 'debate' && debateRoomInfo) {
-      setCurrentDebateRoom(debateRoomInfo);
-    } else if (page !== 'debate') {
+    if (page === 'debate') {
+      if (typeof debateRoomInfoOrId === 'string') {
+        // discussionId가 문자열로 전달된 경우 DebateRoomInfo 객체 생성
+        const debateRoom: DebateRoomInfo = {
+          id: debateRoomInfoOrId,
+          title: '토론방 참여',
+          category: '일반토론',
+          debateType: '일반토론',
+          isCreatedByUser: false,
+          userPosition: null,
+          aDescription: 'A입장입니다.',
+          bDescription: 'B입장입니다.',
+          creator: { name: '참여자' },
+          duration: 300, // 5분 기본
+          maxSpeakers: 4,
+          maxAudience: 20,
+          currentSpeakers: 0,
+          currentAudience: 0,
+          startTime: new Date(),
+          remainingTime: 300
+        };
+        setCurrentDebateRoom(debateRoom);
+      } else if (debateRoomInfoOrId) {
+        setCurrentDebateRoom(debateRoomInfoOrId);
+      }
+    } else {
       setCurrentDebateRoom(null);
     }
   };
