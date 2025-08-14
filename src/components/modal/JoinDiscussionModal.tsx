@@ -7,7 +7,6 @@ import { Discussion, UserRole, ParticipationRole, DISCUSSION_STATUSES } from '..
 import { useUser } from '../UserProvider';
 import { LoginModal } from './LoginModal';
 import { useWebSocket } from '../../hooks/useWebSocket';
-import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 
 interface JoinDiscussionModalProps {
@@ -15,16 +14,17 @@ interface JoinDiscussionModalProps {
   onClose: () => void;
   discussion: Discussion | null;
   onJoin: (discussionId: string, nickname: string, role: UserRole, participationMode?: ParticipationRole) => void;
+  onNavigate?: (page: 'debate', discussionId: string) => void;
 }
 
 export function JoinDiscussionModal({ 
   isOpen, 
   onClose, 
   discussion, 
-  onJoin 
+  onJoin,
+  onNavigate
 }: JoinDiscussionModalProps) {
   const { isLoggedIn } = useUser();
-  const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<'speaker' | 'audience' | null>(null);
   const [currentStep, setCurrentStep] = useState<'role' | 'side'>('role');
@@ -99,7 +99,9 @@ export function JoinDiscussionModal({
         });
         
         // 토론방 페이지로 이동
-        navigate(`/debate/${discussion.id}`);
+        if (onNavigate) {
+          onNavigate('debate', discussion.id);
+        }
         onClose();
       } else if (result?.type === 'JOIN_REJECTED') {
         toast.error(`입장이 거부되었습니다: ${result.reason || '알 수 없는 오류'}`, {

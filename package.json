@@ -43,6 +43,7 @@
     "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^5.0.0",
     "axios": "^1.11.0",
     "badwords-list": "^2.0.1-4",
