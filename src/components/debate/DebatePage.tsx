@@ -352,7 +352,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setHasEnteredRoom(true);
     
     // 발언자로 참여하는 경우
-    setParticipationMode(PARTICIPATION_ROLES[0]); // '발언자'
+    // setParticipationMode(PARTICIPATION_ROLES[0]); // '발언자'
     
     // 현재 사용자 이름 결정 (로그인한 경우 사용자 이름, 아니면 닉네임)
     const userName = isLoggedIn ? user?.username : nickname;
