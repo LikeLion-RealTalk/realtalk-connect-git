@@ -60,8 +60,13 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
           }
         }));
         
-        setDiscussions(convertedDiscussions);
-        setFilteredDiscussions(convertedDiscussions);
+        // 현재 청중 수로 내림차순 정렬
+        const sortedDiscussions = convertedDiscussions.sort((a, b) => 
+          b.audience.current - a.audience.current
+        );
+        
+        setDiscussions(sortedDiscussions);
+        setFilteredDiscussions(sortedDiscussions);
       } catch (error) {
         console.error('토론방 데이터 로드 실패:', error);
         // 에러 시 목업 데이터 사용
