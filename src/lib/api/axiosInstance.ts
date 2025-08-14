@@ -3,7 +3,7 @@ import { getToken, removeToken } from '../../utils/token';
 import { mapResponseData } from '../../utils/responseMapper';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: 'https://api.realtalks.co.kr:8443',
   headers: { 'Content-Type': 'application/json' },
 });
 
