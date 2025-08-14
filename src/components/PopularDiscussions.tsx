@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { DiscussionCard } from './DiscussionCard';
 import { JoinDiscussionModal } from './modal/JoinDiscussionModal';
 import { AiDebateSummaryModal } from './modal/AiDebateSummaryModal';
 import { Discussion, DebateSummary } from '../types/discussion';
 import { getDebateSummaryByDiscussionId } from '../mock/debateSummaries';
+import { debateApi } from '../lib/api/apiClient';
 
 
 
@@ -18,69 +19,46 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState<DebateSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
 
-  const discussions: Discussion[] = [
-    {
-      id: '1',
-      type: '3분토론' as const,
-      status: '진행중' as const,
-      title: 'AI 시대, 인간의 창의성은 여전히 중요할까?',
-      category: '🤖AI & 미래사회',
-      timeStatus: '45분 째 불타는 중',
-      speakers: { current: 6, max: 8 },
-      audience: { current: 45, max: 60 }
-    },
-    {
-      id: '2',
-      type: '일반토론' as const,
-      status: '진행중' as const,
-      title: '원격근무 vs 사무실 근무, 어떤 것이 더 효율적일까?',
-      category: '💼취업 & 진로',
-      timeStatus: '12분 째 진행중',
-      speakers: { current: 4, max: 6 },
-      audience: { current: 23, max: 40 }
-    },
-    {
-      id: '3',
-      type: '일반토론' as const,
-      status: '대기중' as const,
-      title: '환경보호를 위한 개인의 실천, 어디까지 해야 할까?',
-      category: '⚖️논란 & 사회 이슈',
-      timeStatus: '10분 후 시작',
-      speakers: { current: 2, max: 8 },
-      audience: { current: 15, max: 50 }
-    },
-    {
-      id: '4',
-      type: '3분토론' as const,
-      status: '진행중' as const,
-      title: '메타버스는 미래의 주류가 될 수 있을까?',
-      category: '🤖AI & 미래사회',
-      timeStatus: '23분 째 진행중',
-      speakers: { current: 5, max: 6 },
-      audience: { current: 38, max: 45 }
-    },
-    {
-      id: 'discussion-1',
-      type: '일반토론' as const,
-      status: '종료됨' as const,
-      title: '온라인 교육 vs 오프라인 교육, 어느 것이 더 효과적일까?',
-      category: '💼취업 & 진로',
-      timeStatus: '3시간 전 종료',
-      speakers: { current: 8, max: 8 },
-      audience: { current: 120, max: 120 }
-    },
-    {
-      id: 'discussion-3',
-      type: '일반토론' as const,
-      status: '종료됨' as const,
-      title: 'AI가 인간의 창의성을 대체할 수 있을까?',
-      category: '🤖AI & 미래사회',
-      timeStatus: '2일 전 종료',
-      speakers: { current: 8, max: 8 },
-      audience: { current: 95, max: 100 }
-    }
-  ];
+  // 인기 토론 데이터 로드
+  useEffect(() => {
+    const loadPopularDebateRooms = async () => {
+      try {
+        const apiData = await debateApi.getAllDebateRooms();
+        
+        // API 응답을 Discussion 인터페이스에 맞게 변환
+        const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
+          id: room.roomId,
+          type: '일반토론',
+          status: room.status === 'waiting' ? '대기중' : '진행중',
+          title: room.title,
+          category: room.category?.name ? `🤖${room.category.name}` : '💬자유 주제',
+          timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
+          speakers: { 
+            current: room.currentSpeaker || 0, 
+            max: room.maxSpeaker || 0 
+          },
+          audience: { 
+            current: room.currentAudience || 0, 
+            max: room.maxAudience || 0 
+          }
+        }));
+        
+        // 현재 청중 수로 내림차순 정렬 후 상위 6개만 선택
+        const topDiscussions = convertedDiscussions
+          .sort((a, b) => b.audience.current - a.audience.current)
+          .slice(0, 6);
+        
+        setDiscussions(topDiscussions);
+      } catch (error) {
+        console.error('인기 토론방 데이터 로드 실패:', error);
+        setDiscussions([]);
+      }
+    };
+
+    loadPopularDebateRooms();
+  }, []);
 
   const handleJoinDiscussion = (discussionId: string) => {
     const discussion = discussions.find(d => d.id === discussionId);

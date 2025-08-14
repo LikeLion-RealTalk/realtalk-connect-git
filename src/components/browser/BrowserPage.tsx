@@ -69,9 +69,8 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
         setFilteredDiscussions(sortedDiscussions);
       } catch (error) {
         console.error('토론방 데이터 로드 실패:', error);
-        // 에러 시 목업 데이터 사용
-        setDiscussions(MOCK_BROWSER_DISCUSSIONS);
-        setFilteredDiscussions(MOCK_BROWSER_DISCUSSIONS);
+        setDiscussions([]);
+        setFilteredDiscussions([]);
       }
     };
 
