@@ -143,7 +143,7 @@ export function CreateDiscussionModal({
 
   const handleSubmit = async () => {
     // 필수 필드 검증
-    if (!formData.title.trim() || !selectedCategoryId || !formData.aPosition.trim() || !formData.bPosition.trim()) {
+    if (!formData.title.trim() || !selectedCategoryId) {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
@@ -200,7 +200,7 @@ export function CreateDiscussionModal({
   };
 
   const currentPositionText = getCurrentPositionText();
-  const isValid = formData.title.trim() && formData.category && currentPositionText.trim();
+  const isValid = formData.title.trim() && selectedCategoryId;
   const minDuration = getMinDuration(formData.maxSpeakers);
   const availableDurations = getAvailableDurations(formData.maxSpeakers);
 
@@ -272,7 +272,7 @@ export function CreateDiscussionModal({
 
             {/* 토론 입장 (하나만 선택, 각 입장 텍스트 유지) */}
             <div className="space-y-4">
-              <Label>토론 입장 선택 *</Label>
+              <Label>토론 입장 선택</Label>
               <div className="grid grid-cols-2 gap-4">
                 {/* A입장 */}
                 <div 
@@ -570,7 +570,7 @@ export function CreateDiscussionModal({
 
             {/* 토론 입장 (하나만 선택, 각 입장 텍스트 유지) */}
             <div className="space-y-4">
-              <Label>토론 입장 선택 *</Label>
+              <Label>토론 입장 선택</Label>
               <div className="grid grid-cols-2 gap-4">
                 {/* A입장 */}
                 <div 
