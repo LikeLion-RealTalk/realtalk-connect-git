@@ -64,7 +64,7 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
         // API 응답을 Discussion 인터페이스에 맞게 변환
         const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
           id: room.roomId,
-          type: '일반토론', // API에서 토론 타입이 없으므로 기본값
+          type: room.debateType === 'FAST' ? '3분토론' : '일반토론',
           status: room.status === 'waiting' ? '대기중' : '진행중',
           title: room.title,
           category: room.category?.id ? getCategoryName(room.category.id) : '💬자유 주제',

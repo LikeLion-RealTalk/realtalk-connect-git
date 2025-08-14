@@ -27,13 +27,32 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
       try {
         const apiData = await debateApi.getAllDebateRooms();
         
+        // 카테고리 매핑 함수
+        const getCategoryName = (categoryId: number) => {
+          const categoryMap: { [key: number]: string } = {
+            1: '💕연애',
+            2: '👥친구 & 인간관계',
+            3: '🏠일상 & 라이프스타일',
+            4: '💼취업 & 진로',
+            5: '🔥밈 & 유행',
+            6: '📱SNS & 온라인 문화',
+            7: '🤖AI & 미래사회',
+            8: '🎮게임 & e스포츠',
+            9: '🎭K-콘텐츠',
+            10: '⚖️논란 & 사회 이슈',
+            11: '💰돈 & 소비문화',
+            12: '💬자유 주제'
+          };
+          return categoryMap[categoryId] || '💬자유 주제';
+        };
+
         // API 응답을 Discussion 인터페이스에 맞게 변환
         const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
           id: room.roomId,
-          type: '일반토론',
+          type: room.debateType === 'FAST' ? '3분토론' : '일반토론',
           status: room.status === 'waiting' ? '대기중' : '진행중',
           title: room.title,
-          category: room.category?.name ? `🤖${room.category.name}` : '💬자유 주제',
+          category: room.category?.id ? getCategoryName(room.category.id) : '💬자유 주제',
           timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
           speakers: { 
             current: room.currentSpeaker || 0, 
