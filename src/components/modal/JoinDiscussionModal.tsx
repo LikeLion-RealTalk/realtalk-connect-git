@@ -6,6 +6,8 @@ import { Card, CardContent } from '../ui/card';
 import { Discussion, UserRole, ParticipationRole, DISCUSSION_STATUSES } from '../../types/discussion';
 import { useUser } from '../UserProvider';
 import { LoginModal } from './LoginModal';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 
 interface JoinDiscussionModalProps {
@@ -22,8 +24,15 @@ export function JoinDiscussionModal({
   onJoin 
 }: JoinDiscussionModalProps) {
   const { isLoggedIn } = useUser();
+  const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<'speaker' | 'audience' | null>(null);
+  const [currentStep, setCurrentStep] = useState<'role' | 'side'>('role');
+  const [selectedRole, setSelectedRole] = useState<'SPEAKER' | 'AUDIENCE' | null>(null);
+  const [selectedSide, setSelectedSide] = useState<'A' | 'B' | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
+
+  const { connect, joinRoom, isConnected, isConnecting } = useWebSocket();
 
   if (!discussion) return null;
 
@@ -56,26 +65,77 @@ export function JoinDiscussionModal({
       return;
     }
 
-    // 로그인한 사용자: 바로 참여 진행
-    onJoin(discussion.id, '', 'speaker', '발언자');
-    onClose();
+    // 로그인한 사용자: 입장 선택 단계로 이동
+    setSelectedRole('SPEAKER');
+    setCurrentStep('side');
   };
 
   const handleJoinAsAudience = () => {
-    // 청중은 로그인 검증 없이 바로 참여 가능
-    onJoin(discussion.id, '', 'audience', '청중');
-    onClose();
+    // 청중은 로그인 검증 없이 입장 선택 단계로 이동
+    setSelectedRole('AUDIENCE');
+    setCurrentStep('side');
+  };
+
+  const handleSideSelection = (side: 'A' | 'B') => {
+    setSelectedSide(side);
+  };
+
+  const handleJoinRoom = async () => {
+    if (!discussion || !selectedRole || !selectedSide) return;
+
+    setIsJoining(true);
+
+    try {
+      // WebSocket 연결
+      await connect();
+      
+      // 방 참여 요청
+      const result = await joinRoom(discussion.id, selectedRole, selectedSide);
+      
+      if (result?.type === 'JOIN_ACCEPTED') {
+        toast.success('토론방에 입장했습니다!', {
+          position: 'bottom-right',
+          duration: 2000,
+        });
+        
+        // 토론방 페이지로 이동
+        navigate(`/debate/${discussion.id}`);
+        onClose();
+      } else if (result?.type === 'JOIN_REJECTED') {
+        toast.error(`입장이 거부되었습니다: ${result.reason || '알 수 없는 오류'}`, {
+          position: 'bottom-right',
+          duration: 3000,
+        });
+      } else {
+        toast.error('서버 응답을 받지 못했습니다. 다시 시도해주세요.', {
+          position: 'bottom-right',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Join room error:', error);
+      toast.error('토론방 입장 중 오류가 발생했습니다.', {
+        position: 'bottom-right',
+        duration: 3000,
+      });
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep('role');
+    setSelectedRole(null);
+    setSelectedSide(null);
   };
 
   const handleLoginSuccess = () => {
     setShowLoginModal(false);
     
-    // 로그인 성공 후 원래 토론방 모달을 다시 표시
-    // pendingAction이 있으면 해당 액션 실행
+    // 로그인 성공 후 입장 선택 단계로 이동
     if (pendingAction === 'speaker') {
-      // 로그인 완료 후 발언자로 참여
-      onJoin(discussion.id, '', 'speaker', '발언자');
-      onClose();
+      setSelectedRole('SPEAKER');
+      setCurrentStep('side');
     }
     
     setPendingAction(null);
@@ -88,6 +148,11 @@ export function JoinDiscussionModal({
   };
 
   const handleClose = () => {
+    // 상태 초기화
+    setCurrentStep('role');
+    setSelectedRole(null);
+    setSelectedSide(null);
+    setIsJoining(false);
     onClose();
   };
 
@@ -102,7 +167,10 @@ export function JoinDiscussionModal({
           <DialogHeader>
             <DialogTitle>토론방 입장</DialogTitle>
             <DialogDescription>
-              닉네임을 설정하고 참여 방식을 선택하여 토론방에 입장하세요.
+              {currentStep === 'role' 
+                ? '참여 방식을 선택하여 토론방에 입장하세요.'
+                : '토론에서 지지할 입장을 선택하세요.'
+              }
             </DialogDescription>
           </DialogHeader>
           
@@ -131,34 +199,92 @@ export function JoinDiscussionModal({
               </CardContent>
             </Card>
 
-            {/* 참여 모드 선택 버튼 */}
+            {/* 단계별 콘텐츠 */}
             {canJoin ? (
-              <div className="space-y-3">
-                <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={handleJoinAsSpeaker}
-                    disabled={isSpeakerFull}
-                    className="w-full"
-                  >
-                    발언자로 참여하기
-                    {isSpeakerFull && ' (정원 초과)'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleJoinAsAudience}
-                    disabled={isAudienceFull}
-                    className="w-full"
-                  >
-                    청중으로 참여하기
-                    {isAudienceFull && ' (정원 초과)'}
-                  </Button>
-                </div>
-                
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>• 발언자: 토론에 직접 발언할 수 있습니다</p>
-                  <p>• 청중: 토론을 관찰하고 채팅으로 참여할 수 있습니다</p>
-                </div>
-              </div>
+              <>
+                {currentStep === 'role' && (
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={handleJoinAsSpeaker}
+                        disabled={isSpeakerFull}
+                        className="w-full"
+                      >
+                        발언자로 참여하기
+                        {isSpeakerFull && ' (정원 초과)'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleJoinAsAudience}
+                        disabled={isAudienceFull}
+                        className="w-full"
+                      >
+                        청중으로 참여하기
+                        {isAudienceFull && ' (정원 초과)'}
+                      </Button>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>• 발언자: 토론에 직접 발언할 수 있습니다</p>
+                      <p>• 청중: 토론을 관찰하고 채팅으로 참여할 수 있습니다</p>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 'side' && (
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground mb-4">
+                      선택한 역할: <strong>{selectedRole === 'SPEAKER' ? '발언자' : '청중'}</strong>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => handleSideSelection('A')}
+                        variant={selectedSide === 'A' ? 'default' : 'outline'}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">A</span>
+                          </div>
+                          <span>A 입장</span>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        onClick={() => handleSideSelection('B')}
+                        variant={selectedSide === 'B' ? 'default' : 'outline'}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">B</span>
+                          </div>
+                          <span>B 입장</span>
+                        </div>
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={handleBack}
+                        className="flex-1"
+                        disabled={isJoining}
+                      >
+                        이전
+                      </Button>
+                      <Button
+                        onClick={handleJoinRoom}
+                        disabled={!selectedSide || isJoining || isConnecting}
+                        className="flex-1"
+                      >
+                        {isJoining || isConnecting ? '입장 중...' : '입장하기'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground">종료된 토론방입니다.</p>
