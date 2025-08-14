@@ -10,6 +10,7 @@ import { Plus } from 'lucide-react';
 import { Discussion, DiscussionData, FilterOptions, DebateSummary } from '../../types/discussion';
 import { MOCK_BROWSER_DISCUSSIONS } from '../../mock/browserDiscussions';
 import { getDebateSummaryByDiscussionId } from '../../mock/debateSummaries';
+import { debateApi } from '../../lib/api/apiClient';
 
 
 
@@ -37,8 +38,39 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
   const discussionsPerPage = 6;
 
   useEffect(() => {
-    setDiscussions(MOCK_BROWSER_DISCUSSIONS);
-    setFilteredDiscussions(MOCK_BROWSER_DISCUSSIONS);
+    const loadDebateRooms = async () => {
+      try {
+        const apiData = await debateApi.getAllDebateRooms();
+        
+        // API 응답을 Discussion 인터페이스에 맞게 변환
+        const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
+          id: room.roomId,
+          type: '일반토론', // API에서 토론 타입이 없으므로 기본값
+          status: room.status === 'waiting' ? '대기중' : '진행중',
+          title: room.title,
+          category: room.category?.name ? `🤖${room.category.name}` : '💬자유 주제',
+          timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
+          speakers: { 
+            current: room.currentSpeaker || 0, 
+            max: room.maxSpeaker || 0 
+          },
+          audience: { 
+            current: room.currentAudience || 0, 
+            max: room.maxAudience || 0 
+          }
+        }));
+        
+        setDiscussions(convertedDiscussions);
+        setFilteredDiscussions(convertedDiscussions);
+      } catch (error) {
+        console.error('토론방 데이터 로드 실패:', error);
+        // 에러 시 목업 데이터 사용
+        setDiscussions(MOCK_BROWSER_DISCUSSIONS);
+        setFilteredDiscussions(MOCK_BROWSER_DISCUSSIONS);
+      }
+    };
+
+    loadDebateRooms();
   }, []);
 
   useEffect(() => {
