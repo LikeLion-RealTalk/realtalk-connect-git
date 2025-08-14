@@ -65,7 +65,7 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
         const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
           id: room.roomId,
           type: room.debateType === 'FAST' ? '3분토론' : '일반토론',
-          status: room.status === 'waiting' ? '대기중' : '진행중',
+          status: room.status === 'waiting' ? '대기중' : room.status === 'started' ? '진행중' : '종료됨',
           title: room.title,
           category: room.category?.id ? getCategoryName(room.category.id) : '💬자유 주제',
           timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
