@@ -21,15 +21,56 @@ interface JoinResponse {
   nonce?: string;
 }
 
+// 전역 웹소켓 인스턴스 (싱글톤)
+let globalStompClient: any = null;
+let globalRoomSub: any = null;
+let globalParticipantsSub: any = null;
+let globalIsConnected = false;
+let globalIsConnecting = false;
+let globalConnectInFlight = false;
+
+// 전역 콜백들
+let globalMessageCallbacks: ((message: any) => void)[] = [];
+let globalConnectCallbacks: (() => void)[] = [];
+let globalDisconnectCallbacks: (() => void)[] = [];
+
 export const useWebSocket = (options: WebSocketHookOptions = {}) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const stompClientRef = useRef<any>(null);
-  const roomSubRef = useRef<any>(null);
-  const participantsSubRef = useRef<any>(null);
-  const connectInFlightRef = useRef(false);
+  const [isConnected, setIsConnected] = useState(globalIsConnected);
+  const [isConnecting, setIsConnecting] = useState(globalIsConnecting);
   
   const { onMessage, onConnect, onDisconnect } = options;
+
+  // 컴포넌트 마운트 시 콜백 등록
+  useEffect(() => {
+    if (onMessage) {
+      globalMessageCallbacks.push(onMessage);
+    }
+    if (onConnect) {
+      globalConnectCallbacks.push(onConnect);
+    }
+    if (onDisconnect) {
+      globalDisconnectCallbacks.push(onDisconnect);
+    }
+
+    // 컴포넌트 언마운트 시 콜백 제거
+    return () => {
+      if (onMessage) {
+        globalMessageCallbacks = globalMessageCallbacks.filter(cb => cb !== onMessage);
+      }
+      if (onConnect) {
+        globalConnectCallbacks = globalConnectCallbacks.filter(cb => cb !== onConnect);
+      }
+      if (onDisconnect) {
+        globalDisconnectCallbacks = globalDisconnectCallbacks.filter(cb => cb !== onDisconnect);
+      }
+    };
+  }, [onMessage, onConnect, onDisconnect]);
+
+  // 전역 상태 변경 시 로컬 상태 업데이트
+  useEffect(() => {
+    setIsConnected(globalIsConnected);
+    setIsConnecting(globalIsConnecting);
+  }, []);
 
   // HTML 코드와 동일한 토큰 확보 함수
   const ensureAccessToken = useCallback(async ({ require = false } = {}) => {
@@ -62,25 +103,26 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
   const connect = useCallback(async (role: 'SPEAKER' | 'AUDIENCE' = 'AUDIENCE'): Promise<boolean> => {
     console.log('[웹소켓] connect 호출:', { role });
     
-    if (connectInFlightRef.current) {
+    if (globalConnectInFlight) {
       console.warn('[웹소켓] 이미 연결 진행 중입니다. 중복 연결 차단.');
       return false;
     }
-    connectInFlightRef.current = true;
+    globalConnectInFlight = true;
+    globalIsConnecting = true;
     setIsConnecting(true);
 
     try {
       // 이전 연결 정리
-      if (roomSubRef.current) { 
-        roomSubRef.current.unsubscribe(); 
-        roomSubRef.current = null; 
+      if (globalRoomSub) { 
+        globalRoomSub.unsubscribe(); 
+        globalRoomSub = null; 
       }
-      if (participantsSubRef.current) { 
-        participantsSubRef.current.unsubscribe(); 
-        participantsSubRef.current = null; 
+      if (globalParticipantsSub) { 
+        globalParticipantsSub.unsubscribe(); 
+        globalParticipantsSub = null; 
       }
-      if (stompClientRef.current && stompClientRef.current.connected) {
-        await new Promise(res => stompClientRef.current.disconnect(res));
+      if (globalStompClient && globalStompClient.connected) {
+        await new Promise(res => globalStompClient.disconnect(res));
       }
 
       // 토큰 확보
@@ -111,30 +153,35 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       socket.onclose = (e: any) => console.warn('[웹소켓] SockJS 연결 종료:', e);
       socket.onerror = (e: any) => console.error('[웹소켓] SockJS 오류:', e);
 
-      stompClientRef.current = window.Stomp.over(socket);
-      stompClientRef.current.debug = (msg: string) => console.log('[STOMP 디버그]', msg);
-      stompClientRef.current.heartbeat.outgoing = 10000;
-      stompClientRef.current.heartbeat.incoming = 10000;
+      globalStompClient = window.Stomp.over(socket);
+      globalStompClient.debug = (msg: string) => console.log('[STOMP 디버그]', msg);
+      globalStompClient.heartbeat.outgoing = 10000;
+      globalStompClient.heartbeat.incoming = 10000;
 
       console.log('[웹소켓] STOMP connect 호출');
       
       return new Promise((resolve) => {
-        stompClientRef.current.connect(
+        globalStompClient.connect(
           connectHeaders,
           (frame: any) => {
             console.log('[웹소켓] STOMP 연결 성공:', frame);
+            globalIsConnected = true;
+            globalIsConnecting = false;
+            globalConnectInFlight = false;
             setIsConnected(true);
             setIsConnecting(false);
-            connectInFlightRef.current = false;
-            onConnect?.();
+            // 모든 컴포넌트의 onConnect 콜백 호출
+            globalConnectCallbacks.forEach(cb => cb());
             resolve(true);
           },
           (err: any) => {
             const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
             console.error('[웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
+            globalIsConnected = false;
+            globalIsConnecting = false;
+            globalConnectInFlight = false;
             setIsConnected(false);
             setIsConnecting(false);
-            connectInFlightRef.current = false;
             resolve(false);
           }
         );
@@ -142,44 +189,50 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
 
     } catch (error) {
       console.error('[웹소켓] 연결 실패:', error);
+      globalIsConnecting = false;
+      globalConnectInFlight = false;
       setIsConnecting(false);
-      connectInFlightRef.current = false;
       return false;
     }
-  }, [ensureAccessToken, onConnect]);
+  }, [ensureAccessToken]);
 
   const disconnect = useCallback(() => {
     try {
-      if (roomSubRef.current) { 
-        roomSubRef.current.unsubscribe(); 
-        roomSubRef.current = null; 
+      if (globalRoomSub) { 
+        globalRoomSub.unsubscribe(); 
+        globalRoomSub = null; 
       }
-      if (participantsSubRef.current) { 
-        participantsSubRef.current.unsubscribe(); 
-        participantsSubRef.current = null; 
+      if (globalParticipantsSub) { 
+        globalParticipantsSub.unsubscribe(); 
+        globalParticipantsSub = null; 
       }
     } catch (e) {
       console.warn('[웹소켓] 언서브 중 경고:', e);
     }
 
-    if (!stompClientRef.current || !stompClientRef.current.connected) {
+    if (!globalStompClient || !globalStompClient.connected) {
+      globalIsConnected = false;
+      globalIsConnecting = false;
       setIsConnected(false);
       setIsConnecting(false);
       return;
     }
 
-    stompClientRef.current.disconnect(() => {
+    globalStompClient.disconnect(() => {
       console.log('[웹소켓] 연결 종료');
+      globalIsConnected = false;
+      globalIsConnecting = false;
       setIsConnected(false);
       setIsConnecting(false);
-      onDisconnect?.();
+      // 모든 컴포넌트의 onDisconnect 콜백 호출
+      globalDisconnectCallbacks.forEach(cb => cb());
     });
-  }, [onDisconnect]);
+  }, []);
 
   const joinRoom = useCallback(async (roomId: string, role: 'SPEAKER' | 'AUDIENCE', side: 'A' | 'B'): Promise<JoinResponse | null> => {
     console.log('[웹소켓] joinRoom 호출:', { 방ID: roomId, 역할: role, 사이드: side });
     
-    if (!stompClientRef.current?.connected) {
+    if (!globalStompClient?.connected) {
       console.warn('[웹소켓] 연결되지 않음');
       return null;
     }
@@ -193,7 +246,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
 
       console.log('[웹소켓] 구독 시작1:', topicRoom);
       // HTML과 동일한 구독 방식
-      roomSubRef.current = stompClientRef.current.subscribe(topicRoom, function (message: any) {
+      globalRoomSub = globalStompClient.subscribe(topicRoom, function (message: any) {
         let payload;
         try {
           payload = JSON.parse(message.body);
@@ -233,12 +286,12 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
           resolve(payload as JoinResponse);
         }
 
-        // 다른 메시지들도 전달
-        onMessage?.(payload);
+        // 다른 메시지들을 모든 컴포넌트에 전달
+        globalMessageCallbacks.forEach(cb => cb(payload));
       });
 
       console.log('[웹소켓] 구독 시작2:', topicParticipants);
-      participantsSubRef.current = stompClientRef.current.subscribe(topicParticipants, function (message: any) {
+      globalParticipantsSub = globalStompClient.subscribe(topicParticipants, function (message: any) {
         let participants;
         try {
           participants = JSON.parse(message.body);
@@ -254,7 +307,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       setTimeout(() => {
         const joinPayload = { roomId, role, side, nonce: myJoinNonce };
         console.log('[웹소켓][송신] /pub/debate/join:', joinPayload);
-        stompClientRef.current.send('/pub/debate/join', {}, JSON.stringify(joinPayload));
+        globalStompClient.send('/pub/debate/join', {}, JSON.stringify(joinPayload));
       }, 100);
 
       // 10초 타임아웃
@@ -263,19 +316,19 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         resolve(null);
       }, 10000);
     });
-  }, [onMessage]);
+  }, []);
 
   const sendMessage = useCallback((destination: string, body: any) => {
-    if (!stompClientRef.current?.connected) {
+    if (!globalStompClient?.connected) {
       console.warn('[웹소켓] 연결되지 않음');
       return;
     }
 
-    stompClientRef.current.send(destination, {}, JSON.stringify(body));
+    globalStompClient.send(destination, {}, JSON.stringify(body));
   }, []);
 
   const sendChatMessage = useCallback(async (roomId: string, message: string): Promise<boolean> => {
-    if (!stompClientRef.current || !stompClientRef.current.connected) {
+    if (!globalStompClient || !globalStompClient.connected) {
       console.error('[채팅] STOMP 클라이언트가 연결되지 않았습니다');
       return false;
     }
@@ -288,7 +341,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
 
       console.log('[채팅] 메시지 전송:', chatData);
       
-      stompClientRef.current.send(
+      globalStompClient.send(
         '/pub/chat/message',
         {},
         JSON.stringify(chatData)
