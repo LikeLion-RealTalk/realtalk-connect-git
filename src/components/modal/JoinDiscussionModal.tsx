@@ -36,6 +36,11 @@ export function JoinDiscussionModal({
 
   if (!discussion) return null;
 
+  // API 데이터 확인을 위한 로그
+  console.log('JoinDiscussionModal - discussion:', discussion);
+  console.log('JoinDiscussionModal - sideA:', discussion.sideA);
+  console.log('JoinDiscussionModal - sideB:', discussion.sideB);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case DISCUSSION_STATUSES[0]: // '진행중'
@@ -112,7 +117,7 @@ export function JoinDiscussionModal({
         if (onNavigate) {
           onNavigate('debate', discussion.id, {
             userRole: selectedRole,
-            userPosition: selectedSide === 'A' ? (discussion.sideA || 'A입장') : (discussion.sideB || 'B입장')
+            userPosition: selectedSide === 'A' ? discussion.sideA : discussion.sideB
           });
         }
         onClose();
@@ -262,7 +267,7 @@ export function JoinDiscussionModal({
                           <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xs">A</span>
                           </div>
-                          <span>{discussion.sideA || 'A 입장'}</span>
+                          <span>{discussion.sideA}</span>
                         </div>
                       </Button>
                       
@@ -275,7 +280,7 @@ export function JoinDiscussionModal({
                           <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xs">B</span>
                           </div>
-                          <span>{discussion.sideB || 'B 입장'}</span>
+                          <span>{discussion.sideB}</span>
                         </div>
                       </Button>
                     </div>
