@@ -105,8 +105,8 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         : (token ? { Authorization: 'Bearer ' + token, authorization: 'Bearer ' + token } : {});
       console.log('[웹소켓] CONNECT 헤더:', connectHeaders);
 
-      // /ws-debate 엔드포인트로 연결
-      const socket = new window.SockJS('/ws-debate');
+      // API 서버로 웹소켓 연결
+      const socket = new window.SockJS('https://api.realtalks.co.kr:8443/ws-debate');
       socket.onopen = () => console.log('[웹소켓] SockJS 연결 열림');
       socket.onclose = (e: any) => console.warn('[웹소켓] SockJS 연결 종료:', e);
       socket.onerror = (e: any) => console.error('[웹소켓] SockJS 오류:', e);
