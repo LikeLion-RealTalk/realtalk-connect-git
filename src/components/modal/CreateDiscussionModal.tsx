@@ -213,7 +213,7 @@ export function CreateDiscussionModal({
 
       const result = await joinRoom(roomId, 'SPEAKER', selectedSide);
 
-      if (result?.success) {
+      if (result && result.type === 'JOIN_ACCEPTED') {
         console.log('[토론방 생성] 입장 성공');
         
         // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
@@ -229,8 +229,10 @@ export function CreateDiscussionModal({
         }
         
         toast.success('토론방이 생성되었습니다!');
+      } else if (result && result.type === 'JOIN_REJECTED') {
+        throw new Error(result.reason || '토론방 입장이 거절되었습니다');
       } else {
-        throw new Error(result?.message || '토론방 입장에 실패했습니다');
+        throw new Error('토론방 입장 요청이 타임아웃되었습니다');
       }
       
     } catch (error) {
