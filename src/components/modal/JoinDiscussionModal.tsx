@@ -36,11 +36,6 @@ export function JoinDiscussionModal({
 
   if (!discussion) return null;
 
-  // API 데이터 확인을 위한 로그
-  console.log('JoinDiscussionModal - discussion:', discussion);
-  console.log('JoinDiscussionModal - sideA:', discussion.sideA);
-  console.log('JoinDiscussionModal - sideB:', discussion.sideB);
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case DISCUSSION_STATUSES[0]: // '진행중'

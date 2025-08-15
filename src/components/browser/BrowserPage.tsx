@@ -76,7 +76,9 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
           audience: { 
             current: room.currentAudience || 0, 
             max: room.maxAudience || 0 
-          }
+          },
+          sideA: room.sideA,
+          sideB: room.sideB
         }));
         
         // 현재 청중 수로 내림차순 정렬
