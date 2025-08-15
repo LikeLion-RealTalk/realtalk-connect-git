@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+// HTML과 동일한 방식으로 전역 변수 사용
+declare global {
+  interface Window {
+    SockJS: any;
+    Stomp: any;
+  }
+}
 
 interface WebSocketHookOptions {
   roomId?: string;
@@ -19,186 +24,248 @@ interface JoinResponse {
 export const useWebSocket = (options: WebSocketHookOptions = {}) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const clientRef = useRef<Client | null>(null);
-  const { roomId, onMessage, onConnect, onDisconnect } = options;
+  const stompClientRef = useRef<any>(null);
+  const roomSubRef = useRef<any>(null);
+  const participantsSubRef = useRef<any>(null);
+  const connectInFlightRef = useRef(false);
+  
+  const { onMessage, onConnect, onDisconnect } = options;
 
-  const generateNonce = (): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+  // HTML 코드와 동일한 토큰 확보 함수
+  const ensureAccessToken = useCallback(async ({ require = false } = {}) => {
+    const isExpired = (t: string) => {
+      try {
+        const p = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        const now = Math.floor(Date.now()/1000);
+        return !p.exp || p.exp < now + 30;
+      } catch { 
+        return true; 
+      }
+    };
+
+    let t = localStorage.getItem('access_token');
+    if (t && !isExpired(t)) return t;
+
+    if (!require) return null;
+
+    try {
+      const res = await fetch('/api/auth/token', { method:'POST', credentials:'include' });
+      if (!res.ok) return null;
+      const { accessToken } = await res.json();
+      localStorage.setItem('access_token', accessToken);
+      return accessToken;
+    } catch {
+      return null;
     }
-    return result;
-  };
+  }, []);
 
   const connect = useCallback(async (role: 'SPEAKER' | 'AUDIENCE' = 'AUDIENCE') => {
-    if (clientRef.current?.connected || isConnecting) {
+    console.log('[웹소켓] connect 호출:', { role });
+    
+    if (connectInFlightRef.current) {
+      console.warn('[웹소켓] 이미 연결 진행 중입니다. 중복 연결 차단.');
       return;
     }
-
+    connectInFlightRef.current = true;
     setIsConnecting(true);
 
     try {
-      // 토큰 확보 (SPEAKER만 필수, AUDIENCE는 선택)
-      const token = localStorage.getItem('access_token');
-      if (role === 'SPEAKER' && !token) {
-        throw new Error('No access token found for SPEAKER role');
+      // 이전 연결 정리
+      if (roomSubRef.current) { 
+        roomSubRef.current.unsubscribe(); 
+        roomSubRef.current = null; 
+      }
+      if (participantsSubRef.current) { 
+        participantsSubRef.current.unsubscribe(); 
+        participantsSubRef.current = null; 
+      }
+      if (stompClientRef.current && stompClientRef.current.connected) {
+        await new Promise(res => stompClientRef.current.disconnect(res));
       }
 
-      // 헤더 단순화: Authorization만 사용, AUDIENCE는 토큰 없이도 연결
-      const connectHeaders = (role === 'AUDIENCE') 
+      // 토큰 확보
+      const token = await ensureAccessToken({ require: role === 'SPEAKER' });
+      
+      if (token) {
+        try {
+          const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(atob(b64));
+          const expLocal = new Date(payload.exp * 1000).toLocaleString();
+          console.log('[웹소켓] 토큰 확보:', { 길이: token.length, 만료시각_초: payload.exp, 만료시각_로컬: expLocal, 사용자: payload.sub });
+        } catch (e) {
+          console.warn('[웹소켓] 토큰 디코딩 실패:', e);
+        }
+      } else {
+        console.warn('[웹소켓] 토큰 없음: 게스트로 시도합니다(AUDIENCE 허용 시)');
+      }
+
+      // HTML과 동일한 헤더 설정 (중복 헤더 포함)
+      const connectHeaders = (role === 'AUDIENCE')
         ? {} 
-        : (token ? { 'Authorization': `Bearer ${token}` } : {});
+        : (token ? { Authorization: 'Bearer ' + token, authorization: 'Bearer ' + token } : {});
+      console.log('[웹소켓] CONNECT 헤더:', connectHeaders);
 
-      const client = new Client({
-        webSocketFactory: () => new SockJS('wss://api.realtalks.co.kr:8443/ws-stomp'),
+      // /ws-debate 엔드포인트로 연결
+      const socket = new window.SockJS('/ws-debate');
+      socket.onopen = () => console.log('[웹소켓] SockJS 연결 열림');
+      socket.onclose = (e: any) => console.warn('[웹소켓] SockJS 연결 종료:', e);
+      socket.onerror = (e: any) => console.error('[웹소켓] SockJS 오류:', e);
+
+      stompClientRef.current = window.Stomp.over(socket);
+      stompClientRef.current.debug = (msg: string) => console.log('[STOMP 디버그]', msg);
+      stompClientRef.current.heartbeat.outgoing = 10000;
+      stompClientRef.current.heartbeat.incoming = 10000;
+
+      console.log('[웹소켓] STOMP connect 호출');
+      stompClientRef.current.connect(
         connectHeaders,
-        debug: (str) => {
-          console.log('[STOMP Debug]', str);
+        (frame: any) => {
+          console.log('[웹소켓] STOMP 연결 성공:', frame);
+          setIsConnected(true);
+          setIsConnecting(false);
+          connectInFlightRef.current = false;
+          onConnect?.();
         },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
-      });
-
-      client.onConnect = (frame) => {
-        console.log('[웹소켓] STOMP 연결 성공:', frame);
-        setIsConnected(true);
-        setIsConnecting(false);
-        onConnect?.();
-      };
-
-      client.onStompError = (frame) => {
-        const msg = (frame && frame.headers && frame.headers.message) ? frame.headers.message : '알 수 없는 오류';
-        console.error('[웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: frame });
-        setIsConnected(false);
-        setIsConnecting(false);
-      };
-
-      client.onDisconnect = () => {
-        console.log('[웹소켓] 연결 종료');
-        setIsConnected(false);
-        setIsConnecting(false);
-        onDisconnect?.();
-      };
-
-      clientRef.current = client;
-      client.activate();
+        (err: any) => {
+          const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
+          console.error('[웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
+          setIsConnected(false);
+          setIsConnecting(false);
+          connectInFlightRef.current = false;
+        }
+      );
 
     } catch (error) {
       console.error('[웹소켓] 연결 실패:', error);
       setIsConnecting(false);
+      connectInFlightRef.current = false;
     }
-  }, [isConnecting, onConnect, onDisconnect]);
+  }, [ensureAccessToken, onConnect]);
 
   const disconnect = useCallback(() => {
-    if (clientRef.current) {
-      clientRef.current.deactivate();
-      clientRef.current = null;
-    }
-    setIsConnected(false);
-    setIsConnecting(false);
-  }, []);
-
-  const subscribeToRoom = useCallback((roomId: string) => {
-    if (!clientRef.current?.connected) {
-      console.warn('WebSocket not connected');
-      return null;
-    }
-
-    const subscription = clientRef.current.subscribe(
-      `/sub/debate-room/${roomId}`,
-      (message) => {
-        try {
-          const parsedMessage = JSON.parse(message.body);
-          console.log('[STOMP Message]', parsedMessage);
-          onMessage?.(parsedMessage);
-        } catch (error) {
-          console.error('Failed to parse message:', error);
-        }
+    try {
+      if (roomSubRef.current) { 
+        roomSubRef.current.unsubscribe(); 
+        roomSubRef.current = null; 
       }
-    );
+      if (participantsSubRef.current) { 
+        participantsSubRef.current.unsubscribe(); 
+        participantsSubRef.current = null; 
+      }
+    } catch (e) {
+      console.warn('[웹소켓] 언서브 중 경고:', e);
+    }
 
-    return subscription;
-  }, [onMessage]);
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      setIsConnected(false);
+      setIsConnecting(false);
+      return;
+    }
+
+    stompClientRef.current.disconnect(() => {
+      console.log('[웹소켓] 연결 종료');
+      setIsConnected(false);
+      setIsConnecting(false);
+      onDisconnect?.();
+    });
+  }, [onDisconnect]);
 
   const joinRoom = useCallback(async (roomId: string, role: 'SPEAKER' | 'AUDIENCE', side: 'A' | 'B'): Promise<JoinResponse | null> => {
-    if (!clientRef.current?.connected) {
+    console.log('[웹소켓] joinRoom 호출:', { 방ID: roomId, 역할: role, 사이드: side });
+    
+    if (!stompClientRef.current?.connected) {
       console.warn('[웹소켓] 연결되지 않음');
       return null;
     }
 
     return new Promise((resolve) => {
-      const nonce = generateNonce();
-      console.log('[웹소켓] joinRoom 호출:', { 방ID: roomId, 역할: role, 사이드: side, nonce });
-      
-      // 방 구독 먼저 설정
-      const roomSubscription = subscribeToRoom(roomId);
-      const participantsSubscription = clientRef.current!.subscribe(
-        `/sub/debate-room/${roomId}/participants`,
-        (message) => {
-          try {
-            const participants = JSON.parse(message.body);
-            console.log(`[웹소켓][참가자] 목록 수신:`, participants);
-          } catch (error) {
-            console.error('[웹소켓][참가자] JSON 파싱 실패:', error);
+      const myJoinNonce = Math.random().toString(36).slice(2, 10);
+      let selfInfoLocked = false;
+
+      const topicRoom = `/sub/debate-room/${roomId}`;
+      const topicParticipants = `/sub/debate-room/${roomId}/participants`;
+
+      console.log('[웹소켓] 구독 시작1:', topicRoom);
+      // HTML과 동일한 구독 방식
+      roomSubRef.current = stompClientRef.current.subscribe(topicRoom, function (message: any) {
+        let payload;
+        try {
+          payload = JSON.parse(message.body);
+          console.log('payload:', payload);
+        } catch (e) {
+          console.error('[웹소켓][수신] JSON 파싱 실패:', e, message.body);
+          return;
+        }
+        console.log('[웹소켓][수신] 방 브로드캐스트:', payload);
+
+        if (payload.type === 'JOIN_ACCEPTED') {
+          const isMineByNonce = payload.nonce && typeof myJoinNonce === 'string' && payload.nonce === myJoinNonce;
+          const isFirstAccept = !selfInfoLocked;
+          const isMyAccept = isMineByNonce || isFirstAccept;
+
+          const { userId: acceptedUserId, userName, role: joinedRole, side: joinedSide } = payload;
+
+          console.warn("isMineByNonce:", isMineByNonce);
+          console.warn("isFirstAccept:", isFirstAccept);
+          console.warn("isMyAccept:", isMyAccept);
+          console.warn("selfInfoLocked:", selfInfoLocked);
+
+          if (isMyAccept && !selfInfoLocked) {
+            selfInfoLocked = true;
+            console.log('[웹소켓] 참가 승인 수신: UI 갱신 완료');
+            console.log('[웹소켓] 참가 승인 수신(내 것):', { acceptedUserId, userName, joinedRole, joinedSide, nonce: payload.nonce });
+            resolve(payload as JoinResponse);
+          } else {
+            console.log('[웹소켓] 참가 승인 수신(다른 사람): UI 갱신 생략', { acceptedUserId, userName, joinedRole, joinedSide, nonce: payload.nonce });
           }
         }
-      );
 
-      if (!roomSubscription || !participantsSubscription) {
-        resolve(null);
-        return;
-      }
-
-      // JOIN 응답 처리를 위한 임시 메시지 핸들러
-      let responseReceived = false;
-      const originalOnMessage = onMessage;
-      const tempMessageHandler = (message: any) => {
-        if (message.nonce === nonce && (message.type === 'JOIN_ACCEPTED' || message.type === 'JOIN_REJECTED')) {
-          responseReceived = true;
-          console.log('[웹소켓] JOIN 응답 수신:', message);
-          resolve(message as JoinResponse);
-          options.onMessage = originalOnMessage;
-        } else {
-          originalOnMessage?.(message);
+        if (payload.type === 'JOIN_REJECTED') {
+          const mine = payload.nonce && payload.nonce === myJoinNonce;
+          if (!mine) return;
+          console.warn('[웹소켓] 참가 거절(내 요청):', payload);
+          resolve(payload as JoinResponse);
         }
-      };
 
-      options.onMessage = tempMessageHandler;
+        // 다른 메시지들도 전달
+        onMessage?.(payload);
+      });
 
-      // 구독 완료 후 JOIN 메시지 전송 (타이밍 개선)
+      console.log('[웹소켓] 구독 시작2:', topicParticipants);
+      participantsSubRef.current = stompClientRef.current.subscribe(topicParticipants, function (message: any) {
+        let participants;
+        try {
+          participants = JSON.parse(message.body);
+        } catch (e) {
+          console.error('[웹소켓][참가자] JSON 파싱 실패:', e, message.body);
+          return;
+        }
+        const count = Array.isArray(participants) ? participants.length : '알수없음';
+        console.log(`[웹소켓][참가자] 목록 수신(${count}명):`, participants);
+      });
+
+      // HTML과 동일한 타이밍: 구독 완료 후 100ms 대기하고 JOIN 메시지 전송
       setTimeout(() => {
-        const joinPayload = { roomId, role, side, nonce };
+        const joinPayload = { roomId, role, side, nonce: myJoinNonce };
         console.log('[웹소켓][송신] /pub/debate/join:', joinPayload);
-        
-        clientRef.current!.publish({
-          destination: '/pub/debate/join',
-          body: JSON.stringify(joinPayload)
-        });
-      }, 100); // 100ms 대기로 구독 완료 보장
+        stompClientRef.current.send('/pub/debate/join', {}, JSON.stringify(joinPayload));
+      }, 100);
 
       // 10초 타임아웃
       setTimeout(() => {
-        if (!responseReceived) {
-          console.warn('[웹소켓] JOIN 응답 타임아웃');
-          resolve(null);
-          options.onMessage = originalOnMessage;
-        }
+        console.warn('[웹소켓] JOIN 응답 타임아웃');
+        resolve(null);
       }, 10000);
     });
-  }, [subscribeToRoom, onMessage, options]);
+  }, [onMessage]);
 
   const sendMessage = useCallback((destination: string, body: any) => {
-    if (!clientRef.current?.connected) {
-      console.warn('WebSocket not connected');
+    if (!stompClientRef.current?.connected) {
+      console.warn('[웹소켓] 연결되지 않음');
       return;
     }
 
-    clientRef.current.publish({
-      destination,
-      body: JSON.stringify(body)
-    });
+    stompClientRef.current.send(destination, {}, JSON.stringify(body));
   }, []);
 
   useEffect(() => {
@@ -212,7 +279,6 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     isConnecting,
     connect,
     disconnect,
-    subscribeToRoom,
     joinRoom,
     sendMessage
   };
