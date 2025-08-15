@@ -12,7 +12,6 @@ import { ChatSection, ChatSectionBody } from './ChatSection';
 import { DebateScrollButtons } from './DebateScrollButtons';
 
 import { ShareRoomModal } from './modal/ShareRoomModal';
-import { PositionSelectionModal } from './modal/PositionSelectionModal';
 import { DebateExtensionModal } from './modal/DebateExtensionModal';
 import { DebateExitConfirmModal } from './modal/DebateExitConfirmModal';
 import { Button } from '../ui/button';
@@ -44,7 +43,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [isRecording, setIsRecording] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
   const [hasShownExtensionModal, setHasShownExtensionModal] = useState(false);
   const [isDebateFinished, setIsDebateFinished] = useState(false);
@@ -71,19 +69,17 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }));
   });
 
-  // 토론방 입장 시 모달 표시 로직
+  // 토론방 입장 시 로직
   useEffect(() => {
-    // userPosition이 null인 경우 입장 선택 모달 표시 (토론방 생성자든 참여자든 상관없이)
-    if (!hasEnteredRoom && debateRoomInfo.userPosition === null) {
-      setIsPositionModalOpen(true);
+    setHasEnteredRoom(true);
+    // userPosition이 이미 설정되어 있으면 해당 입장으로 설정 (JoinDiscussionModal에서 선택한 입장)
+    if (debateRoomInfo.userPosition) {
+      setCurrentPosition(debateRoomInfo.userPosition === 'A입장' ? POSITIONS[0] : POSITIONS[1]);
     } else {
-      setHasEnteredRoom(true);
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
-      if (debateRoomInfo.userPosition === undefined) {
-        setCurrentPosition(null);
-      }
+      setCurrentPosition(null);
     }
-  }, [hasEnteredRoom, debateRoomInfo.userPosition]);
+  }, [debateRoomInfo.userPosition]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
@@ -346,59 +342,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setChatMessages(prev => [...prev, newMessage]);
   }, [currentPosition, participationMode, nickname]);
 
-  const handlePositionSelected = (position: Position) => {
-    setCurrentPosition(position);
-    setIsPositionModalOpen(false);
-    setHasEnteredRoom(true);
-    
-    // 발언자로 참여하는 경우
-    // setParticipationMode(PARTICIPATION_ROLES[0]); // '발언자'
-    
-    // 현재 사용자 이름 결정 (로그인한 경우 사용자 이름, 아니면 닉네임)
-    const userName = isLoggedIn ? user?.username : nickname;
-    
-    if (userName) {
-      // 새로운 발언자를 speakers 목록에 추가
-      const newSpeaker: Speaker = {
-        id: `user-${Date.now()}`,
-        name: userName,
-        position: position,
-        status: '대기중',
-        avatar: isLoggedIn && user?.avatar ? user.avatar : '',
-        isCreator: false
-      };
-      
-      // 중복 체크 후 추가
-      setSpeakers(prev => {
-        const existingSpeaker = prev.find(speaker => speaker.name === userName);
-        if (existingSpeaker) {
-          // 이미 존재하는 경우 입장만 업데이트
-          return prev.map(speaker => 
-            speaker.name === userName 
-              ? { ...speaker, position: position }
-              : speaker
-          );
-        } else {
-          // 새로운 발언자 추가
-          return [...prev, newSpeaker];
-        }
-      });
-      
-      // 입장 토스트 메시지 표시
-      toast.success(`${userName}님이 ${position}으로 토론방에 입장했습니다.`, {
-        position: 'bottom-right',
-        duration: 3000,
-      });
-    }
-    
-    console.log('선택한 입장:', position);
-  };
-
-  const handlePositionModalClose = () => {
-    setIsPositionModalOpen(false);
-    // 입장을 선택하지 않고 모달을 닫으면 이전 페이지로 돌아감
-    onGoBack?.();
-  };
 
   const handleExtendDebate = (minutes: number) => {
     // 토론 시간 연장
@@ -535,30 +478,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
-  // 아직 입장하지 않은 상태에서는 로딩 또는 빈 화면 표시 (입장 선택이 필요한 경우)
-  if (!hasEnteredRoom && debateRoomInfo.userPosition === null) {
-    return (
-      <>
-        <div className="h-screen flex items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">토론방에 입장하는 중...</p>
-          </div>
-        </div>
-        
-        <PositionSelectionModal
-          isOpen={isPositionModalOpen}
-          onClose={handlePositionModalClose}
-          onConfirm={handlePositionSelected}
-          category={debateRoomInfo.category}
-          debateType={debateRoomInfo.debateType}
-          title={debateRoomInfo.title}
-          aDescription={debateRoomInfo.aDescription}
-          bDescription={debateRoomInfo.bDescription}
-        />
-      </>
-    );
-  }
 
   return (
     <>
@@ -809,16 +728,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         title={debateRoomInfo.title}
       />
 
-      <PositionSelectionModal
-        isOpen={isPositionModalOpen}
-        onClose={handlePositionModalClose}
-        onConfirm={handlePositionSelected}
-        category={debateRoomInfo.category}
-        debateType={debateRoomInfo.debateType}
-        title={debateRoomInfo.title}
-        aDescription={debateRoomInfo.aDescription}
-        bDescription={debateRoomInfo.bDescription}
-      />
 
       <DebateExtensionModal
         isOpen={isExtensionModalOpen}

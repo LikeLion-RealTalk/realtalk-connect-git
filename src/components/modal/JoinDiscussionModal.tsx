@@ -14,7 +14,7 @@ interface JoinDiscussionModalProps {
   onClose: () => void;
   discussion: Discussion | null;
   onJoin: (discussionId: string, nickname: string, role: UserRole, participationMode?: ParticipationRole) => void;
-  onNavigate?: (page: 'debate', discussionId: string) => void;
+  onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
 }
 
 export function JoinDiscussionModal({ 
@@ -108,9 +108,12 @@ export function JoinDiscussionModal({
           duration: 2000,
         });
         
-        // 토론방 페이지로 이동
+        // 토론방 페이지로 이동 (선택한 역할과 입장 정보 포함)
         if (onNavigate) {
-          onNavigate('debate', discussion.id);
+          onNavigate('debate', discussion.id, {
+            userRole: selectedRole,
+            userPosition: selectedSide === 'A' ? 'A입장' : 'B입장'
+          });
         }
         onClose();
       } else if (result?.type === 'JOIN_REJECTED') {

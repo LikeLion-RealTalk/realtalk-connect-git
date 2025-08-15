@@ -33,7 +33,7 @@ function AppWithPermissions() {
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
 
-  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string) => {
+  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => {
     if (page !== currentPage) {
       setPageHistory(prev => [...prev, currentPage]);
     }
@@ -48,7 +48,7 @@ function AppWithPermissions() {
           category: '일반토론',
           debateType: '일반토론',
           isCreatedByUser: false,
-          userPosition: null,
+          userPosition: userInfo ? userInfo.userPosition : null,
           aDescription: 'A입장입니다.',
           bDescription: 'B입장입니다.',
           creator: { name: '참여자' },
@@ -62,6 +62,10 @@ function AppWithPermissions() {
         };
         setCurrentDebateRoom(debateRoom);
       } else if (debateRoomInfoOrId) {
+        // userInfo가 있으면 userPosition 설정
+        if (userInfo) {
+          debateRoomInfoOrId.userPosition = userInfo.userPosition;
+        }
         setCurrentDebateRoom(debateRoomInfoOrId);
       }
     } else {
