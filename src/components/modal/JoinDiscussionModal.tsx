@@ -112,7 +112,7 @@ export function JoinDiscussionModal({
         if (onNavigate) {
           onNavigate('debate', discussion.id, {
             userRole: selectedRole,
-            userPosition: selectedSide === 'A' ? 'A입장' : 'B입장'
+            userPosition: selectedSide === 'A' ? (discussion.sideA || 'A입장') : (discussion.sideB || 'B입장')
           });
         }
         onClose();
@@ -262,7 +262,7 @@ export function JoinDiscussionModal({
                           <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xs">A</span>
                           </div>
-                          <span>A 입장</span>
+                          <span>{discussion.sideA || 'A 입장'}</span>
                         </div>
                       </Button>
                       
@@ -275,7 +275,7 @@ export function JoinDiscussionModal({
                           <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xs">B</span>
                           </div>
-                          <span>B 입장</span>
+                          <span>{discussion.sideB || 'B 입장'}</span>
                         </div>
                       </Button>
                     </div>

@@ -81,6 +81,8 @@ export interface Discussion {
   timeStatus: string;
   speakers: { current: number; max: number };
   audience: { current: number; max: number };
+  sideA?: string; // A 입장 (예: "찬성")
+  sideB?: string; // B 입장 (예: "반대")
 }
 
 // 토론방 생성 데이터 인터페이스
