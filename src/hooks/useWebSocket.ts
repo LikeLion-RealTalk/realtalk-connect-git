@@ -112,7 +112,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     setIsConnecting(true);
 
     try {
-      // 이전 연결 정리
+      // 방 입장 시 무조건 기존 연결 정리
       if (globalRoomSub) { 
         globalRoomSub.unsubscribe(); 
         globalRoomSub = null; 
