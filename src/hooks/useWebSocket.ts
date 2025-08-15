@@ -354,11 +354,6 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
 
   return {
     isConnected,
