@@ -100,13 +100,13 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
     
     if (isSpeaker) {
       return position === POSITIONS[0] 
-        ? 'bg-green-400 text-white' 
-        : 'bg-red-400 text-white';
+        ? 'bg-green-400 text-white'  // A입장 (POSITIONS[0]) - 녹색 진한색
+        : 'bg-red-400 text-white';   // B입장 (POSITIONS[1]) - 빨간색 진한색
     }
     
     return position === POSITIONS[0] 
-      ? 'bg-green-200 text-green-950' 
-      : 'bg-red-200 text-red-950';
+      ? 'bg-green-200 text-green-950'  // A입장 (POSITIONS[0]) - 녹색 연한색
+      : 'bg-red-200 text-red-950';     // B입장 (POSITIONS[1]) - 빨간색 연한색
   };
 
   return (

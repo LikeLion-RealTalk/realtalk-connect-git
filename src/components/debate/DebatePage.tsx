@@ -21,8 +21,9 @@ import { DebateRoomInfo } from '../../mock/debateRooms';
 import { MOCK_SPEAKERS, Speaker } from '../../mock/speakers';
 import { MOCK_SPEECH_MESSAGES } from '../../mock/speechMessages';
 import { MOCK_AI_SUMMARIES } from '../../mock/aiSummaries';
-import { MOCK_CHAT_MESSAGES } from '../../mock/chatMessages';
+import { MOCK_CHAT_MESSAGES, ChatMessage } from '../../mock/chatMessages';
 import { MOCK_DEBATE_SUMMARIES } from '../../mock/debateSummaries';
+import { useWebSocket } from '../../hooks/useWebSocket';
 import { AiDebateSummaryModal } from '../modal/AiDebateSummaryModal';
 import { AiSummaryLoadingModal } from '../modal/AiSummaryLoadingModal';
 import { Position, ParticipationRole, SpeechInputType, PARTICIPATION_ROLES, POSITIONS, SPEECH_INPUT_TYPES } from '../../types/discussion';
@@ -36,6 +37,27 @@ interface DebatePageProps {
 
 export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageProps) {
   const { nickname, isLoggedIn, user } = useUser();
+  
+  // 웹소켓 훅 초기화
+  const { sendChatMessage, isConnected } = useWebSocket({
+    onMessage: (message) => {
+      // STOMP 메시지 처리
+      if (message.type === 'CHAT') {
+        // 채팅 메시지 수신
+        const newChatMessage: ChatMessage = {
+          id: `chat-${Date.now()}-${Math.random()}`,
+          userName: message.userName,
+          message: message.message,
+          timestamp: new Date(message.timestamp),
+          userPosition: message.side === 'A' ? POSITIONS[0] : POSITIONS[1],
+          isSpeaker: message.role === 'SPEAKER'
+        };
+        
+        console.log('[채팅] 메시지 수신:', newChatMessage);
+        setChatMessages(prev => [...prev, newChatMessage]);
+      }
+    }
+  });
   const [participationMode, setParticipationMode] = useState<ParticipationRole>(PARTICIPATION_ROLES[1]); // '청중'
   const [currentPosition, setCurrentPosition] = useState<Position | null>(
     debateRoomInfo.userPosition || null
@@ -52,9 +74,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    // 채팅 메시지 목업 데이터는 여기로 이동
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState(18);
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
@@ -92,10 +112,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     return speakingSpeaker || null;
   });
 
-  // 채팅 메시지 초기화
-  useEffect(() => {
-    setChatMessages(MOCK_CHAT_MESSAGES);
-  }, []);
 
   // 새로운 발언에 대한 AI 요약 자동 생성 (다른 발언자들의 발언 포함)
   useEffect(() => {
@@ -329,18 +345,27 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsRecording(!isRecording);
   };
 
-  const handleSendMessage = useCallback((message: string) => {
-    const newMessage = {
-      id: `user-${Date.now()}`,
-      userName: nickname || '익명',
-      message: message,
-      timestamp: new Date(),
-      userPosition: currentPosition,
-      isSpeaker: participationMode === PARTICIPATION_ROLES[0]
-    };
-    
-    setChatMessages(prev => [...prev, newMessage]);
-  }, [currentPosition, participationMode, nickname]);
+  const handleSendMessage = useCallback(async (message: string) => {
+    if (!isConnected) {
+      toast.error('웹소켓 연결이 끊어졌습니다. 다시 시도해주세요.');
+      return;
+    }
+
+    try {
+      // STOMP로 채팅 메시지 전송
+      const success = await sendChatMessage(debateRoomInfo.id, message);
+      
+      if (!success) {
+        toast.error('채팅 전송에 실패했습니다. 다시 시도해주세요.');
+      }
+      
+      // 서버에서 브로드캐스트로 받을 예정이므로 여기서는 로컬 상태 업데이트 하지 않음
+      
+    } catch (error) {
+      console.error('[채팅] 전송 실패:', error);
+      toast.error('채팅 전송 중 오류가 발생했습니다.');
+    }
+  }, [isConnected, sendChatMessage, debateRoomInfo.id]);
 
 
   const handleExtendDebate = (minutes: number) => {

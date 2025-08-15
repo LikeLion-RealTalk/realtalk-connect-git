@@ -274,6 +274,33 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     stompClientRef.current.send(destination, {}, JSON.stringify(body));
   }, []);
 
+  const sendChatMessage = useCallback(async (roomId: string, message: string): Promise<boolean> => {
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      console.error('[채팅] STOMP 클라이언트가 연결되지 않았습니다');
+      return false;
+    }
+
+    try {
+      const chatData = {
+        roomId: roomId,
+        message: message
+      };
+
+      console.log('[채팅] 메시지 전송:', chatData);
+      
+      stompClientRef.current.send(
+        '/pub/chat/message',
+        {},
+        JSON.stringify(chatData)
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('[채팅] 메시지 전송 실패:', error);
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -286,6 +313,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     connect,
     disconnect,
     joinRoom,
-    sendMessage
+    sendMessage,
+    sendChatMessage
   };
 };
