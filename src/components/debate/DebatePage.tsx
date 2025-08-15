@@ -75,6 +75,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState(18);
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
@@ -88,6 +89,20 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       isCreator: index === 0 && debateRoomInfo.isCreatedByUser
     }));
   });
+
+  // 화면 크기 감지 (데스크톱/모바일 구분)
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth >= 1024); // lg breakpoint
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
 
   // 토론방 입장 시 로직
   useEffect(() => {
@@ -717,10 +732,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   </TabsContent>
                   
                   <TabsContent value="chat" className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col">
-                    <ChatSectionBody 
-                      messages={chatMessages}
-                      onSendMessage={handleSendMessage}
-                    />
+                    {!isDesktop && (
+                      <ChatSectionBody 
+                        messages={chatMessages}
+                        onSendMessage={handleSendMessage}
+                      />
+                    )}
                   </TabsContent>
                 </Tabs>
               </div>
@@ -736,10 +753,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
             
             {/* 채팅 영역 - 나머지 공간 */}
             <div className="flex-1 min-h-0">
-              <ChatSection 
-                messages={chatMessages}
-                onSendMessage={handleSendMessage}
-              />
+              {isDesktop && (
+                <ChatSection 
+                  messages={chatMessages}
+                  onSendMessage={handleSendMessage}
+                />
+              )}
             </div>
           </div>
         </div>
