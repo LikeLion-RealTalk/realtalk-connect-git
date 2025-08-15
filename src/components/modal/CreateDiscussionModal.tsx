@@ -24,17 +24,21 @@ import {
 } from '../../types/discussion';
 import { categoryApi, debateApi } from '../../lib/api/apiClient';
 import { useUser } from '../UserProvider';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { toast } from "sonner";
 
 interface CreateDiscussionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (data: DiscussionData) => void;
+  onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
 }
 
 export function CreateDiscussionModal({ 
   isOpen, 
   onClose, 
-  onCreate 
+  onCreate,
+  onNavigate
 }: CreateDiscussionModalProps) {
   const isMobile = useIsMobile();
   const { user } = useUser();
@@ -52,6 +56,9 @@ export function CreateDiscussionModal({
     maxSpeakers: 2,
     maxAudience: 20
   });
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const { connect, joinRoom } = useWebSocket();
 
   // 카테고리 데이터 로드
   useEffect(() => {
@@ -144,15 +151,19 @@ export function CreateDiscussionModal({
   const handleSubmit = async () => {
     // 필수 필드 검증
     if (!formData.title.trim() || !selectedCategoryId) {
-      alert('모든 필수 항목을 입력해주세요.');
+      toast.error('모든 필수 항목을 입력해주세요.');
       return;
     }
 
     if (!user?.id) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       return;
     }
 
+    if (isCreating) return; // 중복 호출 방지
+
+    setIsCreating(true);
+    
     try {
       // API 요청 데이터 구성
       const requestData = {
@@ -170,15 +181,65 @@ export function CreateDiscussionModal({
         maxAudience: formData.maxAudience
       };
 
-      // API 호출
-      await debateApi.createDebateRoom(requestData);
+      console.log('[토론방 생성] API 호출 시작');
       
-      // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
-      onCreate(formData);
-      handleClose();
+      // 토론방 생성 API 호출
+      const createdRoom = await debateApi.createDebateRoom(requestData);
+      console.log('[토론방 생성] API 응답:', createdRoom);
+      
+      // 생성된 토론방 ID 추출 (API 응답 구조에 따라 조정 필요)
+      const roomId = createdRoom?.roomId || createdRoom?.id;
+      
+      if (!roomId) {
+        throw new Error('생성된 토론방 ID를 가져올 수 없습니다.');
+      }
+
+      console.log('[토론방 생성] 웹소켓 연결 시작, roomId:', roomId);
+
+      // 웹소켓 연결 (토론방 생성자는 항상 SPEAKER)
+      const connected = await connect('SPEAKER');
+      
+      if (!connected) {
+        throw new Error('WebSocket 연결에 실패했습니다');
+      }
+
+      console.log('[토론방 생성] JOIN 요청 시작');
+
+      // 토론방 입장 (생성자는 SPEAKER, 선택한 입장으로)
+      const selectedSide = formData.position === 'A입장' ? 'A' : 'B';
+      const selectedUserPosition = formData.position === 'A입장' ? 
+        (formData.aPosition.trim() || '찬성') : 
+        (formData.bPosition.trim() || '반대');
+
+      const result = await joinRoom(roomId, 'SPEAKER', selectedSide);
+
+      if (result?.success) {
+        console.log('[토론방 생성] 입장 성공');
+        
+        // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
+        onCreate(formData);
+        handleClose();
+        
+        // 토론방 페이지로 이동 (선택한 역할과 입장 정보 포함)
+        if (onNavigate) {
+          onNavigate('debate', roomId, {
+            userRole: 'SPEAKER',
+            userPosition: selectedUserPosition
+          });
+        }
+        
+        toast.success('토론방이 생성되었습니다!');
+      } else {
+        throw new Error(result?.message || '토론방 입장에 실패했습니다');
+      }
+      
     } catch (error) {
-      console.error('토론방 생성 실패:', error);
-      alert('토론방 생성에 실패했습니다. 다시 시도해주세요.');
+      console.error('[토론방 생성] 오류:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : '토론방 생성에 실패했습니다.';
+      toast.error(errorMessage);
+    } finally {
+      setIsCreating(false);
     }
   };
 

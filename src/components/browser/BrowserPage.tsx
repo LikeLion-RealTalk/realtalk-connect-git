@@ -255,6 +255,7 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateConfirm}
+        onNavigate={onNavigate}
       />
 
       <AiDebateSummaryModal
