@@ -61,7 +61,9 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
           audience: { 
             current: room.currentAudience || 0, 
             max: room.maxAudience || 0 
-          }
+          },
+          sideA: room.sideA,
+          sideB: room.sideB
         }));
         
         // 현재 청중 수로 내림차순 정렬 후 상위 6개만 선택
@@ -133,6 +135,7 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
         onClose={() => setIsJoinModalOpen(false)}
         discussion={selectedDiscussion}
         onJoin={handleJoinConfirm}
+        onNavigate={onNavigate}
       />
 
       <AiDebateSummaryModal
