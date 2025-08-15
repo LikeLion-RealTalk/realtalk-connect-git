@@ -59,12 +59,12 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     }
   }, []);
 
-  const connect = useCallback(async (role: 'SPEAKER' | 'AUDIENCE' = 'AUDIENCE') => {
+  const connect = useCallback(async (role: 'SPEAKER' | 'AUDIENCE' = 'AUDIENCE'): Promise<boolean> => {
     console.log('[웹소켓] connect 호출:', { role });
     
     if (connectInFlightRef.current) {
       console.warn('[웹소켓] 이미 연결 진행 중입니다. 중복 연결 차단.');
-      return;
+      return false;
     }
     connectInFlightRef.current = true;
     setIsConnecting(true);
@@ -117,28 +117,34 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       stompClientRef.current.heartbeat.incoming = 10000;
 
       console.log('[웹소켓] STOMP connect 호출');
-      stompClientRef.current.connect(
-        connectHeaders,
-        (frame: any) => {
-          console.log('[웹소켓] STOMP 연결 성공:', frame);
-          setIsConnected(true);
-          setIsConnecting(false);
-          connectInFlightRef.current = false;
-          onConnect?.();
-        },
-        (err: any) => {
-          const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
-          console.error('[웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
-          setIsConnected(false);
-          setIsConnecting(false);
-          connectInFlightRef.current = false;
-        }
-      );
+      
+      return new Promise((resolve) => {
+        stompClientRef.current.connect(
+          connectHeaders,
+          (frame: any) => {
+            console.log('[웹소켓] STOMP 연결 성공:', frame);
+            setIsConnected(true);
+            setIsConnecting(false);
+            connectInFlightRef.current = false;
+            onConnect?.();
+            resolve(true);
+          },
+          (err: any) => {
+            const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
+            console.error('[웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
+            setIsConnected(false);
+            setIsConnecting(false);
+            connectInFlightRef.current = false;
+            resolve(false);
+          }
+        );
+      });
 
     } catch (error) {
       console.error('[웹소켓] 연결 실패:', error);
       setIsConnecting(false);
       connectInFlightRef.current = false;
+      return false;
     }
   }, [ensureAccessToken, onConnect]);
 

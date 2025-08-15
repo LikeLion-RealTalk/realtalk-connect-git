@@ -89,9 +89,9 @@ export function JoinDiscussionModal({
       console.log('[토론방입장] 입장 시도:', { discussionId: discussion.id, role: selectedRole, side: selectedSide });
       
       // WebSocket 연결 (역할에 따른 연결)
-      await connect(selectedRole);
+      const connected = await connect(selectedRole);
       
-      if (!isConnected) {
+      if (!connected) {
         throw new Error('WebSocket 연결에 실패했습니다');
       }
       
