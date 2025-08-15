@@ -88,12 +88,6 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
 
   const getPositionBadgeStyle = (position?: Position, isSpeaker?: boolean) => {
     if (!position) return 'bg-gray-200 text-gray-950';
@@ -169,24 +163,23 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
         
         {/* 채팅 입력 */}
         <div className="p-4 border-t border-divider flex-shrink-0 bg-surface elevation-1">
-          <div className="flex gap-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
             <Input
               placeholder="메시지를 입력하세요..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
               className="flex-1 bg-input-background border-border focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               autoComplete="off"
             />
             <Button 
-              onClick={handleSend} 
+              type="submit"
               disabled={!inputMessage.trim()}
               className="px-3 py-2 min-w-[44px] hover:scale-105 transition-transform"
               size="sm"
             >
               <Send className="h-4 w-4" />
             </Button>
-          </div>
+          </form>
         </div>
       </div>
   );
