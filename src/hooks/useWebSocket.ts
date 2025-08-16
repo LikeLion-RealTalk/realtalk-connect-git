@@ -25,6 +25,7 @@ interface JoinResponse {
 let globalStompClient: any = null;
 let globalRoomSub: any = null;
 let globalParticipantsSub: any = null;
+let globalExpireSub: any = null;
 let globalIsConnected = false;
 let globalIsConnecting = false;
 let globalConnectInFlight = false;
@@ -121,6 +122,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         globalParticipantsSub.unsubscribe(); 
         globalParticipantsSub = null; 
       }
+      if (globalExpireSub) { 
+        globalExpireSub.unsubscribe(); 
+        globalExpireSub = null; 
+      }
       if (globalStompClient && globalStompClient.connected) {
         await new Promise(res => globalStompClient.disconnect(res));
       }
@@ -205,6 +210,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       if (globalParticipantsSub) { 
         globalParticipantsSub.unsubscribe(); 
         globalParticipantsSub = null; 
+      }
+      if (globalExpireSub) { 
+        globalExpireSub.unsubscribe(); 
+        globalExpireSub = null; 
       }
     } catch (e) {
       console.warn('[웹소켓] 언서브 중 경고:', e);
@@ -354,6 +363,38 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     }
   }, []);
 
+  const subscribeExpire = useCallback((roomId: string, onExpireMessage: (data: { debateExpireTime: string }) => void) => {
+    if (!globalStompClient?.connected) {
+      console.warn('[웹소켓] 연결되지 않음');
+      return;
+    }
+
+    // 기존 expire 구독이 있다면 정리
+    if (globalExpireSub) {
+      globalExpireSub.unsubscribe();
+      globalExpireSub = null;
+    }
+
+    const topicExpire = `/topic/debate/${roomId}/expire`;
+    console.log('[웹소켓] expire 구독 시작:', topicExpire);
+    
+    globalExpireSub = globalStompClient.subscribe(topicExpire, function (message: any) {
+      let payload;
+      try {
+        payload = JSON.parse(message.body);
+        console.log('[웹소켓][expire] 만료시간 수신:', payload);
+      } catch (e) {
+        console.error('[웹소켓][expire] JSON 파싱 실패:', e, message.body);
+        return;
+      }
+
+      // 만료시간 콜백 호출
+      if (payload.debateExpireTime) {
+        onExpireMessage(payload);
+      }
+    });
+  }, []);
+
 
   return {
     isConnected,
@@ -362,6 +403,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     disconnect,
     joinRoom,
     sendMessage,
-    sendChatMessage
+    sendChatMessage,
+    subscribeExpire
   };
 };

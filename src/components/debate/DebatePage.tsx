@@ -40,7 +40,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const { nickname, isLoggedIn, user } = useUser();
   
   // 웹소켓 훅 초기화
-  const { sendChatMessage, isConnected } = useWebSocket({
+  const { sendChatMessage, isConnected, subscribeExpire } = useWebSocket({
     onMessage: (message) => {
       // STOMP 메시지 처리
       if (message.type === 'CHAT') {
@@ -86,7 +86,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
   const [isDebateStarted, setIsDebateStarted] = useState(true);
+  const [debateExpireTime, setDebateExpireTime] = useState<Date | null>(null); // 토론 만료 시간
+  const [expireTimeDisplay, setExpireTimeDisplay] = useState<string>('--'); // 만료시간 표시용
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const expireTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 발언자 목록 상태 관리
   const [speakers, setSpeakers] = useState<Speaker[]>(() => {
@@ -139,6 +142,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         if (roomData.startedAt) {
           setDebateStartTime(new Date(roomData.startedAt));
         }
+        
+        // started 상태이면 API로 만료시간 조회
+        console.log('[토론방] 토론 시작됨 - API로 만료시간 조회');
+        fetchExpireTime();
       } else {
         setIsDebateStarted(false);
       }
@@ -147,11 +154,90 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[토론방] 상태 조회 실패:', error);
       toast.error('토론방 상태를 불러오는데 실패했습니다.');
     }
-  }, [debateRoomInfo.id, isLoggedIn, user?.id]);
+  }, [debateRoomInfo.id, isLoggedIn, user?.id, fetchExpireTime]);
+
+  // 만료시간 계산 및 표시 함수
+  const updateExpireTimeDisplay = useCallback(() => {
+    if (!debateExpireTime) {
+      setExpireTimeDisplay('--');
+      return;
+    }
+
+    const now = new Date();
+    const timeDiff = debateExpireTime.getTime() - now.getTime();
+    
+    if (timeDiff <= 0) {
+      setExpireTimeDisplay('0분 0초 남음');
+      return;
+    }
+
+    const minutes = Math.floor(timeDiff / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+    setExpireTimeDisplay(`${minutes}분 ${seconds}초 남음`);
+  }, [debateExpireTime]);
+
+  // 만료시간 타이머 관리
+  useEffect(() => {
+    if (debateExpireTime) {
+      // 기존 타이머 정리
+      if (expireTimerRef.current) {
+        clearInterval(expireTimerRef.current);
+      }
+
+      // 즉시 한 번 업데이트
+      updateExpireTimeDisplay();
+
+      // 1초마다 업데이트
+      expireTimerRef.current = setInterval(updateExpireTimeDisplay, 1000);
+
+      return () => {
+        if (expireTimerRef.current) {
+          clearInterval(expireTimerRef.current);
+        }
+      };
+    } else {
+      setExpireTimeDisplay('--');
+    }
+  }, [debateExpireTime, updateExpireTimeDisplay]);
+
+  // 만료시간 설정 함수
+  const handleExpireTimeReceived = useCallback((data: { debateExpireTime: string }) => {
+    try {
+      const expireTime = new Date(data.debateExpireTime);
+      console.log('[토론방] 만료시간 수신:', data.debateExpireTime, '→', expireTime);
+      setDebateExpireTime(expireTime);
+    } catch (error) {
+      console.error('[토론방] 만료시간 파싱 실패:', error);
+      toast.error('시간 동기화에 실패했습니다');
+      setExpireTimeDisplay('--');
+    }
+  }, []);
+
+  // API로 만료시간 조회하는 함수 (started 상태일 때)
+  const fetchExpireTime = useCallback(async () => {
+    try {
+      console.log('[토론방] 만료시간 API 조회 시작:', debateRoomInfo.id);
+      const expireData = await debateApi.getDebateExpireTime(debateRoomInfo.id);
+      console.log('[토론방] 만료시간 API 조회 성공:', expireData);
+      
+      if (expireData.debateExpireTime) {
+        const expireTime = new Date(expireData.debateExpireTime);
+        setDebateExpireTime(expireTime);
+      }
+    } catch (error) {
+      console.error('[토론방] 만료시간 API 조회 실패:', error);
+      toast.error('시간 동기화에 실패했습니다');
+      setExpireTimeDisplay('--');
+    }
+  }, [debateRoomInfo.id]);
 
   // 토론방 입장 시 로직
   useEffect(() => {
     setHasEnteredRoom(true);
+    
+    // 상태에 상관없이 expire 구독 먼저 시작
+    console.log('[토론방] expire 구독 시작');
+    subscribeExpire(debateRoomInfo.id, handleExpireTimeReceived);
     
     // JOIN_ACCEPTED 후 토론방 상태 조회
     fetchDebateRoomStatus();
@@ -163,7 +249,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
       setCurrentPosition(null);
     }
-  }, [debateRoomInfo.userPosition, fetchDebateRoomStatus]);
+  }, [debateRoomInfo.userPosition, fetchDebateRoomStatus, subscribeExpire, handleExpireTimeReceived, debateRoomInfo.id]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
@@ -657,6 +743,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   status={isDebateFinished ? "종료" : "진행중"}
                   audienceCount={45}
                   remainingTime={formatTime(debateTimeLeft)}
+                  expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
                 <CurrentSpeaker
@@ -711,6 +798,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   status={isDebateFinished ? "종료" : "진행중"}
                   audienceCount={45}
                   remainingTime={formatTime(debateTimeLeft)}
+                  expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
                 <CurrentSpeaker

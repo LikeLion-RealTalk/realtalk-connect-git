@@ -6,10 +6,11 @@ interface DebateInfoProps {
   status: DiscussionStatus;
   audienceCount: number;
   remainingTime: string;
+  expireTimeDisplay?: string;
   onShowExtensionModal?: () => void;
 }
 
-export function DebateInfo({ status, audienceCount, remainingTime, onShowExtensionModal }: DebateInfoProps) {
+export function DebateInfo({ status, audienceCount, remainingTime, expireTimeDisplay, onShowExtensionModal }: DebateInfoProps) {
   const getStatusBadgeColor = () => {
     switch (status) {
       case '진행중':
@@ -33,10 +34,15 @@ export function DebateInfo({ status, audienceCount, remainingTime, onShowExtensi
         </Badge>
       </div>
 
-      {/* 중앙: 청중 수 */}
+      {/* 중앙: 청중 수 및 만료시간 */}
       <div className="flex items-center gap-1 text-muted-foreground">
         <Users className="w-4 h-4" />
-        <span className="text-sm">청중 {audienceCount}명</span>
+        <span className="text-sm">
+          청중 {audienceCount}명
+          {expireTimeDisplay && expireTimeDisplay !== '--' && (
+            <> • {expireTimeDisplay}</>
+          )}
+        </span>
       </div>
 
       {/* 오른쪽: 남은 시간 */}

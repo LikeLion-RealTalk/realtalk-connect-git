@@ -31,6 +31,12 @@ export const debateApi = {
     const response = await axiosInstance.post(`/api/debate-rooms/${roomId}/start`);
     return response.data;
   },
+  
+  // 토론방 만료시간 조회
+  getDebateExpireTime: async (roomId: string) => {
+    const response = await axiosInstance.get(`/api/debate-rooms/${roomId}/expire`);
+    return response.data;
+  },
 };
 
 export const categoryApi = {
