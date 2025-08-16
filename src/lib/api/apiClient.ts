@@ -37,6 +37,12 @@ export const debateApi = {
     const response = await axiosInstance.get(`/api/debate-rooms/${roomId}/expire`);
     return response.data;
   },
+  
+  // 토론 결과 및 AI 요약 조회
+  getDebateResults: async (roomId: string) => {
+    const response = await axiosInstance.get(`/api/debate-results/${roomId}`);
+    return response.data;
+  },
 };
 
 export const categoryApi = {
