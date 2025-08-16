@@ -49,11 +49,11 @@ const generateMockDiscussion = (category: string): Discussion => {
   };
 };
 
-export function DebateMatchingModal({ 
-  isOpen, 
-  onClose, 
-  onStartMatching 
-}: DebateMatchingModalProps) {
+export function DebateMatchingModal({
+                                      isOpen,
+                                      onClose,
+                                      onStartMatching
+                                    }: DebateMatchingModalProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [matchingState, setMatchingState] = useState<'idle' | 'searching' | 'found'>('idle');
   const [progress, setProgress] = useState(0);
@@ -85,7 +85,7 @@ export function DebateMatchingModal({
         clearInterval(progressInterval);
         setProgress(100);
         setMatchingState('found');
-        
+
         // 더미 토론방 데이터 생성
         const mockDiscussion = generateMockDiscussion(selectedCategory);
         setFoundDiscussion(mockDiscussion);
@@ -116,108 +116,108 @@ export function DebateMatchingModal({
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md mx-2 sm:mx-auto">
-          <DialogHeader>
-            <DialogTitle>토론 매칭 시작</DialogTitle>
-            <DialogDescription>
-              관심 카테고리를 선택해주세요
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {matchingState === 'idle' && (
-              <>
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    어떤 주제로 토론하고 싶으신가요?
-                  </p>
-                </div>
+      <>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>토론 매칭 시작</DialogTitle>
+              <DialogDescription>
+                관심 카테고리를 선택해주세요
+              </DialogDescription>
+            </DialogHeader>
 
-                {/* 카테고리 선택 */}
-                <div className="grid grid-cols-2 gap-3">
-                  {DISCUSSION_CATEGORIES.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategorySelect(category)}
-                      className={`
+            <div className="space-y-6">
+              {matchingState === 'idle' && (
+                  <>
+                    <div className="text-center">
+                      <p className="text-muted-foreground">
+                        어떤 주제로 토론하고 싶으신가요?
+                      </p>
+                    </div>
+
+                    {/* 카테고리 선택 */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {DISCUSSION_CATEGORIES.map((category) => (
+                          <button
+                              key={category}
+                              onClick={() => handleCategorySelect(category)}
+                              className={`
                         p-3 rounded-lg border-2 transition-all duration-200 text-left
                         hover:border-primary/50 hover:bg-accent/50
-                        ${selectedCategory === category 
-                          ? 'border-primary bg-accent' 
-                          : 'border-border bg-background'
-                        }
+                        ${selectedCategory === category
+                                  ? 'border-primary bg-accent'
+                                  : 'border-border bg-background'
+                              }
                       `}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm truncate">{category}</span>
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm truncate">{category}</span>
+                            </div>
+                          </button>
+                      ))}
+                    </div>
+
+                    {/* 선택된 카테고리 표시 */}
+                    {selectedCategory && (
+                        <div className="flex justify-center">
+                          <Badge variant="secondary" className="text-sm">
+                            {selectedCategory} 선택됨
+                          </Badge>
+                        </div>
+                    )}
+
+                    {/* 버튼 영역 */}
+                    <div className="flex gap-3">
+                      <Button
+                          variant="outline"
+                          onClick={handleClose}
+                          className="flex-1"
+                      >
+                        취소
+                      </Button>
+                      <Button
+                          onClick={handleStartMatching}
+                          disabled={!selectedCategory}
+                          className="flex-1"
+                      >
+                        매칭 시작
+                      </Button>
+                    </div>
+                  </>
+              )}
+
+              {matchingState === 'searching' && (
+                  <div className="space-y-6 py-8">
+                    <div className="text-center space-y-4">
+                      <div className="flex justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* 선택된 카테고리 표시 */}
-                {selectedCategory && (
-                  <div className="flex justify-center">
-                    <Badge variant="secondary" className="text-sm">
-                      {selectedCategory} 선택됨
-                    </Badge>
+                      <div className="space-y-2">
+                        <h3 className="font-medium">토론방을 찾고 있습니다...</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedCategory} 토론방 매칭 중
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Progress value={progress} className="w-full" />
+                        <p className="text-xs text-muted-foreground">
+                          {progress}% 완료
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                )}
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
-                {/* 버튼 영역 */}
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleClose}
-                    className="flex-1"
-                  >
-                    취소
-                  </Button>
-                  <Button
-                    onClick={handleStartMatching}
-                    disabled={!selectedCategory}
-                    className="flex-1"
-                  >
-                    매칭 시작
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {matchingState === 'searching' && (
-              <div className="space-y-6 py-8">
-                <div className="text-center space-y-4">
-                  <div className="flex justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-medium">토론방을 찾고 있습니다...</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedCategory} 토론방 매칭 중
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Progress value={progress} className="w-full" />
-                    <p className="text-xs text-muted-foreground">
-                      {progress}% 완료
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* 토론방 입장 모달 */}
-      <JoinDiscussionModal
-        isOpen={isJoinModalOpen}
-        onClose={handleJoinModalClose}
-        discussion={foundDiscussion}
-        onJoin={handleJoinDiscussion}
-      />
-    </>
+        {/* 토론방 입장 모달 */}
+        <JoinDiscussionModal
+            isOpen={isJoinModalOpen}
+            onClose={handleJoinModalClose}
+            discussion={foundDiscussion}
+            onJoin={handleJoinDiscussion}
+        />
+      </>
   );
 }
