@@ -158,7 +158,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
   // 만료시간 계산 및 표시 함수
   const updateExpireTimeDisplay = useCallback(() => {
-    if (!debateExpireTime) {
+    // waiting 상태이거나 만료시간이 없으면 시간 숨김
+    if (roomStatus === 'waiting' || !debateExpireTime) {
       setExpireTimeDisplay('--');
       return;
     }
@@ -168,13 +169,17 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     
     if (timeDiff <= 0) {
       setExpireTimeDisplay('0분 0초 남음');
+      setDebateTimeLeft(0); // 실제 타이머도 0으로 설정
       return;
     }
 
     const minutes = Math.floor(timeDiff / (1000 * 60));
     const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+    const totalSeconds = Math.floor(timeDiff / 1000);
+    
     setExpireTimeDisplay(`${minutes}분 ${seconds}초 남음`);
-  }, [debateExpireTime]);
+    setDebateTimeLeft(totalSeconds); // 실제 타이머 동기화
+  }, [debateExpireTime, roomStatus]);
 
   // 만료시간 타이머 관리
   useEffect(() => {
