@@ -133,16 +133,16 @@ export function DebateHeader({
       {/* 우측 영역 */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* 참여 모드 변경 버튼 */}
-        <MaterialButton
-          variant={participationMode === PARTICIPATION_ROLES[0] ? 'contained' : 'outlined'}
-          color="primary"
-          size="small"
-          className="flex items-center gap-1"
-          onClick={() => onModeChange(participationMode === PARTICIPATION_ROLES[0] ? PARTICIPATION_ROLES[1] : PARTICIPATION_ROLES[0])}
+        <div 
+          className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium cursor-default ${
+            participationMode === PARTICIPATION_ROLES[0] 
+              ? 'bg-primary text-on-primary' 
+              : 'border border-primary text-primary bg-background'
+          }`}
         >
           {participationMode === PARTICIPATION_ROLES[0] ? <Mic className="h-4 w-4" /> : <Users className="h-4 w-4" />}
           <span className="hidden sm:inline">{participationMode}</span>
-        </MaterialButton>
+        </div>
 
         {/* 공유 버튼 */}
         <Button variant="ghost" size="sm" onClick={onShare} className="hover:bg-primary/10 transition-material">

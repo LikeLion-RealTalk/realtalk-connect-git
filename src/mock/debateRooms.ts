@@ -7,6 +7,7 @@ export interface DebateRoomInfo {
   debateType: DebateType;
   isCreatedByUser: boolean;
   userPosition?: Position;
+  userRole?: 'SPEAKER' | 'AUDIENCE';
   aDescription: string;
   bDescription: string;
   creator: {
@@ -23,7 +24,7 @@ export interface DebateRoomInfo {
 }
 
 // 토론방별 맞춤형 입장 설명 데이터
-export const DEBATE_ROOM_CONFIGS: Record<string, Omit<DebateRoomInfo, 'id' | 'isCreatedByUser' | 'userPosition' | 'currentSpeakers' | 'currentAudience' | 'startTime' | 'remainingTime'>> = {
+export const DEBATE_ROOM_CONFIGS: Record<string, Omit<DebateRoomInfo, 'id' | 'isCreatedByUser' | 'userPosition' | 'userRole' | 'currentSpeakers' | 'currentAudience' | 'startTime' | 'remainingTime'>> = {
   'ai-creativity': {
     title: 'AI 시대, 인간의 창의성은 여전히 중요할까?',
     category: '🤖AI & 미래사회',

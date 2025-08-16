@@ -49,6 +49,7 @@ function AppWithPermissions() {
           debateType: '일반토론',
           isCreatedByUser: false,
           userPosition: userInfo ? userInfo.userPosition : null,
+          userRole: userInfo ? userInfo.userRole : undefined,
           aDescription: 'A입장입니다.',
           bDescription: 'B입장입니다.',
           creator: { name: '참여자' },
@@ -62,9 +63,10 @@ function AppWithPermissions() {
         };
         setCurrentDebateRoom(debateRoom);
       } else if (debateRoomInfoOrId) {
-        // userInfo가 있으면 userPosition 설정
+        // userInfo가 있으면 userPosition과 userRole 설정
         if (userInfo) {
           debateRoomInfoOrId.userPosition = userInfo.userPosition;
+          debateRoomInfoOrId.userRole = userInfo.userRole;
         }
         setCurrentDebateRoom(debateRoomInfoOrId);
       }

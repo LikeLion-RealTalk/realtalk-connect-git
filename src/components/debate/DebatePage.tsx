@@ -59,7 +59,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       }
     }
   });
-  const [participationMode, setParticipationMode] = useState<ParticipationRole>(PARTICIPATION_ROLES[1]); // '청중'
+  // 참여 모드: 입장 시 선택한 역할에 따라 결정 (토글 불가)
+  const participationMode: ParticipationRole = debateRoomInfo.userRole === 'SPEAKER' ? PARTICIPATION_ROLES[0] : PARTICIPATION_ROLES[1];
   const [currentPosition, setCurrentPosition] = useState<Position | null>(
     debateRoomInfo.userPosition || null
   );
@@ -297,7 +298,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   };
 
   const handleModeChange = (mode: ParticipationRole) => {
-    setParticipationMode(mode);
+    // 참여 모드는 입장 시 선택한 역할에 따라 결정되므로 토글 불가
+    console.log('참여 모드는 토글할 수 없습니다. 현재 모드:', participationMode);
   };
 
   const handleShare = () => {
