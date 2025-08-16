@@ -639,6 +639,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 onToggleCollapse={handleToggleSidebar}
                 isOpen={isMobileSidebarOpen}
                 onClose={() => setIsMobileSidebarOpen(false)}
+                isRoomOwner={isRoomOwner}
+                roomStatus={roomStatus}
               />
             </div>
           )}
