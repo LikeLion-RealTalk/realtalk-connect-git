@@ -26,6 +26,8 @@ interface SpeakersSidebarProps {
   onToggleCollapse: () => void;
   isOpen?: boolean;
   onClose?: () => void;
+  isRoomOwner?: boolean;
+  roomStatus?: string;
 }
 
 // 유틸리티 함수들을 컴포넌트 외부로 이동
@@ -55,7 +57,9 @@ export function SpeakersSidebar({
   isCollapsed,
   onToggleCollapse,
   isOpen = false,
-  onClose
+  onClose,
+  isRoomOwner = false,
+  roomStatus = 'waiting'
 }: SpeakersSidebarProps) {
   // 모바일 오버레이
   if (isOpen) {
@@ -78,6 +82,8 @@ export function SpeakersSidebar({
             isCollapsed={false}
             isMobile={true}
             onClose={onClose}
+            isRoomOwner={isRoomOwner}
+            roomStatus={roomStatus}
           />
         </div>
         
@@ -106,6 +112,8 @@ export function SpeakersSidebar({
         isCollapsed={false}
         onToggleCollapse={onToggleCollapse}
         isMobile={false}
+        isRoomOwner={isRoomOwner}
+        roomStatus={roomStatus}
       />
     </div>
   );
@@ -121,7 +129,9 @@ function SidebarContent({
   isCollapsed,
   onToggleCollapse,
   isMobile = false,
-  onClose
+  onClose,
+  isRoomOwner = false,
+  roomStatus = 'waiting'
 }: {
   speakers: Speaker[];
   debateStartTime?: Date;
@@ -132,6 +142,8 @@ function SidebarContent({
   onToggleCollapse?: () => void;
   isMobile?: boolean;
   onClose?: () => void;
+  isRoomOwner?: boolean;
+  roomStatus?: string;
 }) {
   return (
     <div className="w-full h-full flex flex-col">
@@ -226,14 +238,18 @@ function SidebarContent({
             </div>
           </MaterialCard>
         ) : (
-          <Button 
-            onClick={onStartDebate} 
-            className="w-full bg-primary text-on-primary hover:bg-primary-variant transition-material elevation-2 hover:elevation-4"
-            size="sm"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            토론 시작하기
-          </Button>
+          // 방장일 때만 토론 시작 버튼 표시
+          isRoomOwner && (
+            <Button 
+              onClick={onStartDebate} 
+              disabled={roomStatus !== 'waiting'}
+              className="w-full bg-primary text-on-primary hover:bg-primary-variant transition-material elevation-2 hover:elevation-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              size="sm"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              토론 시작하기
+            </Button>
+          )
         )}
         
         {/* 나가기 버튼 */}

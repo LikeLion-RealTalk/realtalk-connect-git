@@ -13,6 +13,8 @@ interface PositionSelectorProps {
   bDescription: string;
   isUserCurrentlySpeaking?: boolean;
   isSpeakerMode?: boolean;
+  sideA?: string;
+  sideB?: string;
 }
 
 export function PositionSelector({ 
@@ -25,7 +27,9 @@ export function PositionSelector({
   aDescription,
   bDescription,
   isUserCurrentlySpeaking = false,
-  isSpeakerMode = false
+  isSpeakerMode = false,
+  sideA,
+  sideB
 }: PositionSelectorProps) {
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [hoveredPosition, setHoveredPosition] = useState<Position | null>(null);
@@ -120,7 +124,7 @@ export function PositionSelector({
                     ? 'drop-shadow-sm'
                     : ''
                 }`}>
-                  {POSITIONS[0]} {supportRatio}%
+                  {sideA || POSITIONS[0]} {supportRatio}%
                   {currentPosition === POSITIONS[0] && <span className="text-yellow-400">😊</span>}
                 </span>
                 
@@ -134,7 +138,7 @@ export function PositionSelector({
                     ? 'text-red-800 dark:text-red-100 font-medium drop-shadow-sm'
                     : ''
                 }`}>
-                  {POSITIONS[1]} {100 - supportRatio}%
+                  {sideB || POSITIONS[1]} {100 - supportRatio}%
                   {currentPosition === POSITIONS[1] && <span className="text-yellow-400">😊</span>}
                 </span>
               </div>

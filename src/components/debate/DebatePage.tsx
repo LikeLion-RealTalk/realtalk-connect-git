@@ -76,6 +76,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [roomStatus, setRoomStatus] = useState<string>('waiting');
+  const [sideA, setSideA] = useState<string>('A입장');
+  const [sideB, setSideB] = useState<string>('B입장');
+  const [isRoomOwner, setIsRoomOwner] = useState(false);
   const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState(18);
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
@@ -104,9 +108,52 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     };
   }, []);
 
+  // 토론방 상태 조회 함수
+  const fetchDebateRoomStatus = useCallback(async () => {
+    try {
+      console.log('[토론방] 상태 조회 시작:', debateRoomInfo.id);
+      const roomData = await debateApi.getDebateRoom(debateRoomInfo.id);
+      console.log('[토론방] 상태 조회 성공:', roomData);
+
+      // A입장/B입장 텍스트 업데이트
+      setSideA(roomData.sideA);
+      setSideB(roomData.sideB);
+
+      // 토론방 상태 업데이트
+      setRoomStatus(roomData.status);
+
+      // 방장 여부 확인
+      if (isLoggedIn && user?.id === roomData.createUserId) {
+        setIsRoomOwner(true);
+        console.log('[토론방] 사용자는 방장입니다');
+      } else {
+        setIsRoomOwner(false);
+        console.log('[토론방] 사용자는 방장이 아닙니다');
+      }
+
+      // 토론 시작 상태 설정
+      if (roomData.status === 'started') {
+        setIsDebateStarted(true);
+        if (roomData.startedAt) {
+          setDebateStartTime(new Date(roomData.startedAt));
+        }
+      } else {
+        setIsDebateStarted(false);
+      }
+
+    } catch (error) {
+      console.error('[토론방] 상태 조회 실패:', error);
+      toast.error('토론방 상태를 불러오는데 실패했습니다.');
+    }
+  }, [debateRoomInfo.id, isLoggedIn, user?.id]);
+
   // 토론방 입장 시 로직
   useEffect(() => {
     setHasEnteredRoom(true);
+    
+    // JOIN_ACCEPTED 후 토론방 상태 조회
+    fetchDebateRoomStatus();
+    
     // userPosition이 이미 설정되어 있으면 해당 입장으로 설정 (JoinDiscussionModal에서 선택한 입장)
     if (debateRoomInfo.userPosition) {
       setCurrentPosition(debateRoomInfo.userPosition === 'A입장' ? POSITIONS[0] : POSITIONS[1]);
@@ -114,7 +161,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
       setCurrentPosition(null);
     }
-  }, [debateRoomInfo.userPosition]);
+  }, [debateRoomInfo.userPosition, fetchDebateRoomStatus]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
@@ -256,11 +303,25 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsShareModalOpen(true);
   };
 
-  const handleStartDebate = () => {
-    const startTime = new Date();
-    setDebateStartTime(startTime);
-    setIsDebateStarted(true);
-    console.log('토론 시작하기:', startTime);
+  const handleStartDebate = async () => {
+    try {
+      console.log('[토론] 시작 API 호출:', debateRoomInfo.id);
+      const response = await debateApi.startDebate(debateRoomInfo.id);
+      console.log('[토론] 시작 API 성공:', response);
+
+      if (response.status === 'started') {
+        const startTime = new Date(response.startedAt);
+        setDebateStartTime(startTime);
+        setIsDebateStarted(true);
+        setRoomStatus('started');
+        
+        toast.success('토론이 시작되었습니다!');
+        console.log('[토론] 시작됨:', startTime);
+      }
+    } catch (error) {
+      console.error('[토론] 시작 실패:', error);
+      toast.error('토론 시작에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleLeaveRoom = () => {
@@ -547,6 +608,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               onToggleCollapse={handleToggleSidebar}
               isOpen={false}
               onClose={() => {}}
+              isRoomOwner={isRoomOwner}
+              roomStatus={roomStatus}
             />
           </div>
 
@@ -612,6 +675,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   bDescription={debateRoomInfo.bDescription}
                   isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.username : nickname)}
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
+                  sideA={sideA}
+                  sideB={sideB}
                 />
               </div>
 
@@ -664,6 +729,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   bDescription={debateRoomInfo.bDescription}
                   isUserCurrentlySpeaking={participationMode === PARTICIPATION_ROLES[0] && currentSpeaker?.name === (isLoggedIn ? user?.username : nickname)}
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
+                  sideA={sideA}
+                  sideB={sideB}
                 />
               </div>
 
