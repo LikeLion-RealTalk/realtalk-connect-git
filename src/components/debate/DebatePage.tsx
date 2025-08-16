@@ -38,6 +38,7 @@ interface DebatePageProps {
 
 export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageProps) {
   const { nickname, isLoggedIn, user } = useUser();
+  const [debateSummary, setDebateSummary] = useState(null);
   
   // 웹소켓 훅 초기화
   const { sendChatMessage, isConnected, subscribeExpire } = useWebSocket({
@@ -317,8 +318,13 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   }, [isDebateFinished]);
 
   // AI 요약 로딩 완료 핸들러
-  const handleAiSummaryLoadingComplete = () => {
+  const handleAiSummaryLoadingComplete = async () => {
     setIsAiSummaryLoadingOpen(false);
+    
+    // API에서 요약 데이터 생성
+    const summary = await generateDebateSummary();
+    setDebateSummary(summary);
+    
     setIsAiSummaryModalOpen(true);
   };
 
@@ -593,29 +599,58 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   };
 
   // 토론 종료 시 표시할 AI 요약 데이터 생성
-  const generateDebateSummary = () => {
-    const completedSummary = {
-      id: `summary-${debateRoomInfo.id}`,
-      discussionId: debateRoomInfo.id,
-      debateType: debateRoomInfo.debateType,
-      title: debateRoomInfo.title,
-      category: debateRoomInfo.category,
-      duration: Math.ceil(debateRoomInfo.duration / 60), // 초를 분으로 변환
-      participantCount: debateRoomInfo.currentSpeakers + debateRoomInfo.currentAudience,
-      keyStatements: {
-        aSide: ["AI 기술은 창의성 영역에서 인간의 보조 도구로서 새로운 가능성을 열어주고 있습니다."],
-        bSide: ["진정한 창의성은 인간의 감정과 경험에서 나오는 것으로, AI로는 대체할 수 없는 고유한 영역입니다."]
-      },
-      publicOpinion: {
-        totalVotes: 127,
-        aPercentage: 58,
-        bPercentage: 42
-      },
-      finalConclusion: "AI와 인간의 창의성은 대립이 아닌 상호 보완적 관계로 발전해 나가야 한다는 것이 이번 토론의 핵심 결론입니다.",
-      summary: "이번 토론에서는 AI 기술이 창의성 영역에 미치는 영향에 대해 심도 있는 논의가 이루어졌습니다.",
-      completedAt: new Date()
-    };
-    return completedSummary;
+  const generateDebateSummary = async () => {
+    try {
+      const apiResponse = await debateApi.getDebateResults(debateRoomInfo.id);
+      
+      // API 응답을 DebateSummary 형식으로 변환
+      const completedSummary = {
+        id: `summary-${debateRoomInfo.id}`,
+        discussionId: debateRoomInfo.id,
+        debateType: apiResponse.debateType === 'NORMAL' ? '일반토론' : '3분토론',
+        title: apiResponse.title,
+        category: apiResponse.categoryName,
+        duration: Math.floor(apiResponse.durationSeconds / 60), // 초를 분으로 변환
+        participantCount: apiResponse.totalCount,
+        keyStatements: {
+          aSide: [apiResponse.aiSummaryResult.sideA],
+          bSide: [apiResponse.aiSummaryResult.sideB]
+        },
+        publicOpinion: {
+          totalVotes: apiResponse.totalCount,
+          aPercentage: apiResponse.sideARate,
+          bPercentage: apiResponse.sideBCRate
+        },
+        finalConclusion: apiResponse.aiSummaryResult.aiResult,
+        summary: apiResponse.aiSummaryResult.aiResult,
+        completedAt: new Date()
+      };
+      return completedSummary;
+    } catch (error) {
+      console.error('토론 요약 조회 실패:', error);
+      // 에러 시 기본 데이터 반환
+      return {
+        id: `summary-${debateRoomInfo.id}`,
+        discussionId: debateRoomInfo.id,
+        debateType: debateRoomInfo.debateType,
+        title: debateRoomInfo.title,
+        category: debateRoomInfo.category,
+        duration: Math.ceil(debateRoomInfo.duration / 60),
+        participantCount: debateRoomInfo.currentSpeakers + debateRoomInfo.currentAudience,
+        keyStatements: {
+          aSide: ["토론 요약을 불러오는데 실패했습니다."],
+          bSide: ["토론 요약을 불러오는데 실패했습니다."]
+        },
+        publicOpinion: {
+          totalVotes: 0,
+          aPercentage: 0,
+          bPercentage: 0
+        },
+        finalConclusion: "토론 요약을 불러오는데 실패했습니다.",
+        summary: "토론 요약을 불러오는데 실패했습니다.",
+        completedAt: new Date()
+      };
+    }
   };
 
   // AI 요약 자동 생성 함수 (외부 발언용)
@@ -977,8 +1012,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       <AiDebateSummaryModal
         isOpen={isAiSummaryModalOpen}
         onClose={handleAiSummaryModalClose}
-        onExitRequest={handleAiSummaryExitRequest}
-        summary={generateDebateSummary()}
+        onRequestExit={handleAiSummaryExitRequest}
+        summary={debateSummary}
       />
 
       <DebateExitConfirmModal

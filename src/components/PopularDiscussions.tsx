@@ -185,13 +185,38 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
     onJoinDebate?.();
   };
 
-  const handleViewSummary = (discussionId: string) => {
-    const summary = getDebateSummaryByDiscussionId(discussionId);
-    if (summary) {
+  const handleViewSummary = async (discussionId: string) => {
+    try {
+      const apiResponse = await debateApi.getDebateResults(discussionId);
+      
+      // API 응답을 DebateSummary 형식으로 변환
+      const summary = {
+        id: `summary-${discussionId}`,
+        discussionId: discussionId,
+        debateType: apiResponse.debateType === 'NORMAL' ? '일반토론' : '3분토론',
+        title: apiResponse.title,
+        category: apiResponse.categoryName,
+        duration: Math.floor(apiResponse.durationSeconds / 60), // 초를 분으로 변환
+        participantCount: apiResponse.totalCount,
+        keyStatements: {
+          aSide: [apiResponse.aiSummaryResult.sideA],
+          bSide: [apiResponse.aiSummaryResult.sideB]
+        },
+        publicOpinion: {
+          totalVotes: apiResponse.totalCount,
+          aPercentage: apiResponse.sideARate,
+          bPercentage: apiResponse.sideBCRate
+        },
+        finalConclusion: apiResponse.aiSummaryResult.aiResult,
+        summary: apiResponse.aiSummaryResult.aiResult,
+        completedAt: new Date()
+      };
+      
       setSelectedSummary(summary);
       setIsSummaryModalOpen(true);
-    } else {
-      console.log('해당 토론방의 요약을 찾을 수 없습니다:', discussionId);
+    } catch (error) {
+      console.error('토론 요약 조회 실패:', error);
+      toast.error('토론 요약을 불러오는데 실패했습니다.');
     }
   };
 
