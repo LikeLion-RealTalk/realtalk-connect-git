@@ -760,7 +760,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 <DebateInfo
                   status={isDebateFinished ? "종료" : "진행중"}
                   audienceCount={45}
-                  remainingTime={roomStatus === 'waiting' ? '--' : formatTime(debateTimeLeft)}
+                  remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
@@ -815,7 +815,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 <DebateInfo
                   status={isDebateFinished ? "종료" : "진행중"}
                   audienceCount={45}
-                  remainingTime={roomStatus === 'waiting' ? '--' : formatTime(debateTimeLeft)}
+                  remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
