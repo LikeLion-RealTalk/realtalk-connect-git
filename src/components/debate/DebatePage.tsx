@@ -154,7 +154,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[토론방] 상태 조회 실패:', error);
       toast.error('토론방 상태를 불러오는데 실패했습니다.');
     }
-  }, [debateRoomInfo.id, isLoggedIn, user?.id, fetchExpireTime]);
+  }, [debateRoomInfo.id, isLoggedIn, user?.id]);
 
   // 만료시간 계산 및 표시 함수
   const updateExpireTimeDisplay = useCallback(() => {
@@ -249,7 +249,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
       setCurrentPosition(null);
     }
-  }, [debateRoomInfo.userPosition, fetchDebateRoomStatus, subscribeExpire, handleExpireTimeReceived, debateRoomInfo.id]);
+  }, [debateRoomInfo.userPosition, debateRoomInfo.id]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
