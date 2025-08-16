@@ -85,7 +85,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState(18);
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
-  const [isDebateStarted, setIsDebateStarted] = useState(true);
+  const [isDebateStarted, setIsDebateStarted] = useState(false);
   const [debateExpireTime, setDebateExpireTime] = useState<Date | null>(null); // 토론 만료 시간
   const [expireTimeDisplay, setExpireTimeDisplay] = useState<string>('--'); // 만료시간 표시용
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -240,10 +240,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   useEffect(() => {
     setHasEnteredRoom(true);
     
-    // 상태에 상관없이 expire 구독 먼저 시작
-    console.log('[토론방] expire 구독 시작');
-    subscribeExpire(debateRoomInfo.id, handleExpireTimeReceived);
-    
     // JOIN_ACCEPTED 후 토론방 상태 조회
     fetchDebateRoomStatus();
     
@@ -255,6 +251,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       setCurrentPosition(null);
     }
   }, [debateRoomInfo.userPosition, debateRoomInfo.id]);
+
+  // 웹소켓 연결 후 expire 구독
+  useEffect(() => {
+    if (isConnected && hasEnteredRoom) {
+      console.log('[토론방] 웹소켓 연결됨 - expire 구독 시작');
+      subscribeExpire(debateRoomInfo.id, handleExpireTimeReceived);
+    }
+  }, [isConnected, hasEnteredRoom, debateRoomInfo.id, subscribeExpire, handleExpireTimeReceived]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
