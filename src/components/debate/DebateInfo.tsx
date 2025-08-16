@@ -34,15 +34,10 @@ export function DebateInfo({ status, audienceCount, remainingTime, expireTimeDis
         </Badge>
       </div>
 
-      {/* 중앙: 청중 수 및 만료시간 */}
+      {/* 중앙: 청중 수 */}
       <div className="flex items-center gap-1 text-muted-foreground">
         <Users className="w-4 h-4" />
-        <span className="text-sm">
-          청중 {audienceCount}명
-          {expireTimeDisplay && expireTimeDisplay !== '--' && (
-            <> • {expireTimeDisplay}</>
-          )}
-        </span>
+        <span className="text-sm">청중 {audienceCount}명</span>
       </div>
 
       {/* 오른쪽: 남은 시간 */}
@@ -52,7 +47,7 @@ export function DebateInfo({ status, audienceCount, remainingTime, expireTimeDis
         title="클릭하여 토론 연장 신청"
       >
         <Clock className="w-4 h-4 text-red-600" />
-        <span className="text-sm text-red-600 font-medium">{remainingTime}</span>
+        <span className="text-sm text-red-600 font-medium">{expireTimeDisplay || '--'}</span>
       </div>
     </div>
   );
