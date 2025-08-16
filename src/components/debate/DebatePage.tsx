@@ -28,6 +28,7 @@ import { AiDebateSummaryModal } from '../modal/AiDebateSummaryModal';
 import { AiSummaryLoadingModal } from '../modal/AiSummaryLoadingModal';
 import { Position, ParticipationRole, SpeechInputType, PARTICIPATION_ROLES, POSITIONS, SPEECH_INPUT_TYPES } from '../../types/discussion';
 import { toast } from "sonner";
+import { debateApi } from '../../lib/api/apiClient';
 
 interface DebatePageProps {
   onNavigate?: (page: 'landing' | 'browser' | 'debate') => void;
