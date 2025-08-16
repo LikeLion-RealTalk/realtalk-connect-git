@@ -209,8 +209,17 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const handleExpireTimeReceived = useCallback((data: { debateExpireTime: string }) => {
     try {
       const expireTime = new Date(data.debateExpireTime);
-      console.log('[토론방] 만료시간 수신:', data.debateExpireTime, '→', expireTime);
+      console.log('[토론방] 만료시간 수신 - 토론 시작됨:', data.debateExpireTime, '→', expireTime);
+      
+      // 토론 시작 상태로 변경
+      setRoomStatus('started');
+      setIsDebateStarted(true);
+      setDebateStartTime(new Date());
+      
+      // 만료시간 설정
       setDebateExpireTime(expireTime);
+      
+      toast.success('토론이 시작되었습니다!');
     } catch (error) {
       console.error('[토론방] 만료시간 파싱 실패:', error);
       toast.error('시간 동기화에 실패했습니다');
