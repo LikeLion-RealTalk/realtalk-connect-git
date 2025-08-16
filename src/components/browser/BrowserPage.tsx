@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SearchFilter } from './SearchFilter';
 import { DiscussionsList } from './DiscussionsList';
 import { DiscussionPagination } from './DiscussionPagination';
@@ -11,6 +11,7 @@ import { Discussion, DiscussionData, FilterOptions, DebateSummary } from '../../
 import { MOCK_BROWSER_DISCUSSIONS } from '../../mock/browserDiscussions';
 import { getDebateSummaryByDiscussionId } from '../../mock/debateSummaries';
 import { debateApi } from '../../lib/api/apiClient';
+import { toast } from "sonner";
 
 
 
@@ -34,68 +35,152 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState<DebateSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
-
+  
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const discussionsPerPage = 6;
 
+  // 카테고리 매핑 함수 (공통 함수로 추출)
+  const getCategoryName = (categoryId: number) => {
+    const categoryMap: { [key: number]: string } = {
+      1: '💕연애',
+      2: '👥친구 & 인간관계',
+      3: '🏠일상 & 라이프스타일',
+      4: '💼취업 & 진로',
+      5: '🔥밈 & 유행',
+      6: '📱SNS & 온라인 문화',
+      7: '🤖AI & 미래사회',
+      8: '🎮게임 & e스포츠',
+      9: '🎭K-콘텐츠',
+      10: '⚖️논란 & 사회 이슈',
+      11: '💰돈 & 소비문화',
+      12: '💬자유 주제'
+    };
+    return categoryMap[categoryId] || '💬자유 주제';
+  };
+
+  // API 응답을 Discussion 인터페이스에 맞게 변환하는 함수
+  const convertApiDataToDiscussions = (apiData: any[]): Discussion[] => {
+    const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
+      id: room.roomId,
+      type: room.debateType === 'FAST' ? '3분토론' : '일반토론',
+      status: room.status === 'waiting' ? '대기중' : room.status === 'started' ? '진행중' : '종료됨',
+      title: room.title,
+      category: room.category?.id ? getCategoryName(room.category.id) : '💬자유 주제',
+      timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
+      speakers: { 
+        current: room.currentSpeaker || 0, 
+        max: room.maxSpeaker || 0 
+      },
+      audience: { 
+        current: room.currentAudience || 0, 
+        max: room.maxAudience || 0 
+      },
+      sideA: room.sideA,
+      sideB: room.sideB
+    }));
+    
+    // 현재 청중 수로 내림차순 정렬
+    return convertedDiscussions.sort((a, b) => 
+      b.audience.current - a.audience.current
+    );
+  };
+
+  // 효율적 토론방 데이터 업데이트 함수
+  const updateDiscussionsEfficiently = (newApiData: any[]) => {
+    const newDiscussions = convertApiDataToDiscussions(newApiData);
+    
+    setDiscussions(prevDiscussions => {
+      // 기존 토론방 ID 목록
+      const prevIds = new Set(prevDiscussions.map(d => d.id));
+      const newIds = new Set(newDiscussions.map(d => d.id));
+      
+      // 삭제된 토론방들
+      const removedIds = [...prevIds].filter(id => !newIds.has(id));
+      
+      // 새로 추가된 토론방들
+      const addedDiscussions = newDiscussions.filter(d => !prevIds.has(d.id));
+      
+      // 기존 토론방 업데이트
+      const updatedDiscussions = prevDiscussions
+        .filter(d => !removedIds.includes(d.id)) // 삭제된 토론방 제거
+        .map(prevDiscussion => {
+          const newDiscussion = newDiscussions.find(d => d.id === prevDiscussion.id);
+          if (newDiscussion) {
+            // 실시간 업데이트가 필요한 필드들만 업데이트
+            return {
+              ...prevDiscussion,
+              currentSpeaker: newDiscussion.speakers.current,
+              currentAudience: newDiscussion.audience.current,
+              status: newDiscussion.status,
+              timeStatus: newDiscussion.timeStatus,
+              speakers: newDiscussion.speakers,
+              audience: newDiscussion.audience
+            };
+          }
+          return prevDiscussion;
+        });
+      
+      // 새로운 토론방 추가 및 정렬
+      const finalDiscussions = [...updatedDiscussions, ...addedDiscussions];
+      
+      // 청중 수로 다시 정렬 (순위 변경 반영)
+      return finalDiscussions.sort((a, b) => 
+        b.audience.current - a.audience.current
+      );
+    });
+  };
+
+  // 3초 폴링 시작 함수
+  const startPolling = () => {
+    console.log('[둘러보기] 3초 폴링 시작');
+    
+    const pollData = async () => {
+      try {
+        const apiData = await debateApi.getAllDebateRooms();
+        updateDiscussionsEfficiently(apiData);
+      } catch (error) {
+        console.error('[둘러보기] 폴링 중 오류:', error);
+        toast.error('토론방 조회에 실패했습니다');
+      }
+    };
+    
+    // 3초마다 폴링
+    pollingRef.current = setInterval(pollData, 3000);
+  };
+
+  // 폴링 중단 함수
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+      console.log('[둘러보기] 폴링 중단');
+    }
+  };
+
+  // 초기 데이터 로드 및 폴링 시작
   useEffect(() => {
     const loadDebateRooms = async () => {
       try {
         const apiData = await debateApi.getAllDebateRooms();
+        const convertedDiscussions = convertApiDataToDiscussions(apiData);
         
-        // 카테고리 매핑 함수
-        const getCategoryName = (categoryId: number) => {
-          const categoryMap: { [key: number]: string } = {
-            1: '💕연애',
-            2: '👥친구 & 인간관계',
-            3: '🏠일상 & 라이프스타일',
-            4: '💼취업 & 진로',
-            5: '🔥밈 & 유행',
-            6: '📱SNS & 온라인 문화',
-            7: '🤖AI & 미래사회',
-            8: '🎮게임 & e스포츠',
-            9: '🎭K-콘텐츠',
-            10: '⚖️논란 & 사회 이슈',
-            11: '💰돈 & 소비문화',
-            12: '💬자유 주제'
-          };
-          return categoryMap[categoryId] || '💬자유 주제';
-        };
-
-        // API 응답을 Discussion 인터페이스에 맞게 변환
-        const convertedDiscussions: Discussion[] = apiData.map((room: any) => ({
-          id: room.roomId,
-          type: room.debateType === 'FAST' ? '3분토론' : '일반토론',
-          status: room.status === 'waiting' ? '대기중' : room.status === 'started' ? '진행중' : '종료됨',
-          title: room.title,
-          category: room.category?.id ? getCategoryName(room.category.id) : '💬자유 주제',
-          timeStatus: room.elapsedSeconds ? `${Math.floor(room.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
-          speakers: { 
-            current: room.currentSpeaker || 0, 
-            max: room.maxSpeaker || 0 
-          },
-          audience: { 
-            current: room.currentAudience || 0, 
-            max: room.maxAudience || 0 
-          },
-          sideA: room.sideA,
-          sideB: room.sideB
-        }));
+        setDiscussions(convertedDiscussions);
         
-        // 현재 청중 수로 내림차순 정렬
-        const sortedDiscussions = convertedDiscussions.sort((a, b) => 
-          b.audience.current - a.audience.current
-        );
-        
-        setDiscussions(sortedDiscussions);
-        setFilteredDiscussions(sortedDiscussions);
+        // 초기 로드 완료 후 폴링 시작
+        startPolling();
       } catch (error) {
-        console.error('토론방 데이터 로드 실패:', error);
+        console.error('[둘러보기] 초기 데이터 로드 실패:', error);
+        toast.error('토론방 조회에 실패했습니다');
         setDiscussions([]);
-        setFilteredDiscussions([]);
       }
     };
 
     loadDebateRooms();
+
+    // 컴포넌트 언마운트 시 폴링 중단
+    return () => {
+      stopPolling();
+    };
   }, []);
 
   useEffect(() => {
@@ -186,6 +271,10 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
 
   const handleJoinConfirm = (discussionId: string, nickname: string, role: 'speaker' | 'audience') => {
     console.log('토론방 입장:', { discussionId, nickname, role });
+    
+    // 토론방 입장 시 폴링 중단
+    stopPolling();
+    
     // 실제로는 사용자 정보를 저장하고 토론방으로 이동
     onJoinDebate?.();
   };
