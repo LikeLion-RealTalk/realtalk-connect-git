@@ -183,201 +183,199 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
     };
   }, []);
 
-  useEffect(() => {
-    let filtered = discussions;
+    useEffect(() => {
+        let filtered = discussions;
 
-    // 검색어 필터링
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(discussion =>
-        discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+        // 검색어 필터링
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(discussion =>
+                discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                discussion.category.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
 
-    // 카테고리 필터링
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter(discussion =>
-        filters.categories.includes(discussion.category)
-      );
-    }
+        // 카테고리 필터링
+        if (filters.categories.length > 0) {
+            filtered = filtered.filter(discussion =>
+                filters.categories.includes(discussion.category)
+            );
+        }
 
-    // 토론방식 필터링
-    if (filters.discussionTypes.length > 0) {
-      filtered = filtered.filter(discussion =>
-        filters.discussionTypes.includes(discussion.type)
-      );
-    }
+        // 토론방식 필터링
+        if (filters.discussionTypes.length > 0) {
+            filtered = filtered.filter(discussion =>
+                filters.discussionTypes.includes(discussion.type)
+            );
+        }
 
-    // 진행상태 필터링
-    if (filters.statuses.length > 0) {
-      filtered = filtered.filter(discussion =>
-        filters.statuses.includes(discussion.status)
-      );
-    }
+        // 진행상태 필터링
+        if (filters.statuses.length > 0) {
+            filtered = filtered.filter(discussion =>
+                filters.statuses.includes(discussion.status)
+            );
+        }
 
-    setFilteredDiscussions(filtered);
-    setCurrentPage(1);
-  }, [searchQuery, filters, discussions]);
+        setFilteredDiscussions(filtered);
+        setCurrentPage(1);
+    }, [searchQuery, filters, discussions]);
 
-  const totalPages = Math.ceil(filteredDiscussions.length / discussionsPerPage);
-  const startIndex = (currentPage - 1) * discussionsPerPage;
-  const currentDiscussions = filteredDiscussions.slice(startIndex, startIndex + discussionsPerPage);
+    const totalPages = Math.ceil(filteredDiscussions.length / discussionsPerPage);
+    const startIndex = (currentPage - 1) * discussionsPerPage;
+    const currentDiscussions = filteredDiscussions.slice(startIndex, startIndex + discussionsPerPage);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleCreateDiscussion = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const handleCreateConfirm = (data: DiscussionData) => {
-    console.log('토론방 생성:', data);
-    
-    // 새로운 토론방 생성 (실제로는 서버에 전송)
-    const newDiscussion: Discussion = {
-      id: `discussion-${Date.now()}`,
-      type: data.debateType,
-      status: '대기중',
-      title: data.title,
-      category: data.category,
-      timeStatus: '곧 시작',
-      speakers: { current: 0, max: data.maxSpeakers },
-      audience: { current: 0, max: data.maxAudience }
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
     };
 
-    // 토론방 목록에 추가
-    setDiscussions(prev => [newDiscussion, ...prev]);
-    
-    // 생성된 토론방으로 바로 이동 (실제로는 토론방 페이지로)
-    onNavigate?.('debate');
-  };
+    const handleFilterChange = (newFilters: FilterOptions) => {
+        setFilters(newFilters);
+    };
 
-  const handleJoinDiscussion = (discussionId: string) => {
-    const discussion = discussions.find(d => d.id === discussionId);
-    if (discussion) {
-      setSelectedDiscussion(discussion);
-      setIsJoinModalOpen(true);
-    }
-  };
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+    const handleCreateDiscussion = () => {
+        setIsCreateModalOpen(true);
+    };
 
-  const handleJoinConfirm = (discussionId: string, nickname: string, role: 'speaker' | 'audience') => {
-    console.log('토론방 입장:', { discussionId, nickname, role });
-    
-    // 토론방 입장 시 폴링 중단
-    stopPolling();
-    
-    // 실제로는 사용자 정보를 저장하고 토론방으로 이동
-    onJoinDebate?.();
-  };
+    const handleCreateConfirm = (data: DiscussionData) => {
+        console.log('토론방 생성:', data);
 
-  const handleViewSummary = async (discussionId: string) => {
-    try {
-      const apiResponse = await debateApi.getDebateResults(discussionId);
-      
-      // API 응답을 DebateSummary 형식으로 변환
-      const summary = {
-        id: `summary-${discussionId}`,
-        discussionId: discussionId,
-        debateType: apiResponse.debateType === 'NORMAL' ? '일반토론' : '3분토론',
-        title: apiResponse.title,
-        category: apiResponse.categoryName,
-        duration: Math.floor(apiResponse.durationSeconds / 60), // 초를 분으로 변환
-        participantCount: apiResponse.totalCount,
-        keyStatements: {
-          aSide: [apiResponse.aiSummaryResult.sideA],
-          bSide: [apiResponse.aiSummaryResult.sideB]
-        },
-        publicOpinion: {
-          totalVotes: apiResponse.totalCount,
-          aPercentage: apiResponse.sideARate,
-          bPercentage: apiResponse.sideBCRate
-        },
-        finalConclusion: apiResponse.aiSummaryResult.aiResult,
-        summary: apiResponse.aiSummaryResult.aiResult,
-        completedAt: new Date() // 현재 시간으로 설정
-      };
-      
-      setSelectedSummary(summary);
-      setIsSummaryModalOpen(true);
-    } catch (error) {
-      console.error('토론 요약 조회 실패:', error);
-      toast.error('토론 요약을 불러오는데 실패했습니다.');
-    }
-  };
+        // 새로운 토론방 생성 (실제로는 서버에 전송)
+        const newDiscussion: Discussion = {
+            id: `discussion-${Date.now()}`,
+            type: data.debateType,
+            status: '대기중',
+            title: data.title,
+            category: data.category,
+            timeStatus: '곧 시작',
+            speakers: { current: 0, max: data.maxSpeakers },
+            audience: { current: 0, max: data.maxAudience }
+        };
 
-  return (
-    <div className="space-y-6">
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="mb-3">토론방 둘러보기</h1>
-          <p className="text-muted-foreground">
-            다양한 주제의 토론방을 찾아보고 관심 있는 토론에 참여해보세요.
-          </p>
+        // 토론방 목록에 추가
+        setDiscussions(prev => [newDiscussion, ...prev]);
+
+        // 생성된 토론방으로 바로 이동 (실제로는 토론방 페이지로)
+        onNavigate?.('debate');
+    };
+
+    const handleJoinDiscussion = (discussionId: string) => {
+        const discussion = discussions.find(d => d.id === discussionId);
+        if (discussion) {
+            setSelectedDiscussion(discussion);
+            setIsJoinModalOpen(true);
+        }
+    };
+
+    const handleJoinConfirm = (discussionId: string, nickname: string, role: 'speaker' | 'audience') => {
+        console.log('토론방 입장:', { discussionId, nickname, role });
+        
+        // 토론방 입장 시 폴링 중단
+        stopPolling();
+        
+        // 실제로는 사용자 정보를 저장하고 토론방으로 이동
+        onJoinDebate?.();
+    };
+
+    const handleViewSummary = async (discussionId: string) => {
+        try {
+            const apiResponse = await debateApi.getDebateResults(discussionId);
+            
+            // API 응답을 DebateSummary 형식으로 변환
+            const summary = {
+                id: `summary-${discussionId}`,
+                discussionId: discussionId,
+                debateType: apiResponse.debateType === 'NORMAL' ? '일반토론' : '3분토론',
+                title: apiResponse.title,
+                category: apiResponse.categoryName,
+                duration: Math.floor(apiResponse.durationSeconds / 60), // 초를 분으로 변환
+                participantCount: apiResponse.totalCount,
+                keyStatements: {
+                    aSide: [apiResponse.aiSummaryResult.sideA],
+                    bSide: [apiResponse.aiSummaryResult.sideB]
+                },
+                publicOpinion: {
+                    totalVotes: apiResponse.totalCount,
+                    aPercentage: apiResponse.sideARate,
+                    bPercentage: apiResponse.sideBCRate
+                },
+                finalConclusion: apiResponse.aiSummaryResult.aiResult,
+                summary: apiResponse.aiSummaryResult.aiResult,
+                completedAt: new Date() // 현재 시간으로 설정
+            };
+            
+            setSelectedSummary(summary);
+            setIsSummaryModalOpen(true);
+        } catch (error) {
+            console.error('토론 요약 조회 실패:', error);
+            toast.error('토론 요약을 불러오는데 실패했습니다.');
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="container mx-auto px-4 py-6">
+                <div className="mb-6">
+                    <h1 className="mb-3">토론방 둘러보기</h1>
+                    <p className="text-muted-foreground">
+                        다양한 주제의 토론방을 찾아보고 관심 있는 토론에 참여해보세요.
+                    </p>
+                </div>
+
+                <div className="space-y-4">
+                    <SearchFilter
+                        onSearch={handleSearch}
+                        onFilterChange={handleFilterChange}
+                    />
+
+                    <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                            총 {filteredDiscussions.length}개의 토론방
+                        </p>
+                        <Button
+                            onClick={handleCreateDiscussion}
+                            className="flex items-center gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            토론방 만들기
+                        </Button>
+                    </div>
+
+                    <DiscussionsList
+                        discussions={currentDiscussions}
+                        onJoinDiscussion={handleJoinDiscussion}
+                        onViewSummary={handleViewSummary}
+                    />
+
+                    <DiscussionPagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            </div>
+
+            <JoinDiscussionModal
+                isOpen={isJoinModalOpen}
+                onClose={() => setIsJoinModalOpen(false)}
+                discussion={selectedDiscussion}
+                onJoin={handleJoinConfirm}
+            />
+
+            <CreateDiscussionModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreate={handleCreateConfirm}
+                onNavigate={onNavigate}
+            />
+
+            <AiDebateSummaryModal
+                isOpen={isSummaryModalOpen}
+                onClose={() => setIsSummaryModalOpen(false)}
+                onRequestExit={() => setIsSummaryModalOpen(false)}
+                summary={selectedSummary}
+            />
         </div>
-
-        <div className="space-y-4">
-          <SearchFilter 
-            onSearch={handleSearch}
-            onFilterChange={handleFilterChange}
-          />
-
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">
-              총 {filteredDiscussions.length}개의 토론방
-            </p>
-            <Button 
-              onClick={handleCreateDiscussion}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              토론방 만들기
-            </Button>
-          </div>
-
-          <DiscussionsList 
-            discussions={currentDiscussions} 
-            onJoinDiscussion={handleJoinDiscussion}
-            onViewSummary={handleViewSummary}
-          />
-
-          <DiscussionPagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      </div>
-
-      <JoinDiscussionModal
-        isOpen={isJoinModalOpen}
-        onClose={() => setIsJoinModalOpen(false)}
-        discussion={selectedDiscussion}
-        onJoin={handleJoinConfirm}
-        onNavigate={onNavigate}
-      />
-
-      <CreateDiscussionModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateConfirm}
-        onNavigate={onNavigate}
-      />
-
-      <AiDebateSummaryModal
-        isOpen={isSummaryModalOpen}
-        onClose={() => setIsSummaryModalOpen(false)}
-        onRequestExit={() => setIsSummaryModalOpen(false)}
-        summary={selectedSummary}
-      />
-    </div>
-  );
+    );
 }
