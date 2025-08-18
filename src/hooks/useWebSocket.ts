@@ -330,6 +330,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         
         // 참가자 목록을 모든 컴포넌트에 전달
         if (Array.isArray(participants)) {
+          console.log(`[웹소켓][참가자] 콜백 개수: ${globalParticipantsCallbacks.length}개`);
           globalParticipantsCallbacks.forEach(cb => cb(participants));
         }
       });
