@@ -41,7 +41,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateSummary, setDebateSummary] = useState(null);
   
   // 웹소켓 훅 초기화
-  const { sendChatMessage, isConnected, subscribeExpire } = useWebSocket({
+  const { sendChatMessage, isConnected, subscribeExpire, subscribeSpeakerExpire } = useWebSocket({
     onMessage: (message) => {
       // STOMP 메시지 처리
       if (message.type === 'CHAT') {
@@ -89,6 +89,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [isDebateStarted, setIsDebateStarted] = useState(false);
   const [debateExpireTime, setDebateExpireTime] = useState<Date | null>(null); // 토론 만료 시간
   const [expireTimeDisplay, setExpireTimeDisplay] = useState<string>('--'); // 만료시간 표시용
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null); // 현재 발언자 ID
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const expireTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -230,6 +231,24 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, []);
 
+  // speaker expire 메시지 처리 함수
+  const handleSpeakerExpireTimeReceived = useCallback((data: { speakerExpireTime: string, currentUserId: string }) => {
+    try {
+      console.log('[발언자] 발언자 만료시간 수신:', data);
+      setCurrentUserId(data.currentUserId);
+      
+      // 현재 사용자 ID와 비교해서 로그 출력
+      const myUserId = user?.id?.toString();
+      if (myUserId === data.currentUserId) {
+        console.log('[발언자] 내가 현재 발언자로 지정됨:', data.currentUserId);
+      } else {
+        console.log('[발언자] 다른 사용자가 발언자로 지정됨:', data.currentUserId, '내 ID:', myUserId);
+      }
+    } catch (error) {
+      console.error('[발언자] 발언자 만료시간 파싱 실패:', error);
+    }
+  }, [user?.id]);
+
   // API로 만료시간 조회하는 함수 (started 상태일 때)
   const fetchExpireTime = useCallback(async () => {
     try {
@@ -271,6 +290,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       subscribeExpire(debateRoomInfo.id, handleExpireTimeReceived);
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, subscribeExpire, handleExpireTimeReceived]);
+
+  // 웹소켓 연결 후 speaker expire 구독 (발언자로 참여한 경우에만)
+  useEffect(() => {
+    if (isConnected && hasEnteredRoom && participationMode === PARTICIPATION_ROLES[0]) {
+      console.log('[발언자] 웹소켓 연결됨 - speaker expire 구독 시작');
+      subscribeSpeakerExpire(debateRoomInfo.id, handleSpeakerExpireTimeReceived);
+    }
+  }, [isConnected, hasEnteredRoom, debateRoomInfo.id, participationMode, subscribeSpeakerExpire, handleSpeakerExpireTimeReceived]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
@@ -723,6 +750,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
+  // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같은 경우에만 활성화
+  const canSpeak = !isDebateFinished && (participationMode === PARTICIPATION_ROLES[0] && currentUserId && user?.id?.toString() === currentUserId);
 
   return (
     <>
@@ -839,7 +868,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                     onSendSpeech={handleSendSpeech}
                     isRecording={isRecording}
                     onToggleRecording={handleToggleRecording}
-                    isActive={!isDebateFinished}
+                    isActive={canSpeak}
                   />
                 </div>
               )}
@@ -923,7 +952,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                           onSendSpeech={handleSendSpeech}
                           isRecording={isRecording}
                           onToggleRecording={handleToggleRecording}
-                          isActive={!isDebateFinished}
+                          isActive={canSpeak}
                         />
                       </div>
                     )}
@@ -940,7 +969,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                           onSendSpeech={handleSendSpeech}
                           isRecording={isRecording}
                           onToggleRecording={handleToggleRecording}
-                          isActive={!isDebateFinished}
+                          isActive={canSpeak}
                         />
                       </div>
                     )}

@@ -26,6 +26,7 @@ let globalStompClient: any = null;
 let globalRoomSub: any = null;
 let globalParticipantsSub: any = null;
 let globalExpireSub: any = null;
+let globalSpeakerExpireSub: any = null;
 let globalIsConnected = false;
 let globalIsConnecting = false;
 let globalConnectInFlight = false;
@@ -126,6 +127,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         globalExpireSub.unsubscribe(); 
         globalExpireSub = null; 
       }
+      if (globalSpeakerExpireSub) { 
+        globalSpeakerExpireSub.unsubscribe(); 
+        globalSpeakerExpireSub = null; 
+      }
       if (globalStompClient && globalStompClient.connected) {
         await new Promise(res => globalStompClient.disconnect(res));
       }
@@ -214,6 +219,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       if (globalExpireSub) { 
         globalExpireSub.unsubscribe(); 
         globalExpireSub = null; 
+      }
+      if (globalSpeakerExpireSub) { 
+        globalSpeakerExpireSub.unsubscribe(); 
+        globalSpeakerExpireSub = null; 
       }
     } catch (e) {
       console.warn('[웹소켓] 언서브 중 경고:', e);
@@ -395,6 +404,38 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     });
   }, []);
 
+  const subscribeSpeakerExpire = useCallback((roomUUID: string, onSpeakerExpireMessage: (data: { speakerExpireTime: string, currentUserId: string }) => void) => {
+    if (!globalStompClient?.connected) {
+      console.warn('[웹소켓] 연결되지 않음');
+      return;
+    }
+
+    // 기존 speaker expire 구독이 있다면 정리
+    if (globalSpeakerExpireSub) {
+      globalSpeakerExpireSub.unsubscribe();
+      globalSpeakerExpireSub = null;
+    }
+
+    const topicSpeakerExpire = `/topic/speaker/${roomUUID}/expire`;
+    console.log('[웹소켓] speaker expire 구독 시작:', topicSpeakerExpire);
+    
+    globalSpeakerExpireSub = globalStompClient.subscribe(topicSpeakerExpire, function (message: any) {
+      let payload;
+      try {
+        payload = JSON.parse(message.body);
+        console.log('[웹소켓][speaker expire] 발언자 만료시간 수신:', payload);
+      } catch (e) {
+        console.error('[웹소켓][speaker expire] JSON 파싱 실패:', e, message.body);
+        return;
+      }
+
+      // 발언자 만료시간 콜백 호출
+      if (payload.speakerExpireTime && payload.currentUserId) {
+        onSpeakerExpireMessage(payload);
+      }
+    });
+  }, []);
+
 
   return {
     isConnected,
@@ -404,6 +445,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     joinRoom,
     sendMessage,
     sendChatMessage,
-    subscribeExpire
+    subscribeExpire,
+    subscribeSpeakerExpire
   };
 };
