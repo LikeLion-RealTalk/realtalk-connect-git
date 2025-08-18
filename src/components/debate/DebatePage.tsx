@@ -248,12 +248,24 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 현재시간 대비 발언 시간 계산
       const now = new Date();
       const timeDiff = expireTime.getTime() - now.getTime();
-      const speakingTimeSeconds = Math.max(1, Math.floor(timeDiff / 1000)); // 최소 1초
+      const timeDiffSeconds = Math.floor(timeDiff / 1000);
       
-      console.log('[발언자] 발언 시간 계산:', speakingTimeSeconds, '초');
-      
-      // 발언자 타이머 새로 시작
-      startSpeakerCycle(speakingTimeSeconds);
+      if (timeDiffSeconds > 0) {
+        // 양수: 아직 발언 시간이 남음 → 1. 발언 단계로 시작
+        console.log('[발언자] 발언 시간 계산:', timeDiffSeconds, '초');
+        startSpeakerCycle(timeDiffSeconds);
+      } else {
+        // 음수: 발언 시간이 이미 끝남 → 2. 논의 단계로 바로 시작
+        const elapsedDiscussionTime = Math.abs(timeDiffSeconds); // 이미 흘러간 논의 시간
+        const remainingDiscussionTime = Math.max(1, 30 - elapsedDiscussionTime); // 남은 논의 시간 (최소 1초)
+        
+        console.log('[발언자] 발언 시간 이미 종료 - 논의 단계로 시작:', {
+          elapsedDiscussionTime,
+          remainingDiscussionTime
+        });
+        
+        startDiscussionCycle(remainingDiscussionTime);
+      }
       
       // 현재 사용자 ID와 비교해서 로그 출력
       const myUserId = user?.id?.toString();
@@ -291,6 +303,38 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
           setMaxSpeakerTime(30); // 논의는 고정 30초
           console.log('[발언자] 발언 시간 종료 - 논의 단계로 전환');
           return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // 논의 사이클 시작 함수 (발언 시간이 이미 지났을 때)
+  const startDiscussionCycle = useCallback((remainingDiscussionTimeSeconds: number) => {
+    // 기존 발언자 타이머 정리
+    if (speakerTimerRef.current) {
+      clearInterval(speakerTimerRef.current);
+    }
+
+    // 2. 논의 단계로 바로 시작
+    setCurrentDebateStage('2. 논의');
+    setMaxSpeakerTime(30);
+    setCurrentSpeakerTimeLeft(remainingDiscussionTimeSeconds);
+
+    console.log('[발언자] 논의 사이클 시작 - 남은 논의 시간:', remainingDiscussionTimeSeconds, '초');
+
+    // 논의 타이머 시작
+    speakerTimerRef.current = setInterval(() => {
+      setCurrentSpeakerTimeLeft(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          // 논의 시간도 종료 - 타이머 정리
+          if (speakerTimerRef.current) {
+            clearInterval(speakerTimerRef.current);
+            speakerTimerRef.current = null;
+          }
+          console.log('[발언자] 논의 시간도 종료');
+          return 0;
         }
         return prev - 1;
       });
