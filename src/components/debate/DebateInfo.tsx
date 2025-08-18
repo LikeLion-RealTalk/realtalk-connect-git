@@ -16,7 +16,7 @@ export function DebateInfo({ status, audienceCount, remainingTime, expireTimeDis
       case '진행중':
         return 'bg-green-400 text-white dark:bg-green-400 dark:text-white';
       case '대기중':
-        return 'bg-blue-400 text-white dark:bg-blue-400 dark:text-white';
+        return 'bg-yellow-500 text-white dark:bg-yellow-500 dark:text-white';
       case '종료됨':
         return 'bg-gray-400 text-white dark:bg-gray-400 dark:text-white';
       default:

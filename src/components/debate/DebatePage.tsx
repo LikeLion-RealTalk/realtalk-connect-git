@@ -348,13 +348,13 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, subscribeExpire, handleExpireTimeReceived]);
 
-  // 웹소켓 연결 후 speaker expire 구독 (발언자로 참여한 경우에만)
+  // 웹소켓 연결 후 speaker expire 구독 (발언자와 청중 모두)
   useEffect(() => {
-    if (isConnected && hasEnteredRoom && participationMode === PARTICIPATION_ROLES[0]) {
-      console.log('[발언자] 웹소켓 연결됨 - speaker expire 구독 시작');
+    if (isConnected && hasEnteredRoom) {
+      console.log('[발언자 시간] 웹소켓 연결됨 - speaker expire 구독 시작 (발언자/청중 공통)');
       subscribeSpeakerExpire(debateRoomInfo.id, handleSpeakerExpireTimeReceived);
     }
-  }, [isConnected, hasEnteredRoom, debateRoomInfo.id, participationMode, subscribeSpeakerExpire, handleSpeakerExpireTimeReceived]);
+  }, [isConnected, hasEnteredRoom, debateRoomInfo.id, subscribeSpeakerExpire, handleSpeakerExpireTimeReceived]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);

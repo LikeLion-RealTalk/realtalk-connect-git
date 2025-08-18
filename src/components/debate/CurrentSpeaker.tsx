@@ -14,6 +14,17 @@ interface CurrentSpeakerProps {
   remainingSeconds: number | null;
 }
 
+// 시간 포맷팅 함수: 60초 이상이면 분:초, 60초 미만이면 초
+const formatRemainingTime = (totalSeconds: number): string => {
+  if (totalSeconds >= 60) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}분 ${seconds}초 남음`;
+  } else {
+    return `${totalSeconds}초 남음`;
+  }
+};
+
 export function CurrentSpeaker({
   speaker,
   stage,
@@ -69,7 +80,7 @@ export function CurrentSpeaker({
             />
           </div>
           <p className="text-sm text-center text-slate-400">
-            {remainingSeconds !== null ? `${remainingSeconds}초 남음` : '--'}
+            {remainingSeconds !== null ? formatRemainingTime(remainingSeconds) : '--'}
           </p>
         </div>
       </div>
