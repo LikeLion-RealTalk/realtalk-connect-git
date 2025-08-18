@@ -269,6 +269,18 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       return null;
     }
 
+    // 기존 방 구독이 있다면 정리 (중복 구독 방지)
+    if (globalRoomSub) { 
+      console.log('[웹소켓] 기존 방 구독 정리');
+      globalRoomSub.unsubscribe(); 
+      globalRoomSub = null; 
+    }
+    if (globalParticipantsSub) { 
+      console.log('[웹소켓] 기존 참가자 구독 정리');
+      globalParticipantsSub.unsubscribe(); 
+      globalParticipantsSub = null; 
+    }
+
     return new Promise((resolve) => {
       const myJoinNonce = Math.random().toString(36).slice(2, 10);
       let selfInfoLocked = false;
