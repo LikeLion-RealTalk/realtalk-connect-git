@@ -58,6 +58,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         console.log('[채팅] 메시지 수신:', newChatMessage);
         setChatMessages(prev => [...prev, newChatMessage]);
       }
+    },
+    onParticipantsUpdate: (participants) => {
+      console.log('[참가자] 목록 업데이트:', participants);
+      handleParticipantsUpdate(participants);
     }
   });
   // 참여 모드: 입장 시 선택한 역할에 따라 결정 (토글 불가)
@@ -97,13 +101,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const expireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const speakerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 발언자 목록 상태 관리
-  const [speakers, setSpeakers] = useState<Speaker[]>(() => {
-    return MOCK_SPEAKERS.map((speaker, index) => ({
-      ...speaker,
-      isCreator: index === 0 && debateRoomInfo.isCreatedByUser
-    }));
-  });
+  // 발언자 목록 상태 관리 (서버에서 받은 데이터로 업데이트됨)
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
 
   // 화면 크기 감지 (데스크톱/모바일 구분)
   useEffect(() => {
@@ -291,6 +290,45 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[발언자] 발언자 만료시간 파싱 실패:', error);
     }
   }, [user?.id]);
+
+  // 참가자 목록 업데이트 함수
+  const handleParticipantsUpdate = useCallback((participants: any[]) => {
+    // 서버에서 받은 participants 데이터를 Speaker 형태로 변환
+    const convertedSpeakers: Speaker[] = participants.map((participant) => {
+      // side에 따른 position 설정
+      const position = participant.side === 'A' ? POSITIONS[0] : POSITIONS[1];
+      
+      // 현재 발언자인지 확인 (currentUserId와 비교)
+      const isSpeaking = currentUserId && participant.userId?.toString() === currentUserId;
+      
+      return {
+        id: participant.userId?.toString() || participant.sessionId,
+        name: participant.userName || '알수없음',
+        position: position,
+        avatar: participant.userName ? participant.userName.charAt(0) : '?',
+        status: isSpeaking ? '발언중' : '대기중',
+        // 방장은 API에서 확인 필요 (일단 기본값으로 설정)
+        isCreator: participant.userId === user?.id && isRoomOwner,
+        // 발언자인지 청중인지 구분 (SPEAKER/AUDIENCE)
+        isSpeaker: participant.role === 'SPEAKER'
+      };
+    });
+
+    console.log('[참가자] 변환된 발언자 목록:', convertedSpeakers);
+    setSpeakers(convertedSpeakers);
+  }, [currentUserId, user?.id, isRoomOwner]);
+
+  // currentUserId 변경 시 발언자 상태 업데이트
+  useEffect(() => {
+    if (currentUserId) {
+      setSpeakers(prev => prev.map(speaker => ({
+        ...speaker,
+        status: speaker.id === currentUserId ? '발언중' : '대기중'
+      })));
+      
+      console.log('[발언자] 발언자 상태 업데이트 - 현재 발언자:', currentUserId);
+    }
+  }, [currentUserId]);
 
   // 발언자 사이클 시작 함수
   const startSpeakerCycle = useCallback((speakingTimeSeconds: number) => {

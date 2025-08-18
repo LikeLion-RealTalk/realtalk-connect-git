@@ -12,6 +12,7 @@ interface WebSocketHookOptions {
   onMessage?: (message: any) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
+  onParticipantsUpdate?: (participants: any[]) => void;
 }
 
 interface JoinResponse {
@@ -35,12 +36,13 @@ let globalConnectInFlight = false;
 let globalMessageCallbacks: ((message: any) => void)[] = [];
 let globalConnectCallbacks: (() => void)[] = [];
 let globalDisconnectCallbacks: (() => void)[] = [];
+let globalParticipantsCallbacks: ((participants: any[]) => void)[] = [];
 
 export const useWebSocket = (options: WebSocketHookOptions = {}) => {
   const [isConnected, setIsConnected] = useState(globalIsConnected);
   const [isConnecting, setIsConnecting] = useState(globalIsConnecting);
   
-  const { onMessage, onConnect, onDisconnect } = options;
+  const { onMessage, onConnect, onDisconnect, onParticipantsUpdate } = options;
 
   // 컴포넌트 마운트 시 콜백 등록
   useEffect(() => {
@@ -52,6 +54,9 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     }
     if (onDisconnect) {
       globalDisconnectCallbacks.push(onDisconnect);
+    }
+    if (onParticipantsUpdate) {
+      globalParticipantsCallbacks.push(onParticipantsUpdate);
     }
 
     // 컴포넌트 언마운트 시 콜백 제거
@@ -65,8 +70,11 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       if (onDisconnect) {
         globalDisconnectCallbacks = globalDisconnectCallbacks.filter(cb => cb !== onDisconnect);
       }
+      if (onParticipantsUpdate) {
+        globalParticipantsCallbacks = globalParticipantsCallbacks.filter(cb => cb !== onParticipantsUpdate);
+      }
     };
-  }, [onMessage, onConnect, onDisconnect]);
+  }, [onMessage, onConnect, onDisconnect, onParticipantsUpdate]);
 
   // 전역 상태 변경 시 로컬 상태 업데이트
   useEffect(() => {
@@ -319,6 +327,11 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         }
         const count = Array.isArray(participants) ? participants.length : '알수없음';
         console.log(`[웹소켓][참가자] 목록 수신(${count}명):`, participants);
+        
+        // 참가자 목록을 모든 컴포넌트에 전달
+        if (Array.isArray(participants)) {
+          globalParticipantsCallbacks.forEach(cb => cb(participants));
+        }
       });
 
       // HTML과 동일한 타이밍: 구독 완료 후 100ms 대기하고 JOIN 메시지 전송
