@@ -130,6 +130,19 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       setSideA(roomData.sideA);
       setSideB(roomData.sideB);
 
+      // 토론방 정보 업데이트 (title, debateType, category)
+      if (debateRoomInfo.title === '토론방 참여' || debateRoomInfo.category === '분류 미정') {
+        // 초기 하드코딩된 값인 경우 실제 데이터로 업데이트
+        debateRoomInfo.title = roomData.title;
+        debateRoomInfo.debateType = roomData.debateType === 'FAST' ? '3분토론' : '일반토론';
+        debateRoomInfo.category = roomData.category.name;
+        console.log('[토론방] 토론방 정보 업데이트:', {
+          title: roomData.title,
+          debateType: debateRoomInfo.debateType,
+          category: roomData.category.name
+        });
+      }
+
       // 토론방 상태 업데이트
       setRoomStatus(roomData.status);
 

@@ -45,8 +45,8 @@ function AppWithPermissions() {
         const debateRoom: DebateRoomInfo = {
           id: debateRoomInfoOrId,
           title: '토론방 참여',
-          category: '일반토론',
-          debateType: '일반토론',
+          category: '분류 미정',
+          debateType: '토론 유형 확인 중',
           isCreatedByUser: false,
           userPosition: userInfo ? userInfo.userPosition : null,
           userRole: userInfo ? userInfo.userRole : undefined,
