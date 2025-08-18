@@ -11,7 +11,7 @@ interface CurrentSpeakerProps {
   };
   stage: DebateStage;
   timeProgress: number; // 0-100
-  remainingSeconds: number;
+  remainingSeconds: number | null;
 }
 
 export function CurrentSpeaker({
@@ -69,7 +69,7 @@ export function CurrentSpeaker({
             />
           </div>
           <p className="text-sm text-center text-slate-400">
-            {remainingSeconds}초 남음
+            {remainingSeconds !== null ? `${remainingSeconds}초 남음` : '--'}
           </p>
         </div>
       </div>

@@ -83,15 +83,19 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [sideA, setSideA] = useState<string>('A입장');
   const [sideB, setSideB] = useState<string>('B입장');
   const [isRoomOwner, setIsRoomOwner] = useState(false);
-  const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState(18);
+  const [currentSpeakerTimeLeft, setCurrentSpeakerTimeLeft] = useState<number | null>(null);
   const [debateTimeLeft, setDebateTimeLeft] = useState(5 * 60); // 5분을 초 단위로
   const [debateStartTime, setDebateStartTime] = useState<Date | null>(new Date('2025-08-09T23:15:00')); // 토론 시작 시간 고정
   const [isDebateStarted, setIsDebateStarted] = useState(false);
   const [debateExpireTime, setDebateExpireTime] = useState<Date | null>(null); // 토론 만료 시간
   const [expireTimeDisplay, setExpireTimeDisplay] = useState<string>('--'); // 만료시간 표시용
   const [currentUserId, setCurrentUserId] = useState<string | null>(null); // 현재 발언자 ID
+  const [speakerExpireTime, setSpeakerExpireTime] = useState<Date | null>(null); // 발언자 만료 시간
+  const [currentDebateStage, setCurrentDebateStage] = useState<'1. 발언' | '2. 논의'>('1. 발언'); // 현재 토론 단계
+  const [maxSpeakerTime, setMaxSpeakerTime] = useState(30); // 발언 시간 총 길이
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const expireTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const speakerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 발언자 목록 상태 관리
   const [speakers, setSpeakers] = useState<Speaker[]>(() => {
@@ -237,6 +241,20 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.log('[발언자] 발언자 만료시간 수신:', data);
       setCurrentUserId(data.currentUserId);
       
+      // 발언자 만료시간 설정
+      const expireTime = new Date(data.speakerExpireTime);
+      setSpeakerExpireTime(expireTime);
+      
+      // 현재시간 대비 발언 시간 계산
+      const now = new Date();
+      const timeDiff = expireTime.getTime() - now.getTime();
+      const speakingTimeSeconds = Math.max(1, Math.floor(timeDiff / 1000)); // 최소 1초
+      
+      console.log('[발언자] 발언 시간 계산:', speakingTimeSeconds, '초');
+      
+      // 발언자 타이머 새로 시작
+      startSpeakerCycle(speakingTimeSeconds);
+      
       // 현재 사용자 ID와 비교해서 로그 출력
       const myUserId = user?.id?.toString();
       if (myUserId === data.currentUserId) {
@@ -248,6 +266,45 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[발언자] 발언자 만료시간 파싱 실패:', error);
     }
   }, [user?.id]);
+
+  // 발언자 사이클 시작 함수
+  const startSpeakerCycle = useCallback((speakingTimeSeconds: number) => {
+    // 기존 발언자 타이머 정리
+    if (speakerTimerRef.current) {
+      clearInterval(speakerTimerRef.current);
+    }
+
+    // 1. 발언 단계로 시작
+    setCurrentDebateStage('1. 발언');
+    setMaxSpeakerTime(speakingTimeSeconds);
+    setCurrentSpeakerTimeLeft(speakingTimeSeconds);
+
+    console.log('[발언자] 사이클 시작 - 발언 단계:', speakingTimeSeconds, '초');
+
+    // 발언자 타이머 시작
+    speakerTimerRef.current = setInterval(() => {
+      setCurrentSpeakerTimeLeft(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          // 발언 시간 종료 -> 논의 단계로 전환
+          setCurrentDebateStage('2. 논의');
+          setMaxSpeakerTime(30); // 논의는 고정 30초
+          console.log('[발언자] 발언 시간 종료 - 논의 단계로 전환');
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (speakerTimerRef.current) {
+        clearInterval(speakerTimerRef.current);
+      }
+    };
+  }, []);
 
   // API로 만료시간 조회하는 함수 (started 상태일 때)
   const fetchExpireTime = useCallback(async () => {
@@ -370,13 +427,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
 
     timerRef.current = setInterval(() => {
-      setCurrentSpeakerTimeLeft(prev => {
-        if (prev <= 1) {
-          return 30; // 새로운 발언자로 전환 (30초로 리셋)
-        }
-        return prev - 1;
-      });
-
+      // speaker expire 타이머가 별도로 관리되므로 여기서는 debateTimeLeft만 관리
       setDebateTimeLeft(prev => {
         if (prev <= 0) {
           clearInterval(timerRef.current!);
@@ -836,8 +887,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                     position: POSITIONS[0],
                     avatar: ''
                   }}
-                  stage="1. 발언"
-                  timeProgress={((30 - currentSpeakerTimeLeft) / 30) * 100}
+                  stage={currentDebateStage}
+                  timeProgress={currentSpeakerTimeLeft !== null ? ((maxSpeakerTime - currentSpeakerTimeLeft) / maxSpeakerTime) * 100 : 0}
                   remainingSeconds={currentSpeakerTimeLeft}
                 />
                 <PositionSelector
@@ -891,8 +942,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                     position: POSITIONS[0],
                     avatar: ''
                   }}
-                  stage="1. 발언"
-                  timeProgress={((30 - currentSpeakerTimeLeft) / 30) * 100}
+                  stage={currentDebateStage}
+                  timeProgress={currentSpeakerTimeLeft !== null ? ((maxSpeakerTime - currentSpeakerTimeLeft) / maxSpeakerTime) * 100 : 0}
                   remainingSeconds={currentSpeakerTimeLeft}
                 />
                 <PositionSelector
