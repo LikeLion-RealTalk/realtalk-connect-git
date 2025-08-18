@@ -41,7 +41,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateSummary, setDebateSummary] = useState(null);
   
   // 웹소켓 훅 초기화
-  const { sendChatMessage, isConnected, subscribeExpire, subscribeSpeakerExpire, joinRoom } = useWebSocket({
+  const { sendChatMessage, sendMessage, isConnected, subscribeExpire, subscribeSpeakerExpire, joinRoom } = useWebSocket({
     onMessage: (message) => {
       // STOMP 메시지 처리
       if (message.type === 'CHAT') {
@@ -647,6 +647,17 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
   const handleConfirmLeave = () => {
     setIsLeaveModalOpen(false);
+    
+    // 백엔드로 나가기 메시지 전송
+    if (isConnected && user?.id) {
+      const leaveMessage = {
+        roomId: debateRoomInfo.id,
+        userId: user.id.toString()
+      };
+      
+      console.log('[토론방] 나가기 메시지 전송:', leaveMessage);
+      sendMessage('/pub/debate/leave', leaveMessage);
+    }
     
     // 발언자로 참여했던 경우 퇴장 메시지 표시
     if (participationMode === PARTICIPATION_ROLES[0] && (isLoggedIn ? user?.username : nickname)) {
