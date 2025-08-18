@@ -97,12 +97,11 @@ export function JoinDiscussionModal({
       
       console.log('[토론방입장] WebSocket 연결 완료, JOIN 요청 전송');
       
-      // 방 참여 요청
-      const result = await joinRoom(discussion.id, selectedRole, selectedSide);
+      // 방 참여 정보만 저장하고 DebatePage에서 joinRoom 호출하도록 변경
+      console.log('[토론방입장] 연결 완료, DebatePage로 이동');
       
-      console.log('[토론방입장] JOIN 응답:', result);
-      
-      if (result?.type === 'JOIN_ACCEPTED') {
+      // JOIN_ACCEPTED 시뮬레이션 (실제 JOIN은 DebatePage에서 수행)
+      if (true) {
         toast.success('토론방에 입장했습니다!', {
           position: 'bottom-right',
           duration: 2000,
@@ -116,16 +115,6 @@ export function JoinDiscussionModal({
           });
         }
         onClose();
-      } else if (result?.type === 'JOIN_REJECTED') {
-        toast.error(`입장이 거부되었습니다: ${result.reason || '알 수 없는 오류'}`, {
-          position: 'bottom-right',
-          duration: 3000,
-        });
-      } else {
-        toast.error('서버 응답을 받지 못했습니다. 다시 시도해주세요.', {
-          position: 'bottom-right',
-          duration: 3000,
-        });
       }
     } catch (error) {
       console.error('[토론방입장] 오류:', error);

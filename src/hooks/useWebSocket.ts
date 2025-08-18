@@ -172,7 +172,13 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       socket.onerror = (e: any) => console.error('[웹소켓] SockJS 오류:', e);
 
       globalStompClient = window.Stomp.over(socket);
-      globalStompClient.debug = (msg: string) => console.log('[STOMP 디버그]', msg);
+      globalStompClient.debug = (msg: string) => {
+        console.log('[STOMP 디버그]', msg);
+        // participants 메시지 특별 디버깅
+        if (msg.includes('/participants') && msg.includes('MESSAGE')) {
+          console.log('[STOMP 특별] participants 메시지 감지:', msg);
+        }
+      };
       globalStompClient.heartbeat.outgoing = 10000;
       globalStompClient.heartbeat.incoming = 10000;
 

@@ -41,7 +41,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateSummary, setDebateSummary] = useState(null);
   
   // 웹소켓 훅 초기화
-  const { sendChatMessage, isConnected, subscribeExpire, subscribeSpeakerExpire } = useWebSocket({
+  const { sendChatMessage, isConnected, subscribeExpire, subscribeSpeakerExpire, joinRoom } = useWebSocket({
     onMessage: (message) => {
       // STOMP 메시지 처리
       if (message.type === 'CHAT') {
@@ -450,6 +450,34 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       subscribeSpeakerExpire(debateRoomInfo.id, handleSpeakerExpireTimeReceived);
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, subscribeSpeakerExpire, handleSpeakerExpireTimeReceived]);
+
+  // 웹소켓 연결 후 토론방 참여 (콜백 등록 후에 joinRoom 호출)
+  useEffect(() => {
+    if (isConnected && hasEnteredRoom && debateRoomInfo.userRole && debateRoomInfo.userPosition) {
+      console.log('[토론방] 콜백 등록 완료 - joinRoom 호출 시작');
+      
+      // userPosition을 side로 변환
+      const userSide: 'A' | 'B' = debateRoomInfo.userPosition === sideA ? 'A' : 'B';
+      
+      // joinRoom 호출
+      joinRoom(debateRoomInfo.id, debateRoomInfo.userRole, userSide)
+        .then((result) => {
+          console.log('[토론방] joinRoom 완료:', result);
+          if (result?.type === 'JOIN_ACCEPTED') {
+            console.log('[토론방] 참여 승인 - 정상 입장 완료');
+          } else if (result?.type === 'JOIN_REJECTED') {
+            console.error('[토론방] 참여 거부:', result.reason);
+            toast.error(`입장이 거부되었습니다: ${result.reason}`);
+          } else {
+            console.warn('[토론방] 예상치 못한 응답:', result);
+          }
+        })
+        .catch((error) => {
+          console.error('[토론방] joinRoom 실패:', error);
+          toast.error('토론방 참여 중 오류가 발생했습니다.');
+        });
+    }
+  }, [isConnected, hasEnteredRoom, debateRoomInfo.id, debateRoomInfo.userRole, debateRoomInfo.userPosition, sideA, joinRoom]);
 
   const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
