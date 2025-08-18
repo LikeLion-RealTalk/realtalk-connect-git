@@ -219,7 +219,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       const expireTime = new Date(data.debateExpireTime);
       console.log('[토론방] 만료시간 수신 - 토론 시작됨:', data.debateExpireTime, '→', expireTime);
       
-      // 토론 시작 상태로 변경
+      // 토론 시작 상태로 변경 (웹소켓 메시지 수신 시 무조건 '진행중'으로 변경)
       setRoomStatus('started');
       setIsDebateStarted(true);
       setDebateStartTime(new Date());
@@ -801,6 +801,22 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
+  // roomStatus를 DiscussionStatus로 매핑하는 함수
+  const getDisplayStatus = () => {
+    if (isDebateFinished) return '종료됨';
+    
+    switch (roomStatus) {
+      case 'waiting':
+        return '대기중';
+      case 'started':
+        return '진행중';
+      case 'ended':
+        return '종료됨';
+      default:
+        return '대기중';
+    }
+  };
+
   // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같은 경우에만 활성화
   const canSpeak = !isDebateFinished && (participationMode === PARTICIPATION_ROLES[0] && currentUserId && user?.id?.toString() === currentUserId);
 
@@ -875,7 +891,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               {/* 상단 고정 영역 */}
               <div className="flex-shrink-0 border-b border-divider elevation-1" id="debate-fixed-header">
                 <DebateInfo
-                  status={isDebateFinished ? "종료" : "진행중"}
+                  status={getDisplayStatus()}
                   audienceCount={45}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
@@ -930,7 +946,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               {/* 모바일 상단 고정 영역 */}
               <div className="flex-shrink-0 border-b border-divider bg-surface elevation-2">
                 <DebateInfo
-                  status={isDebateFinished ? "종료" : "진행중"}
+                  status={getDisplayStatus()}
                   audienceCount={45}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
