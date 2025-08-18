@@ -84,6 +84,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isDesktop, setIsDesktop] = useState(false);
   const [roomStatus, setRoomStatus] = useState<string>('waiting');
+  const [aiSummaryHeight, setAiSummaryHeight] = useState(260); // AI 요약 섹션 높이 상태
   const [sideA, setSideA] = useState<string>('A입장');
   const [sideB, setSideB] = useState<string>('B입장');
   const [isRoomOwner, setIsRoomOwner] = useState(false);
@@ -924,6 +925,31 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
+  // AI 요약/채팅 섹션 리사이즈 핸들러
+  const handleResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = aiSummaryHeight;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(150, Math.min(startHeight + deltaY, window.innerHeight - 300)); // 최소 150px, 최대 화면 높이 - 300px
+      setAiSummaryHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  }, [aiSummaryHeight]);
+
   // roomStatus를 DiscussionStatus로 매핑하는 함수
   const getDisplayStatus = () => {
     if (isDebateFinished) return '종료됨';
@@ -1180,9 +1206,17 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
           {/* 우측 영역 - 1/4 너비, 데스크톱에서만 표시 */}
           <div className="hidden lg:flex lg:flex-col lg:w-1/4 h-full border-l border-divider bg-surface elevation-1">
-            {/* AI 요약 영역 - 상단 고정 영역과 동일한 높이 */}
-            <div className="flex-shrink-0 h-[260px] bg-surface-variant/30">
+            {/* AI 요약 영역 - 리사이즈 가능한 높이 */}
+            <div className="flex-shrink-0 bg-surface-variant/30" style={{ height: `${aiSummaryHeight}px` }}>
               <AISummary summaries={aiSummaries} isGenerating={isGeneratingAISummary} />
+            </div>
+            
+            {/* 리사이즈 핸들 */}
+            <div 
+              className="h-1 bg-divider hover:bg-primary/50 cursor-ns-resize transition-colors duration-200 relative group"
+              onMouseDown={handleResize}
+            >
+              <div className="absolute inset-0 -my-1"></div>
             </div>
             
             {/* 채팅 영역 - 나머지 공간 */}
