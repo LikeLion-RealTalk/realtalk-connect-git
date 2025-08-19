@@ -30,9 +30,9 @@ interface SpeakersSidebarProps {
   roomStatus?: string;
 }
 
-// 유틸리티 함수들을 컴포넌트 외부로 이동
-const getPositionColor = (position: Position) => {
-  return position === POSITIONS[0] ? 'bg-green-400 text-white' : 'bg-red-400 text-white';
+// 발언자 카드 배경색 (입장에 따른 색상)
+const getCardBackgroundColor = (position: Position) => {
+  return position === POSITIONS[0] ? 'bg-green-50' : 'bg-red-50'; // A입장: 연한 녹색, B입장: 연한 빨간색
 };
 
 const getStatusColor = (status: string) => {
@@ -161,7 +161,7 @@ function SidebarContent({
           <MaterialCard
             key={speaker.id}
             elevation={speaker.status === '발언중' ? 4 : 1}
-            className={`transition-elevation ${
+            className={`transition-elevation ${getCardBackgroundColor(speaker.position)} ${
               speaker.status === SPEAKER_STATUSES[0] // '발언중'
                 ? 'border-2 border-primary ring-2 ring-primary/20' 
                 : ''
@@ -181,11 +181,6 @@ function SidebarContent({
                     {speaker.isCreator && <span>👑</span>}
                   </p>
                   <div className="flex gap-1 mt-2">
-                    <Badge 
-                      className={`${getPositionColor(speaker.position)} rounded-full text-xs`}
-                    >
-                      {speaker.position}
-                    </Badge>
                     <Badge 
                       className={`${getStatusColor(speaker.status)} rounded-full text-xs`}
                     >
