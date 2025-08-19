@@ -166,7 +166,6 @@ export function PositionSelector({
                     : ''
                 }`}>
                   {sideA || POSITIONS[0]} {Math.round(animatedRatio)}%
-                  {currentPosition === POSITIONS[0] && <span className="text-yellow-400">😊</span>}
                 </span>
                 
                 {/* B입장 라벨 (오른쪽) */}
@@ -180,7 +179,6 @@ export function PositionSelector({
                     : ''
                 }`}>
                   {sideB || POSITIONS[1]} {Math.round(100 - animatedRatio)}%
-                  {currentPosition === POSITIONS[1] && <span className="text-yellow-400">😊</span>}
                 </span>
               </div>
 
