@@ -216,8 +216,12 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
     }
 
     setFilteredDiscussions(filtered);
-    setCurrentPage(1);
   }, [searchQuery, filters, discussions]);
+
+  // 검색어나 필터 변경 시에만 페이지를 1페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters]);
 
   const totalPages = Math.ceil(filteredDiscussions.length / discussionsPerPage);
   const startIndex = (currentPage - 1) * discussionsPerPage;
