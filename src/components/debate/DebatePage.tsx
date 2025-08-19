@@ -498,12 +498,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
   const [isGeneratingAISummary, setIsGeneratingAISummary] = useState(false);
   
-  // 현재 발언자 추적 (mock 데이터로 시작)
-  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(() => {
-    // 발언 중인 speaker 찾기
-    const speakingSpeaker = MOCK_SPEAKERS.find(speaker => speaker.status === '발언중');
-    return speakingSpeaker || null;
-  });
+  // 현재 발언자 추적 (웹소켓 데이터 기반)
+  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
 
 
   // 새로운 발언에 대한 AI 요약 자동 생성 (다른 발언자들의 발언 포함)
@@ -1084,11 +1080,32 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
                 <CurrentSpeaker
-                  speaker={{
-                    name: '김민수',
-                    position: POSITIONS[0],
-                    avatar: ''
-                  }}
+                  speaker={(() => {
+                    // 디버깅 로그 추가
+                    console.log('[CurrentSpeaker] 디버깅 정보:', {
+                      currentUserId,
+                      speakers: speakers,
+                      speakersCount: speakers.length
+                    });
+                    
+                    // currentUserId와 매칭되는 발언자 찾기
+                    const currentSpeaker = speakers.find(speaker => speaker.id === currentUserId);
+                    if (currentSpeaker) {
+                      console.log('[CurrentSpeaker] 매칭된 발언자:', currentSpeaker);
+                      return {
+                        name: currentSpeaker.name,
+                        position: currentSpeaker.position,
+                        avatar: currentSpeaker.name.charAt(0) // 이름 첫글자
+                      };
+                    }
+                    // 발언자를 찾지 못한 경우 기본값
+                    console.log('[CurrentSpeaker] 발언자 찾지 못함 - 기본값 사용');
+                    return {
+                      name: '발언자 없음',
+                      position: POSITIONS[0],
+                      avatar: '?'
+                    };
+                  })()}
                   stage={currentDebateStage}
                   timeProgress={currentSpeakerTimeLeft !== null ? ((maxSpeakerTime - currentSpeakerTimeLeft) / maxSpeakerTime) * 100 : 0}
                   remainingSeconds={currentSpeakerTimeLeft}
@@ -1139,11 +1156,32 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   onShowExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
                 <CurrentSpeaker
-                  speaker={{
-                    name: '김민수',
-                    position: POSITIONS[0],
-                    avatar: ''
-                  }}
+                  speaker={(() => {
+                    // 디버깅 로그 추가
+                    console.log('[CurrentSpeaker] 디버깅 정보:', {
+                      currentUserId,
+                      speakers: speakers,
+                      speakersCount: speakers.length
+                    });
+                    
+                    // currentUserId와 매칭되는 발언자 찾기
+                    const currentSpeaker = speakers.find(speaker => speaker.id === currentUserId);
+                    if (currentSpeaker) {
+                      console.log('[CurrentSpeaker] 매칭된 발언자:', currentSpeaker);
+                      return {
+                        name: currentSpeaker.name,
+                        position: currentSpeaker.position,
+                        avatar: currentSpeaker.name.charAt(0) // 이름 첫글자
+                      };
+                    }
+                    // 발언자를 찾지 못한 경우 기본값
+                    console.log('[CurrentSpeaker] 발언자 찾지 못함 - 기본값 사용');
+                    return {
+                      name: '발언자 없음',
+                      position: POSITIONS[0],
+                      avatar: '?'
+                    };
+                  })()}
                   stage={currentDebateStage}
                   timeProgress={currentSpeakerTimeLeft !== null ? ((maxSpeakerTime - currentSpeakerTimeLeft) / maxSpeakerTime) * 100 : 0}
                   remainingSeconds={currentSpeakerTimeLeft}
