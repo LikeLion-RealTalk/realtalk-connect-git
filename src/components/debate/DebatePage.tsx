@@ -492,10 +492,22 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       
       // joinRoom 호출
       joinRoom(debateRoomInfo.id, debateRoomInfo.userRole, userSide)
-        .then((result) => {
+        .then(async (result) => {
           console.log('[토론방] joinRoom 완료:', result);
           if (result?.type === 'JOIN_ACCEPTED') {
             console.log('[토론방] 참여 승인 - 정상 입장 완료');
+            
+            // 입장 완료 후 side 정보 API 호출
+            if (result.subjectId) {
+              try {
+                await debateApi.sendSideInfo(debateRoomInfo.id, result.subjectId, userSide);
+                console.log('[토론방] 입장 정보 전송 완료:', { roomId: debateRoomInfo.id, subjectId: result.subjectId, side: userSide });
+              } catch (error) {
+                console.error('[토론방] 입장 정보 전송 실패:', error);
+              }
+            } else {
+              console.warn('[토론방] subjectId가 없어서 입장 정보를 전송하지 못했습니다.');
+            }
           } else if (result?.type === 'JOIN_REJECTED') {
             console.error('[토론방] 참여 거부:', result.reason);
             toast.error(`입장이 거부되었습니다: ${result.reason}`);

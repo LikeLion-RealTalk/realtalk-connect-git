@@ -49,6 +49,16 @@ export const debateApi = {
     const response = await axiosInstance.post('/api/debate-rooms/match', { categoryId });
     return response.data;
   },
+  
+  // 토론방 입장 후 입장 정보 전송
+  sendSideInfo: async (roomId: string, subjectId: string, side: 'A' | 'B') => {
+    const response = await axiosInstance.post(`/api/debate-rooms/${roomId}/side`, {
+      roomId,
+      subjectId,
+      side
+    });
+    return response.data;
+  },
 };
 
 export const categoryApi = {
