@@ -118,6 +118,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [speakerExpireTime, setSpeakerExpireTime] = useState<Date | null>(null); // 발언자 만료 시간
   const [currentDebateStage, setCurrentDebateStage] = useState<'1. 발언' | '2. 논의'>('1. 발언'); // 현재 토론 단계
   const [maxSpeakerTime, setMaxSpeakerTime] = useState(30); // 발언 시간 총 길이
+  
+  // debateType에 따른 논의 시간 계산 함수
+  const getDiscussionTime = () => {
+    return debateRoomInfo.debateType === '일반토론' ? 300 : 30; // NORMAL: 5분(300초), FAST: 30초
+  };
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const expireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const speakerTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -291,14 +296,16 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       } else {
         // 음수: 발언 시간이 이미 끝남 → 2. 논의 단계로 바로 시작
         const elapsedDiscussionTime = Math.abs(timeDiffSeconds); // 이미 흘러간 논의 시간
-        const remainingDiscussionTime = Math.max(1, 30 - elapsedDiscussionTime); // 남은 논의 시간 (최소 1초)
+        const totalDiscussionTime = getDiscussionTime();
+        const remainingDiscussionTime = Math.max(1, totalDiscussionTime - elapsedDiscussionTime); // 남은 논의 시간 (최소 1초)
         
         console.log('[발언자] 발언 시간 이미 종료 - 논의 단계로 시작:', {
           elapsedDiscussionTime,
+          totalDiscussionTime,
           remainingDiscussionTime
         });
         
-        startDiscussionCycle(remainingDiscussionTime);
+        startDiscussionCycle(remainingDiscussionTime, totalDiscussionTime);
       }
       
       // 현재 사용자 ID와 비교해서 로그 출력
@@ -373,9 +380,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         if (prev <= 1) {
           // 발언 시간 종료 -> 논의 단계로 전환
           setCurrentDebateStage('2. 논의');
-          setMaxSpeakerTime(30); // 논의는 고정 30초
-          console.log('[발언자] 발언 시간 종료 - 논의 단계로 전환');
-          return 30;
+          const discussionTime = getDiscussionTime();
+          setMaxSpeakerTime(discussionTime);
+          console.log('[발언자] 발언 시간 종료 - 논의 단계로 전환:', discussionTime, '초');
+          return discussionTime;
         }
         return prev - 1;
       });
@@ -383,7 +391,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   }, []);
 
   // 논의 사이클 시작 함수 (발언 시간이 이미 지났을 때)
-  const startDiscussionCycle = useCallback((remainingDiscussionTimeSeconds: number) => {
+  const startDiscussionCycle = useCallback((remainingDiscussionTimeSeconds: number, totalDiscussionTime?: number) => {
     // 기존 발언자 타이머 정리
     if (speakerTimerRef.current) {
       clearInterval(speakerTimerRef.current);
@@ -391,10 +399,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
     // 2. 논의 단계로 바로 시작
     setCurrentDebateStage('2. 논의');
-    setMaxSpeakerTime(30);
+    const discussionTime = totalDiscussionTime || getDiscussionTime();
+    setMaxSpeakerTime(discussionTime);
     setCurrentSpeakerTimeLeft(remainingDiscussionTimeSeconds);
 
-    console.log('[발언자] 논의 사이클 시작 - 남은 논의 시간:', remainingDiscussionTimeSeconds, '초');
+    console.log('[발언자] 논의 사이클 시작 - 남은 논의 시간:', remainingDiscussionTimeSeconds, '초, 총 논의 시간:', discussionTime, '초');
 
     // 논의 타이머 시작
     speakerTimerRef.current = setInterval(() => {
@@ -412,7 +421,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         return prev - 1;
       });
     }, 1000);
-  }, []);
+  }, [getDiscussionTime]);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
