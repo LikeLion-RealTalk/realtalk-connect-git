@@ -32,7 +32,7 @@ interface SpeakersSidebarProps {
 
 // 발언자 카드 배경색 (입장에 따른 색상)
 const getCardBackgroundColor = (position: Position) => {
-  return position === POSITIONS[0] ? 'bg-green-50' : 'bg-red-50'; // A입장: 연한 녹색, B입장: 연한 빨간색
+  return position === POSITIONS[0] ? 'bg-green-100' : 'bg-red-100'; // A입장: 진한 녹색, B입장: 진한 빨간색
 };
 
 const getStatusColor = (status: string) => {
