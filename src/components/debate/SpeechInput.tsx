@@ -255,22 +255,20 @@ export function SpeechInput({
 
   return (
     <div className="bg-surface-variant/30 border-t border-divider">
-      <div className="px-4 py-3 border-b border-divider bg-surface elevation-1">
-        <div className="flex items-center justify-between">
-          <h4 className="flex items-center gap-2 text-on-surface font-medium">
-            <Mic className="h-5 w-5 text-primary" />
-            발언하기
-          </h4>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="speech-mode" className="text-sm text-on-surface-variant">
-              {inputMode === SPEECH_INPUT_TYPES[0] ? '음성' : '채팅'}
-            </Label>
-            <Switch
-              id="speech-mode"
-              checked={inputMode === SPEECH_INPUT_TYPES[1]}
-              onCheckedChange={(checked) => setInputMode(checked ? SPEECH_INPUT_TYPES[1] : SPEECH_INPUT_TYPES[0])}
-            />
-          </div>
+      <div className="p-4 border-b border-divider flex items-center justify-between bg-surface elevation-1">
+        <h4 className="flex items-center gap-2 text-on-surface font-medium">
+          <Mic className="h-5 w-5 text-primary" />
+          발언하기
+        </h4>
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="speech-mode" className="text-sm text-on-surface-variant">
+            {inputMode === SPEECH_INPUT_TYPES[0] ? '음성' : '채팅'}
+          </Label>
+          <Switch
+            id="speech-mode"
+            checked={inputMode === SPEECH_INPUT_TYPES[1]}
+            onCheckedChange={(checked) => setInputMode(checked ? SPEECH_INPUT_TYPES[1] : SPEECH_INPUT_TYPES[0])}
+          />
         </div>
       </div>
       <div className="p-4 space-y-4 bg-background">
