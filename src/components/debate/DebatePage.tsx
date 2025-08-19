@@ -73,6 +73,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         
         console.log('[발언] 메시지 수신:', newSpeechMessage);
         setSpeechMessages(prev => [...prev, newSpeechMessage]);
+      } else if (message.countA !== undefined && message.countB !== undefined && message.percentA !== undefined && message.percentB !== undefined) {
+        // /sub/debate-room/{roomUUID}/side-stats 메시지 수신
+        console.log('[사이드 통계] 메시지 수신:', message);
+        setSideStats({ percentA: message.percentA, percentB: message.percentB });
       }
     },
     onParticipantsUpdate: (participants) => {
@@ -120,6 +124,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
   // 발언자 목록 상태 관리 (서버에서 받은 데이터로 업데이트됨)
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  
+  // 사이드 통계 상태 (초기값 50% 50%)
+  const [sideStats, setSideStats] = useState({ percentA: 50, percentB: 50 });
 
   // 화면 크기 감지 (데스크톱/모바일 구분)
   useEffect(() => {
@@ -1111,7 +1118,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   remainingSeconds={currentSpeakerTimeLeft}
                 />
                 <PositionSelector
-                  supportRatio={67}
+                  supportRatio={sideStats.percentA}
                   currentPosition={currentPosition}
                   onPositionChange={handlePositionChange}
                   debateTitle={debateRoomInfo.title}
@@ -1187,7 +1194,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   remainingSeconds={currentSpeakerTimeLeft}
                 />
                 <PositionSelector
-                  supportRatio={67}
+                  supportRatio={sideStats.percentA}
                   currentPosition={currentPosition}
                   onPositionChange={handlePositionChange}
                   debateTitle={debateRoomInfo.title}

@@ -29,6 +29,7 @@ let globalParticipantsSub: any = null;
 let globalExpireSub: any = null;
 let globalSpeakerExpireSub: any = null;
 let globalSpeakerSub: any = null;
+let globalSideStatsSub: any = null;
 let globalIsConnected = false;
 let globalIsConnecting = false;
 let globalConnectInFlight = false;
@@ -247,6 +248,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         globalSpeakerSub.unsubscribe(); 
         globalSpeakerSub = null; 
       }
+      if (globalSideStatsSub) { 
+        globalSideStatsSub.unsubscribe(); 
+        globalSideStatsSub = null; 
+      }
     } catch (e) {
       console.warn('[웹소켓] 언서브 중 경고:', e);
     }
@@ -293,6 +298,11 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       console.log('[웹소켓] 기존 발언자 구독 정리');
       globalSpeakerSub.unsubscribe(); 
       globalSpeakerSub = null; 
+    }
+    if (globalSideStatsSub) { 
+      console.log('[웹소켓] 기존 사이드 통계 구독 정리');
+      globalSideStatsSub.unsubscribe(); 
+      globalSideStatsSub = null; 
     }
 
     return new Promise((resolve) => {
@@ -380,6 +390,22 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         console.log('[웹소켓][발언자] 메시지 수신:', payload);
         
         // 발언자 메시지를 모든 컴포넌트에 전달
+        globalMessageCallbacks.forEach(cb => cb(payload));
+      });
+
+      const topicSideStats = `/sub/debate-room/${roomId}/side-stats`;
+      console.log('[웹소켓] 구독 시작4:', topicSideStats);
+      globalSideStatsSub = globalStompClient.subscribe(topicSideStats, function (message: any) {
+        let payload;
+        try {
+          payload = JSON.parse(message.body);
+        } catch (e) {
+          console.error('[웹소켓][사이드 통계] JSON 파싱 실패:', e, message.body);
+          return;
+        }
+        console.log('[웹소켓][사이드 통계] 메시지 수신:', payload);
+        
+        // 사이드 통계 메시지를 모든 컴포넌트에 전달
         globalMessageCallbacks.forEach(cb => cb(payload));
       });
 

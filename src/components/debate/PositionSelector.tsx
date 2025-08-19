@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PositionChangeModal } from './modal/PositionChangeModal';
 import { DiscussionCategory, DebateType, Position, POSITIONS } from '../../types/discussion';
 
@@ -34,6 +34,47 @@ export function PositionSelector({
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [hoveredPosition, setHoveredPosition] = useState<Position | null>(null);
   const [pendingPosition, setPendingPosition] = useState<Position | null>(null);
+
+  // 애니메이션을 위한 상태
+  const [animatedRatio, setAnimatedRatio] = useState(supportRatio);
+  const animationRef = useRef<number | null>(null);
+
+  // supportRatio 변경 시 부드러운 애니메이션 적용
+  useEffect(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    const startValue = animatedRatio;
+    const endValue = supportRatio;
+    const startTime = Date.now();
+    const duration = 1000; // 1초 애니메이션
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // easeInOutCubic 이징 함수
+      const eased = progress < 0.5 
+        ? 4 * progress * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      
+      const currentValue = startValue + (endValue - startValue) * eased;
+      setAnimatedRatio(Math.round(currentValue * 100) / 100);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [supportRatio]);
 
   const handlePositionClick = (position: Position) => {
     if (currentPosition === position) return; // 같은 입장이면 아무것도 안함
@@ -106,7 +147,7 @@ export function PositionSelector({
                         : 'bg-green-400 dark:bg-green-500'
                       }`
                 }`}
-                style={{ width: `${supportRatio}%` }}
+                style={{ width: `${animatedRatio}%` }}
                 onClick={() => handleChartClick(POSITIONS[0])}
                 onMouseEnter={() => !isUserCurrentlySpeaking && setHoveredPosition(POSITIONS[0])}
                 onMouseLeave={() => setHoveredPosition(null)}
@@ -116,7 +157,7 @@ export function PositionSelector({
               <div className="absolute inset-0 flex items-center justify-between px-3 text-xs pointer-events-none">
                 {/* A입장 라벨 (왼쪽) */}
                 <span className={`transition-colors duration-300 flex items-center gap-1 ${
-                  supportRatio > 50 
+                  animatedRatio > 50 
                     ? 'text-white font-medium' 
                     : 'text-green-700 dark:text-green-200 font-medium'
                 } ${
@@ -124,13 +165,13 @@ export function PositionSelector({
                     ? 'drop-shadow-sm'
                     : ''
                 }`}>
-                  {sideA || POSITIONS[0]} {supportRatio}%
+                  {sideA || POSITIONS[0]} {Math.round(animatedRatio)}%
                   {currentPosition === POSITIONS[0] && <span className="text-yellow-400">😊</span>}
                 </span>
                 
                 {/* B입장 라벨 (오른쪽) */}
                 <span className={`transition-colors duration-300 flex items-center gap-1 ${
-                  supportRatio < 50 
+                  animatedRatio < 50 
                     ? 'text-red-700 dark:text-red-200 font-medium' 
                     : 'text-red-600/70 dark:text-red-400/70'
                 } ${
@@ -138,7 +179,7 @@ export function PositionSelector({
                     ? 'text-red-800 dark:text-red-100 font-medium drop-shadow-sm'
                     : ''
                 }`}>
-                  {sideB || POSITIONS[1]} {100 - supportRatio}%
+                  {sideB || POSITIONS[1]} {Math.round(100 - animatedRatio)}%
                   {currentPosition === POSITIONS[1] && <span className="text-yellow-400">😊</span>}
                 </span>
               </div>
