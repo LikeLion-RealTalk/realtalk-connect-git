@@ -733,31 +733,39 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   };
 
   const handleSendSpeech = useCallback((content: string, type: SpeechInputType) => {
-    if (participationMode === PARTICIPATION_ROLES[0] && nickname && currentPosition) {
-      // 새로운 발언을 speechMessages에 추가
-      const newSpeech = {
-        id: `speech-${Date.now()}`,
-        speakerName: nickname,
-        position: currentPosition,
-        content: content,
-        timestamp: new Date(),
-        // AI 팩트체크는 실제로는 백엔드에서 처리되겠지만, 여기서는 mock 데이터로 처리
-        factCheck: undefined // 일단 팩트체크 없이 추가, 추후 AI가 분석 후 업데이트
-      };
-      
-      setSpeechMessages(prev => [...prev, newSpeech]);
-      
-      // 음성 발언과 텍스트 발언을 구분하여 로그 출력
-      if (type === SPEECH_INPUT_TYPES[0]) {
-        console.log('음성 발언 추가됨:', newSpeech);
+    if (participationMode === PARTICIPATION_ROLES[0] && user?.id && debateRoomInfo.userPosition) {
+      // 채팅 모드인 경우 웹소켓으로 서버에 전송
+      if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
+        // userPosition을 A/B로 변환
+        const userSide: 'A' | 'B' = debateRoomInfo.userPosition.includes('A') ? 'A' : 'B';
+        
+        const speechMessage = {
+          roomUUID: debateRoomInfo.id,
+          userId: user.id,
+          message: content,
+          side: userSide
+        };
+        
+        console.log('[발언] 채팅 메시지 전송:', speechMessage);
+        sendMessage('/pub/speaker/text', speechMessage);
+        
+        // 서버 응답은 /topic/speaker/{roomUUID} 구독으로 받아서 처리됨
       } else {
-        console.log('텍스트 발언 추가됨:', newSpeech);
+        // 음성 모드인 경우 기존 로직 (로컬 추가)
+        const newSpeech = {
+          id: `speech-${Date.now()}`,
+          speakerName: nickname || user.username || '알수없음',
+          position: currentPosition || POSITIONS[0],
+          content: content,
+          timestamp: new Date(),
+          factCheck: undefined
+        };
+        
+        setSpeechMessages(prev => [...prev, newSpeech]);
+        console.log('음성 발언 추가됨:', newSpeech);
       }
-
-      // 사용자 발언은 즉시 AI 요약 생성 대기열에 추가
-      // useEffect에서 자동으로 처리됨
     }
-  }, [participationMode, nickname, currentPosition]);
+  }, [participationMode, user?.id, user?.username, nickname, currentPosition, debateRoomInfo.id, debateRoomInfo.userPosition, isConnected, sendMessage]);
 
   const handleToggleRecording = () => {
     setIsRecording(!isRecording);
