@@ -562,6 +562,31 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     setIsAiSummaryModalOpen(true);
   };
 
+  // 연장 모달 표시 기준 계산 함수
+  const getExtensionThreshold = useCallback(() => {
+    // 토론방 만료시간이 설정되지 않은 경우 기본값
+    if (expireTimeDisplay === '--') {
+      return 180; // 3분
+    }
+    
+    // 현재 발언자 수 계산 (isSpeaker가 true인 사람들)
+    const currentSpeakerCount = speakers.filter(speaker => speaker.isSpeaker).length;
+    
+    // 발언자가 없으면 기본값
+    if (currentSpeakerCount === 0) {
+      return 180; // 3분
+    }
+    
+    // 토론 타입에 따른 기준 시간 계산
+    if (debateRoomInfo.debateType === '일반토론') {
+      // 일반토론: 10분 × 발언자 수
+      return 600 * currentSpeakerCount;
+    } else {
+      // 3분토론: 1분 × 발언자 수
+      return 60 * currentSpeakerCount;
+    }
+  }, [expireTimeDisplay, speakers, debateRoomInfo.debateType]);
+
   // 토론 타이머 관리
   useEffect(() => {
     // 토론이 종료되면 타이머 중단
@@ -586,8 +611,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
           return 0;
         }
         
-        // 3분(180초) 미만 남았을 때 연장 모달 표시 (한 번만)
-        if (prev === 180 && !hasShownExtensionModal) {
+        // 동적 계산된 기준 시간 이하로 남았을 때 연장 모달 표시 (한 번만)
+        const threshold = getExtensionThreshold();
+        if (prev === threshold && !hasShownExtensionModal) {
+          console.log(`[토론방] 연장 모달 표시 - 남은시간: ${prev}초, 기준: ${threshold}초`);
           setIsExtensionModalOpen(true);
           setHasShownExtensionModal(true);
         }
@@ -601,7 +628,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         clearInterval(timerRef.current);
       }
     };
-  }, [handleDebateEnd, hasShownExtensionModal, isDebateFinished]);
+  }, [handleDebateEnd, hasShownExtensionModal, isDebateFinished, getExtensionThreshold]);
 
   // 시간을 "분:초" 형식으로 변환
   const formatTime = (totalSeconds: number) => {
