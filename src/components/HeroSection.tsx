@@ -16,9 +16,9 @@ export function HeroSection({ onNavigate, onJoinDebate, onCreateDebate }: HeroSe
     setIsMatchingModalOpen(true);
   };
 
-  const handleStartMatching = (category: string) => {
-    console.log('매칭 시작:', category);
-    // 실제로는 선택한 카테고리로 매칭을 시작하고 토론방으로 이동
+  const handleStartMatching = (roomInfo: any) => {
+    console.log('매칭 완료:', roomInfo);
+    // 매칭된 방 정보로 토론방 생성/입장 처리
     onCreateDebate?.();
   };
 

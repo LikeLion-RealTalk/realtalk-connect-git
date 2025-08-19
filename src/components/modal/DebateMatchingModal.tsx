@@ -6,13 +6,20 @@ import { Progress } from '../ui/progress';
 import { JoinDiscussionModal } from './JoinDiscussionModal';
 import { Loader2 } from 'lucide-react';
 import { Discussion, DISCUSSION_CATEGORIES, DebateType, DEBATE_TYPES } from '../../types/discussion';
+import { categoryApi, debateApi } from '../../lib/api/apiClient';
+import { toast } from "sonner";
 
 
+
+interface Category {
+  id: number;
+  name: string;
+}
 
 interface DebateMatchingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStartMatching: (category: string) => void;
+  onStartMatching: (roomData: any) => void;
 }
 
 
@@ -54,17 +61,39 @@ export function DebateMatchingModal({
   onClose, 
   onStartMatching 
 }: DebateMatchingModalProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [matchingState, setMatchingState] = useState<'idle' | 'searching' | 'found'>('idle');
   const [progress, setProgress] = useState(0);
   const [foundDiscussion, setFoundDiscussion] = useState<Discussion | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
-  const handleCategorySelect = (category: string) => {
+  // 카테고리 조회
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoadingCategories(true);
+      const response = await categoryApi.getAllCategories();
+      setCategories(response);
+    } catch (error) {
+      console.error('카테고리 조회 실패:', error);
+      toast.error('카테고리를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
   };
 
-  const handleStartMatching = () => {
+  const handleStartMatching = async () => {
     if (selectedCategory) {
       setMatchingState('searching');
       setProgress(0);
@@ -72,37 +101,70 @@ export function DebateMatchingModal({
       // Progress 애니메이션
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            return 100;
+          if (prev >= 95) {
+            // 95%에서 멈춤 (API 완료 대기)
+            return 95;
           }
-          return prev + 20;
+          return prev + 15;
         });
-      }, 100);
+      }, 150);
 
-      // 0.5초 후 매칭 완료
-      setTimeout(() => {
+      try {
+        // 실제 매칭 API 호출
+        const roomData = await debateApi.matchDebateRoom(selectedCategory.id);
+        
+        // API 완료 후 100% 완료
         clearInterval(progressInterval);
         setProgress(100);
         setMatchingState('found');
         
-        // 더미 토론방 데이터 생성
-        const mockDiscussion = generateMockDiscussion(selectedCategory);
-        setFoundDiscussion(mockDiscussion);
+        // API 응답 데이터를 Discussion 형태로 변환
+        const matchedDiscussion: Discussion = {
+          id: roomData.roomId,
+          type: roomData.debateType === 'NORMAL' ? '일반토론' : '3분토론',
+          status: roomData.status === 'waiting' ? '대기중' : '진행중',
+          title: roomData.title,
+          category: roomData.category.name,
+          timeStatus: '곧 시작',
+          speakers: { current: roomData.currentSpeaker || 0, max: roomData.maxSpeaker },
+          audience: { current: roomData.currentAudience || 0, max: roomData.maxAudience }
+        };
+        
+        setFoundDiscussion(matchedDiscussion);
         setIsJoinModalOpen(true);
-      }, 500);
+        
+        console.log('매칭 성공:', roomData);
+      } catch (error) {
+        console.error('매칭 실패:', error);
+        clearInterval(progressInterval);
+        setMatchingState('idle');
+        setProgress(0);
+        toast.error('매칭에 실패했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
   const handleJoinDiscussion = (discussionId: string, nickname: string, role: 'speaker' | 'audience') => {
     console.log('토론방 입장:', { discussionId, nickname, role });
-    onStartMatching(selectedCategory);
+    
+    // 매칭된 방 데이터와 사용자 선택 정보를 함께 전달
+    if (foundDiscussion) {
+      const roomInfo = {
+        roomId: discussionId,
+        title: foundDiscussion.title,
+        category: foundDiscussion.category,
+        debateType: foundDiscussion.type,
+        userRole: role.toUpperCase(), // 'SPEAKER' | 'AUDIENCE'
+        userNickname: nickname
+      };
+      onStartMatching(roomInfo);
+    }
     handleClose();
   };
 
   const handleClose = () => {
     onClose();
-    setSelectedCategory('');
+    setSelectedCategory(null);
     setMatchingState('idle');
     setProgress(0);
     setFoundDiscussion(null);
@@ -136,32 +198,38 @@ export function DebateMatchingModal({
                 </div>
 
                 {/* 카테고리 선택 */}
-                <div className="grid grid-cols-2 gap-3">
-                  {DISCUSSION_CATEGORIES.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategorySelect(category)}
-                      className={`
-                        p-3 rounded-lg border-2 transition-all duration-200 text-left
-                        hover:border-primary/50 hover:bg-accent/50
-                        ${selectedCategory === category 
-                          ? 'border-primary bg-accent' 
-                          : 'border-border bg-background'
-                        }
-                      `}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm truncate">{category}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                {isLoadingCategories ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                    {categories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleCategorySelect(category)}
+                        className={`
+                          p-3 rounded-lg border-2 transition-all duration-200 text-left
+                          hover:border-primary/50 hover:bg-accent/50
+                          ${selectedCategory?.id === category.id 
+                            ? 'border-primary bg-accent' 
+                            : 'border-border bg-background'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm truncate">{category.name}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* 선택된 카테고리 표시 */}
                 {selectedCategory && (
                   <div className="flex justify-center">
                     <Badge variant="secondary" className="text-sm">
-                      {selectedCategory} 선택됨
+                      {selectedCategory.name} 선택됨
                     </Badge>
                   </div>
                 )}
@@ -195,7 +263,7 @@ export function DebateMatchingModal({
                   <div className="space-y-2">
                     <h3 className="font-medium">토론방을 찾고 있습니다...</h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedCategory} 토론방 매칭 중
+                      {selectedCategory?.name} 토론방 매칭 중
                     </p>
                   </div>
                   <div className="space-y-2">

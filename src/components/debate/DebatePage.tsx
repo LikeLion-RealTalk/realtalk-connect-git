@@ -564,9 +564,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
   // 연장 모달 표시 기준 계산 함수
   const getExtensionThreshold = useCallback(() => {
-    // 토론방 만료시간이 설정되지 않은 경우 기본값
+    // 토론방 만료시간이 설정되지 않은 경우 null 반환 (모달 안뜨게)
     if (expireTimeDisplay === '--') {
-      return 180; // 3분
+      return null;
     }
     
     // 현재 발언자 수 계산 (isSpeaker가 true인 사람들)
@@ -613,7 +613,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         
         // 동적 계산된 기준 시간 이하로 남았을 때 연장 모달 표시 (한 번만)
         const threshold = getExtensionThreshold();
-        if (prev === threshold && !hasShownExtensionModal) {
+        if (threshold !== null && prev === threshold && !hasShownExtensionModal) {
           console.log(`[토론방] 연장 모달 표시 - 남은시간: ${prev}초, 기준: ${threshold}초`);
           setIsExtensionModalOpen(true);
           setHasShownExtensionModal(true);

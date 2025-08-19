@@ -43,6 +43,12 @@ export const debateApi = {
     const response = await axiosInstance.get(`/api/debate-results/${roomId}`);
     return response.data;
   },
+  
+  // 토론방 매칭
+  matchDebateRoom: async (categoryId: number) => {
+    const response = await axiosInstance.post('/api/debate-rooms/match', { categoryId });
+    return response.data;
+  },
 };
 
 export const categoryApi = {
