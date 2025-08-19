@@ -1275,17 +1275,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                     <div className="flex-1 min-h-0">
                       <AISummaryBody summaries={aiSummaries} isGenerating={isGeneratingAISummary} />
                     </div>
-                    {/* AI 요약 탭이 활성화된 경우에만 발언 입력 영역 표시 (발언자 모드 조건 유지) */}
-                    {participationMode === PARTICIPATION_ROLES[0] && (
-                      <div className="flex-shrink-0">
-                        <SpeechInput
-                          onSendSpeech={handleSendSpeech}
-                          isRecording={isRecording}
-                          onToggleRecording={handleToggleRecording}
-                          isActive={canSpeak}
-                        />
-                      </div>
-                    )}
                   </TabsContent>
                   
                   <TabsContent value="chat" className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col">
