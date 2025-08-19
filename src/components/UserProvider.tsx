@@ -138,7 +138,16 @@ export function UserProvider({ children }: UserProviderProps) {
     setUser(mockUser);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // 서버에 로그아웃 API 호출
+      await api.post('/auth/logout');
+      console.log('✅ 로그아웃 API 호출 성공');
+    } catch (error) {
+      console.error('❌ 로그아웃 API 호출 실패:', error);
+      // API 호출 실패해도 로컬 로그아웃은 진행
+    }
+    
     // 로그아웃 시 refresh_token 쿠키 삭제
     deleteCookie('refresh_token');
     // 로컬스토리지의 access_token도 삭제
