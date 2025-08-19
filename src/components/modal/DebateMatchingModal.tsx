@@ -20,6 +20,7 @@ interface DebateMatchingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStartMatching: (roomData: any) => void;
+  onNavigate?: (page: 'landing' | 'browser' | 'debate', discussionId?: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
 }
 
 
@@ -59,7 +60,8 @@ const generateMockDiscussion = (category: string): Discussion => {
 export function DebateMatchingModal({ 
   isOpen, 
   onClose, 
-  onStartMatching 
+  onStartMatching,
+  onNavigate 
 }: DebateMatchingModalProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -127,7 +129,9 @@ export function DebateMatchingModal({
           category: roomData.category.name,
           timeStatus: '곧 시작',
           speakers: { current: roomData.currentSpeaker || 0, max: roomData.maxSpeaker },
-          audience: { current: roomData.currentAudience || 0, max: roomData.maxAudience }
+          audience: { current: roomData.currentAudience || 0, max: roomData.maxAudience },
+          sideA: roomData.sideA, // API 응답의 sideA
+          sideB: roomData.sideB  // API 응답의 sideB
         };
         
         setFoundDiscussion(matchedDiscussion);
@@ -285,6 +289,7 @@ export function DebateMatchingModal({
         onClose={handleJoinModalClose}
         discussion={foundDiscussion}
         onJoin={handleJoinDiscussion}
+        onNavigate={onNavigate}
       />
     </>
   );

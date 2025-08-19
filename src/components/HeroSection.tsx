@@ -4,7 +4,7 @@ import { DebateMatchingModal } from './modal/DebateMatchingModal';
 import { MaterialButton } from './MaterialDesign';
 
 interface HeroSectionProps {
-  onNavigate?: (page: 'landing' | 'browser' | 'debate') => void;
+  onNavigate?: (page: 'landing' | 'browser' | 'debate', discussionId?: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
   onJoinDebate?: () => void;
   onCreateDebate?: () => void;
 }
@@ -60,6 +60,7 @@ export function HeroSection({ onNavigate, onJoinDebate, onCreateDebate }: HeroSe
         isOpen={isMatchingModalOpen}
         onClose={() => setIsMatchingModalOpen(false)}
         onStartMatching={handleStartMatching}
+        onNavigate={onNavigate}
       />
     </>
   );
