@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { ExternalLink, MessageSquare } from 'lucide-react';
@@ -13,7 +13,7 @@ interface SpeechMessage {
   factCheck?: {
     result: FactCheckResult;
     explanation: string;
-    source?: string;
+    sourceLinks?: string[];
   };
   timestamp: Date;
 }
@@ -39,6 +39,7 @@ export function SpeechContentBody({ messages }: SpeechContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isUserScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const [openPopover, setOpenPopover] = useState<string | null>(null); // 열린 팝오버 ID 관리
 
   // 사용자 스크롤 감지
   const handleScroll = () => {
@@ -81,6 +82,22 @@ export function SpeechContentBody({ messages }: SpeechContentProps) {
       }
     };
   }, []);
+
+  // 팝오버 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openPopover && !(event.target as Element).closest('.relative')) {
+        setOpenPopover(null);
+      }
+    };
+
+    if (openPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openPopover]);
 
   const getPositionColor = (position: Position) => {
     return position === POSITIONS[0] ? 'bg-green-400 text-white' : 'bg-red-400 text-white';
@@ -154,11 +171,38 @@ export function SpeechContentBody({ messages }: SpeechContentProps) {
                       {message.factCheck.result}
                     </Badge>
                   </div>
-                  {message.factCheck.source && (
-                    <Button variant="ghost" size="sm" className="h-6 px-2">
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      출처 보기
-                    </Button>
+                  {message.factCheck.sourceLinks && message.factCheck.sourceLinks.length > 0 && (
+                    <div className="relative">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2"
+                        onClick={() => setOpenPopover(openPopover === message.id ? null : message.id)}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        출처 보기
+                      </Button>
+                      
+                      {/* 출처 링크 팝오버 */}
+                      {openPopover === message.id && (
+                        <div className="absolute right-0 top-7 z-10 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-48 max-w-64">
+                          <div className="space-y-1">
+                            {message.factCheck.sourceLinks.map((link, index) => (
+                              <a
+                                key={index}
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-2 py-1 text-xs text-blue-600 hover:bg-gray-50 rounded truncate"
+                                onClick={() => setOpenPopover(null)}
+                              >
+                                🔗 {link}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <p className="text-xs">{message.factCheck.explanation}</p>

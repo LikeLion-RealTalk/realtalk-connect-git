@@ -57,6 +57,23 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         
         console.log('[채팅] 메시지 수신:', newChatMessage);
         setChatMessages(prev => [...prev, newChatMessage]);
+      } else if (message.message && message.username && message.side) {
+        // /topic/speaker 발언 메시지 수신
+        const newSpeechMessage = {
+          id: `speech-${Date.now()}-${Math.random()}`,
+          speakerName: message.username,
+          position: message.side === 'A' ? POSITIONS[0] : POSITIONS[1],
+          content: message.message,
+          timestamp: new Date(), // 수신 시점으로 설정
+          factCheck: message.verificationResult ? {
+            result: message.verificationResult,
+            explanation: message.evidence || '',
+            sourceLinks: message.sourceLinks || []
+          } : undefined
+        };
+        
+        console.log('[발언] 메시지 수신:', newSpeechMessage);
+        setSpeechMessages(prev => [...prev, newSpeechMessage]);
       }
     },
     onParticipantsUpdate: (participants) => {
