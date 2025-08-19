@@ -58,6 +58,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         setChatMessages(prev => [...prev, newChatMessage]);
       } else if (message.message && message.username && message.side) {
         // /topic/speaker 발언 메시지 수신
+        console.log('[발언] 원본 웹소켓 메시지:', message);
+        console.log('[발언] side 값:', message.side);
+        console.log('[발언] POSITIONS 배열:', POSITIONS);
+        
         const newSpeechMessage = {
           id: `speech-${Date.now()}-${Math.random()}`,
           speakerName: message.username,
@@ -71,6 +75,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
           } : undefined
         };
         
+        console.log('[발언] 매핑된 position:', newSpeechMessage.position);
+        console.log('[발언] A입장인가?', newSpeechMessage.position === POSITIONS[0]);
+        console.log('[발언] B입장인가?', newSpeechMessage.position === POSITIONS[1]);
         console.log('[발언] 메시지 수신:', newSpeechMessage);
         setSpeechMessages(prev => [...prev, newSpeechMessage]);
       } else if (message.countA !== undefined && message.countB !== undefined && message.percentA !== undefined && message.percentB !== undefined) {

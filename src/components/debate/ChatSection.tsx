@@ -63,10 +63,15 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
   useEffect(() => {
     if (scrollRef.current && !isUserScrollingRef.current) {
       const element = scrollRef.current;
-      // 부드러운 스크롤 애니메이션
-      element.scrollTo({
-        top: element.scrollHeight,
-        behavior: 'smooth'
+      
+      // DOM 업데이트 완료 후 스크롤 실행
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          element.scrollTo({
+            top: element.scrollHeight,
+            behavior: 'smooth'
+          });
+        });
       });
     }
   }, [messages]);
@@ -110,6 +115,7 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
           ref={scrollRef}
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent smooth-scroll"
+          style={{ scrollBehavior: 'smooth' }}
         >
           {messages.map((message) => (
             <div key={message.id} className="space-y-2">
