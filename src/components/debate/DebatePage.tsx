@@ -1006,8 +1006,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   };
 
-  // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같은 경우에만 활성화
-  const canSpeak = !isDebateFinished && (participationMode === PARTICIPATION_ROLES[0] && currentUserId && user?.id?.toString() === currentUserId);
+  // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같고, '1. 발언' 단계이면서 발언 시간이 남은 경우에만 활성화
+  const canSpeak = !isDebateFinished && 
+    (participationMode === PARTICIPATION_ROLES[0] && 
+     currentUserId && 
+     user?.id?.toString() === currentUserId && 
+     currentDebateStage === '1. 발언' && 
+     currentSpeakerTimeLeft !== null && 
+     currentSpeakerTimeLeft > 0);
 
   return (
     <>
