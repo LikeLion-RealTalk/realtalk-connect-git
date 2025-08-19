@@ -19,7 +19,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Menu, Users } from 'lucide-react';
 import { DebateRoomInfo } from '../../mock/debateRooms';
 import { MOCK_SPEAKERS, Speaker } from '../../mock/speakers';
-import { MOCK_SPEECH_MESSAGES } from '../../mock/speechMessages';
 import { MOCK_AI_SUMMARIES } from '../../mock/aiSummaries';
 import { MOCK_CHAT_MESSAGES, ChatMessage } from '../../mock/chatMessages';
 import { MOCK_DEBATE_SUMMARIES } from '../../mock/debateSummaries';
@@ -495,7 +494,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, debateRoomInfo.userRole, debateRoomInfo.userPosition, sideA, joinRoom]);
 
-  const [speechMessages, setSpeechMessages] = useState(MOCK_SPEECH_MESSAGES);
+  const [speechMessages, setSpeechMessages] = useState([]);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
   const [isGeneratingAISummary, setIsGeneratingAISummary] = useState(false);
   
