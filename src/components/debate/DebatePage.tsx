@@ -239,8 +239,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       
       // 만료시간 설정
       setDebateExpireTime(expireTime);
-      
-      toast.success('토론이 시작되었습니다!');
     } catch (error) {
       console.error('[토론방] 만료시간 파싱 실패:', error);
       toast.error('시간 동기화에 실패했습니다');
