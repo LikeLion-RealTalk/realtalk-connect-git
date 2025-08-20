@@ -798,8 +798,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     if (participationMode === PARTICIPATION_ROLES[0] && user?.id && debateRoomInfo.userPosition) {
       // 채팅 모드인 경우 웹소켓으로 서버에 전송
       if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
-        // userPosition을 A/B로 변환
-        const userSide: 'A' | 'B' = debateRoomInfo.userPosition.includes('A') ? 'A' : 'B';
+        // userPosition을 A/B로 변환 (joinRoom과 동일한 로직 사용)
+        const userSide: 'A' | 'B' = debateRoomInfo.userPosition === sideA ? 'A' : 'B';
         
         const speechMessage = {
           roomUUID: debateRoomInfo.id,
