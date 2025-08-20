@@ -900,10 +900,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       });
 
       // 1. STOMP로 제어 신호 전송
+      const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
       const voiceControlMessage = {
         roomUUID: debateRoomInfo.id,
         userId: user.id,
-        mode: '녹음 시작'
+        mode: '녹음 시작',
+        side: userSide
       };
       
       console.log('[음성 녹음] STOMP 제어 신호 전송:', voiceControlMessage);
@@ -997,10 +999,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.log('[음성 녹음] 녹음 완료 요청');
 
       // 1. STOMP로 종료 신호
+      const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
       const voiceControlMessage = {
         roomUUID: debateRoomInfo.id,
         userId: user.id,
-        mode: '종료'
+        mode: '종료',
+        side: userSide
       };
       
       console.log('[음성 녹음] STOMP 종료 신호 전송:', voiceControlMessage);
