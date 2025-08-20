@@ -843,6 +843,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         console.log('[발언] 채팅 메시지 전송:', speechMessage);
         sendMessage('/pub/speaker/text', speechMessage);
         
+        // 텍스트 발언 완료 토스트 메시지
+        toast.success('발언 완료하였습니다');
+        
         // 서버 응답은 /topic/speaker/{roomUUID} 구독으로 받아서 처리됨
       } else {
         // 음성 모드인 경우 기존 로직 (로컬 추가)
@@ -995,6 +998,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       
       console.log('[음성 녹음] STOMP 종료 신호 전송:', voiceControlMessage);
       sendMessage('/pub/speaker/voice', voiceControlMessage);
+
+      // 음성 발언 완료 토스트 메시지
+      toast.success('발언 완료하였습니다');
 
       // 2. 녹음 중지
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
