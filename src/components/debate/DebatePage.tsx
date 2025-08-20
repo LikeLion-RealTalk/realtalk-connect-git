@@ -799,7 +799,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 채팅 모드인 경우 웹소켓으로 서버에 전송
       if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
         // userPosition을 A/B로 변환 (joinRoom과 동일한 로직 사용)
+        console.log('[발언] userPosition:', debateRoomInfo.userPosition);
+        console.log('[발언] sideA:', sideA);
         const userSide: 'A' | 'B' = debateRoomInfo.userPosition === sideA ? 'A' : 'B';
+        console.log('[발언] 계산된 userSide:', userSide);
         
         const speechMessage = {
           roomUUID: debateRoomInfo.id,
