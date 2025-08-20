@@ -15,6 +15,8 @@ interface PositionChangeModalProps {
   debateType: DebateType;
   aDescription: string;
   bDescription: string;
+  sideA: string;
+  sideB: string;
 }
 
 export function PositionChangeModal({ 
@@ -26,7 +28,9 @@ export function PositionChangeModal({
   category,
   debateType,
   aDescription,
-  bDescription
+  bDescription,
+  sideA,
+  sideB
 }: PositionChangeModalProps) {
   const [selectedPosition, setSelectedPosition] = useState<Position>(currentPosition);
 
@@ -85,7 +89,7 @@ export function PositionChangeModal({
                     </div>
                     <div>
                       <h5 className="font-medium text-green-700 dark:text-green-300 text-sm">
-                        {POSITIONS[0]}
+                        {sideA || POSITIONS[0]}
                       </h5>
                       <p className="text-xs text-muted-foreground mt-1">
                         {aDescription}
@@ -116,7 +120,7 @@ export function PositionChangeModal({
                     </div>
                     <div>
                       <h5 className="font-medium text-red-700 dark:text-red-300 text-sm">
-                        {POSITIONS[1]}
+                        {sideB || POSITIONS[1]}
                       </h5>
                       <p className="text-xs text-muted-foreground mt-1">
                         {bDescription}

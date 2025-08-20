@@ -223,6 +223,8 @@ export function PositionSelector({
           debateType={debateType}
           aDescription={aDescription}
           bDescription={bDescription}
+          sideA={sideA}
+          sideB={sideB}
         />
       )}
     </>
