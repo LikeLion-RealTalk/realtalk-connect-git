@@ -478,8 +478,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     fetchDebateRoomStatus();
     
     // userPosition이 이미 설정되어 있으면 해당 입장으로 설정 (JoinDiscussionModal에서 선택한 입장)
+    console.log('[디버그] debateRoomInfo.userPosition:', debateRoomInfo.userPosition);
+    console.log('[디버그] POSITIONS:', POSITIONS);
     if (debateRoomInfo.userPosition) {
-      setCurrentPosition(debateRoomInfo.userPosition === 'A입장' ? POSITIONS[0] : POSITIONS[1]);
+      const mappedPosition = debateRoomInfo.userPosition === 'A입장' ? POSITIONS[0] : POSITIONS[1];
+      console.log('[디버그] 매핑된 position:', mappedPosition);
+      setCurrentPosition(mappedPosition);
     } else {
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
       setCurrentPosition(null);
