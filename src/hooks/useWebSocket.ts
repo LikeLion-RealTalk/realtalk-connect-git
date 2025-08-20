@@ -25,6 +25,9 @@ interface JoinResponse {
 // 전역 웹소켓 인스턴스 (싱글톤)
 let globalStompClient: any = null;
 let globalSpeechWebSocket: any = null; // 순수 음성 웹소켓
+
+// globalSpeechWebSocket 접근 함수
+export const getSpeechWebSocket = () => globalSpeechWebSocket;
 let globalRoomSub: any = null;
 let globalParticipantsSub: any = null;
 let globalExpireSub: any = null;

@@ -22,7 +22,7 @@ import { MOCK_SPEAKERS, Speaker } from '../../mock/speakers';
 import { MOCK_AI_SUMMARIES } from '../../mock/aiSummaries';
 import { MOCK_CHAT_MESSAGES, ChatMessage } from '../../mock/chatMessages';
 import { MOCK_DEBATE_SUMMARIES } from '../../mock/debateSummaries';
-import { useWebSocket } from '../../hooks/useWebSocket';
+import { useWebSocket, getSpeechWebSocket } from '../../hooks/useWebSocket';
 import { AiDebateSummaryModal } from '../modal/AiDebateSummaryModal';
 import { AiSummaryLoadingModal } from '../modal/AiSummaryLoadingModal';
 import { Position, ParticipationRole, SpeechInputType, PARTICIPATION_ROLES, POSITIONS, SPEECH_INPUT_TYPES } from '../../types/discussion';
@@ -868,6 +868,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
     try {
       console.log('[음성 녹음] 녹음 시작 요청');
+      
+      // 음성 웹소켓 상태 확인
+      const speechSocket = getSpeechWebSocket();
+      console.log('[음성 녹음] 음성 웹소켓 상태 확인:', {
+        웹소켓존재: !!speechSocket,
+        웹소켓상태: speechSocket?.readyState,
+        연결됨: speechSocket?.readyState === WebSocket.OPEN
+      });
 
       // 1. STOMP로 제어 신호 전송
       const voiceControlMessage = {
@@ -911,7 +919,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
           try {
             const buffer = await event.data.arrayBuffer();
             // 순수 WebSocket으로 바이너리 전송
-            const speechSocket = globalSpeechWebSocket;
+            const speechSocket = getSpeechWebSocket();
             if (speechSocket && speechSocket.readyState === WebSocket.OPEN) {
               speechSocket.send(buffer);
               console.log('[음성 녹음] 청크 전송 성공:', {
