@@ -77,8 +77,6 @@ export function PositionSelector({
   }, [supportRatio]);
 
   const handlePositionClick = (position: Position) => {
-    if (currentPosition === position) return; // 같은 입장이면 아무것도 안함
-    
     // 발언자 모드에서 현재 발언 중인 경우 입장 변경 차단
     if (isSpeakerMode && isUserCurrentlySpeaking && currentPosition !== null) {
       // 차단 로직은 DebatePage의 handlePositionChange에서 처리되므로 
@@ -91,7 +89,7 @@ export function PositionSelector({
       // 처음 입장 선택
       onPositionChange(position);
     } else {
-      // 입장 변경 - 변경할 입장을 저장하고 모달 표시
+      // 입장 변경 - 항상 모달 표시 (동일한 입장 클릭해도 모달 표시)
       setPendingPosition(position);
       setIsChangeModalOpen(true);
     }

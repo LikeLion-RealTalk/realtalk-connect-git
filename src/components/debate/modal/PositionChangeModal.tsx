@@ -28,14 +28,12 @@ export function PositionChangeModal({
   aDescription,
   bDescription
 }: PositionChangeModalProps) {
-  const [selectedPosition, setSelectedPosition] = useState<Position>(
-    currentPosition === POSITIONS[0] ? POSITIONS[1] : POSITIONS[0]
-  );
+  const [selectedPosition, setSelectedPosition] = useState<Position>(currentPosition);
 
-  // 모달이 열릴 때마다 selectedPosition 초기화
+  // 모달이 열릴 때마다 selectedPosition을 현재 입장으로 초기화
   useEffect(() => {
     if (isOpen) {
-      setSelectedPosition(currentPosition === POSITIONS[0] ? POSITIONS[1] : POSITIONS[0]);
+      setSelectedPosition(currentPosition);
     }
   }, [isOpen, currentPosition]);
 
@@ -44,7 +42,7 @@ export function PositionChangeModal({
   };
 
   const handleClose = () => {
-    setSelectedPosition(currentPosition === POSITIONS[0] ? POSITIONS[1] : POSITIONS[0]);
+    setSelectedPosition(currentPosition);
     onClose();
   };
 
@@ -77,10 +75,8 @@ export function PositionChangeModal({
                   selectedPosition === POSITIONS[0]
                     ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20' 
                     : 'hover:bg-muted/50'
-                } ${
-                  currentPosition === POSITIONS[0] ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-                onClick={() => currentPosition !== POSITIONS[0] && setSelectedPosition(POSITIONS[0])}
+                onClick={() => setSelectedPosition(POSITIONS[0])}
               >
                 <CardContent className="p-4">
                   <div className="flex flex-col items-center text-center space-y-2">
@@ -110,10 +106,8 @@ export function PositionChangeModal({
                   selectedPosition === POSITIONS[1]
                     ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-900/20' 
                     : 'hover:bg-muted/50'
-                } ${
-                  currentPosition === POSITIONS[1] ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-                onClick={() => currentPosition !== POSITIONS[1] && setSelectedPosition(POSITIONS[1])}
+                onClick={() => setSelectedPosition(POSITIONS[1])}
               >
                 <CardContent className="p-4">
                   <div className="flex flex-col items-center text-center space-y-2">
@@ -151,9 +145,8 @@ export function PositionChangeModal({
           <Button
             onClick={handleConfirm}
             className="flex-1"
-            disabled={selectedPosition === currentPosition}
           >
-            입장 변경하기
+            {selectedPosition === currentPosition ? '현재 입장 유지' : '입장 변경하기'}
           </Button>
         </DialogFooter>
       </DialogContent>
