@@ -1252,6 +1252,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
      currentSpeakerTimeLeft !== null && 
      currentSpeakerTimeLeft > 0);
 
+  // 토론 단계 변경 시 녹음 자동 종료 (1. 발언 → 2. 논의로 전환 시)
+  useEffect(() => {
+    if (isRecording && currentDebateStage === '2. 논의') {
+      console.log('[음성 녹음] 논의 단계로 전환됨 - 자동 녹음 종료');
+      finishRecording();
+    }
+  }, [currentDebateStage, isRecording, finishRecording]);
+
   return (
     <>
       <div className={`h-screen flex flex-col overflow-hidden ${(isAiSummaryLoadingOpen || isAiSummaryModalOpen) && !isExitConfirmModalOpen ? 'debate-end-blur' : ''}`}>
