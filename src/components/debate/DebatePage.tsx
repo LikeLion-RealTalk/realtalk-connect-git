@@ -578,6 +578,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const handleAiSummaryLoadingComplete = async () => {
     setIsAiSummaryLoadingOpen(false);
     
+    // 웹소켓 연결 정리 (모든 구독 해제 및 연결 종료)
+    console.log('[토론방] 토론 종료 - 웹소켓 연결 정리 중...');
+    disconnect();
+    
     // API에서 요약 데이터 생성
     const summary = await generateDebateSummary();
     setDebateSummary(summary);
