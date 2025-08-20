@@ -128,6 +128,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [speakerExpireTime, setSpeakerExpireTime] = useState<Date | null>(null); // 발언자 만료 시간
   const [currentDebateStage, setCurrentDebateStage] = useState<'1. 발언' | '2. 논의'>('1. 발언'); // 현재 토론 단계
   const [maxSpeakerTime, setMaxSpeakerTime] = useState(30); // 발언 시간 총 길이
+  const [isProcessingSpeech, setIsProcessingSpeech] = useState(false); // 발언 처리 중 상태 (1.5초 비활성화)
   
   // debateType에 따른 논의 시간 계산 함수
   const getDiscussionTime = () => {
@@ -846,6 +847,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         // 텍스트 발언 완료 토스트 메시지
         toast.success('발언 완료하였습니다');
         
+        // 1.5초간 발언 섹션 비활성화 (발언 분석 중 느낌)
+        setIsProcessingSpeech(true);
+        setTimeout(() => {
+          setIsProcessingSpeech(false);
+        }, 1500);
+        
         // 서버 응답은 /topic/speaker/{roomUUID} 구독으로 받아서 처리됨
       } else {
         // 음성 모드인 경우 기존 로직 (로컬 추가)
@@ -1001,6 +1008,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
       // 음성 발언 완료 토스트 메시지
       toast.success('발언 완료하였습니다');
+      
+      // 1.5초간 발언 섹션 비활성화 (발언 분석 중 느낌)
+      setIsProcessingSpeech(true);
+      setTimeout(() => {
+        setIsProcessingSpeech(false);
+      }, 1500);
 
       // 2. 녹음 중지
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
@@ -1261,8 +1274,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   };
 
-  // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같고, '1. 발언' 단계이면서 발언 시간이 남은 경우에만 활성화
+  // 발언 권한 체크: 토론이 끝나지 않았고, 발언자 모드에서 현재 발언자 ID가 내 ID와 같고, '1. 발언' 단계이면서 발언 시간이 남고, 발언 처리 중이 아닌 경우에만 활성화
   const canSpeak = !isDebateFinished && 
+    !isProcessingSpeech &&
     (participationMode === PARTICIPATION_ROLES[0] && 
      currentUserId && 
      user?.id?.toString() === currentUserId && 
