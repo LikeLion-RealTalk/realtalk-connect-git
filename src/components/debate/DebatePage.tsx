@@ -40,7 +40,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateSummary, setDebateSummary] = useState(null);
   
   // 웹소켓 훅 초기화
-  const { sendChatMessage, sendMessage, isConnected, subscribeExpire, subscribeSpeakerExpire, joinRoom, disconnect } = useWebSocket({
+  const { sendChatMessage, sendMessage, isConnected, isSpeechConnected, connectSpeechWebSocket, subscribeExpire, subscribeSpeakerExpire, joinRoom, disconnect } = useWebSocket({
     onMessage: (message) => {
       // STOMP 메시지 처리
       if (message.type === 'CHAT') {
@@ -532,6 +532,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         });
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, debateRoomInfo.userRole, debateRoomInfo.userPosition, sideA, joinRoom]);
+
+  // 로그인한 사용자일 때 음성 웹소켓 연결
+  useEffect(() => {
+    if (isConnected && isLoggedIn && user?.id && !isSpeechConnected) {
+      console.log('[음성 웹소켓] 로그인한 사용자 - 음성 웹소켓 연결 시작:', user.id);
+      connectSpeechWebSocket(user.id.toString());
+    }
+  }, [isConnected, isLoggedIn, user?.id, isSpeechConnected, connectSpeechWebSocket]);
 
   const [speechMessages, setSpeechMessages] = useState([]);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);

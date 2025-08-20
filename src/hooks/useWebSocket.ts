@@ -24,6 +24,7 @@ interface JoinResponse {
 
 // 전역 웹소켓 인스턴스 (싱글톤)
 let globalStompClient: any = null;
+let globalSpeechStompClient: any = null; // 음성 웹소켓 클라이언트
 let globalRoomSub: any = null;
 let globalParticipantsSub: any = null;
 let globalExpireSub: any = null;
@@ -33,6 +34,8 @@ let globalSideStatsSub: any = null;
 let globalIsConnected = false;
 let globalIsConnecting = false;
 let globalConnectInFlight = false;
+let globalSpeechIsConnected = false; // 음성 웹소켓 연결 상태
+let globalSpeechIsConnecting = false; // 음성 웹소켓 연결 중 상태
 
 // 전역 콜백들
 let globalMessageCallbacks: ((message: any) => void)[] = [];
@@ -43,6 +46,8 @@ let globalParticipantsCallbacks: ((participants: any[]) => void)[] = [];
 export const useWebSocket = (options: WebSocketHookOptions = {}) => {
   const [isConnected, setIsConnected] = useState(globalIsConnected);
   const [isConnecting, setIsConnecting] = useState(globalIsConnecting);
+  const [isSpeechConnected, setIsSpeechConnected] = useState(globalSpeechIsConnected);
+  const [isSpeechConnecting, setIsSpeechConnecting] = useState(globalSpeechIsConnecting);
   
   const { onMessage, onConnect, onDisconnect, onParticipantsUpdate } = options;
 
@@ -226,8 +231,81 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
     }
   }, [ensureAccessToken]);
 
+  // 음성 웹소켓 연결 함수 (로그인한 사용자만)
+  const connectSpeechWebSocket = useCallback(async (userId: string) => {
+    if (globalSpeechIsConnecting || globalSpeechIsConnected) {
+      console.log('[음성 웹소켓] 이미 연결 중이거나 연결됨');
+      return true;
+    }
+
+    try {
+      console.log('[음성 웹소켓] 연결 시작:', userId);
+      globalSpeechIsConnecting = true;
+      setIsSpeechConnecting(true);
+
+      // 토큰 확보
+      const token = await ensureAccessToken({ require: true });
+      if (!token) {
+        console.error('[음성 웹소켓] 토큰이 필요하지만 없음');
+        globalSpeechIsConnecting = false;
+        setIsSpeechConnecting(false);
+        return false;
+      }
+
+      const connectHeaders = { 
+        Authorization: 'Bearer ' + token, 
+        authorization: 'Bearer ' + token 
+      };
+      
+      // 음성 웹소켓 연결
+      const speechSocket = new window.SockJS(`https://api.realtalks.co.kr:8443/ws/speech?userId=${userId}`);
+      speechSocket.onopen = () => console.log('[음성 웹소켓] SockJS 연결 열림');
+      speechSocket.onclose = (e: any) => console.warn('[음성 웹소켓] SockJS 연결 종료:', e);
+      speechSocket.onerror = (e: any) => console.error('[음성 웹소켓] SockJS 오류:', e);
+
+      globalSpeechStompClient = window.Stomp.over(speechSocket);
+      globalSpeechStompClient.debug = (msg: string) => {
+        console.log('[음성 STOMP 디버그]', msg);
+      };
+      globalSpeechStompClient.heartbeat.outgoing = 10000;
+      globalSpeechStompClient.heartbeat.incoming = 10000;
+
+      console.log('[음성 웹소켓] STOMP connect 호출');
+      
+      return new Promise((resolve) => {
+        globalSpeechStompClient.connect(
+          connectHeaders,
+          (frame: any) => {
+            console.log('[음성 웹소켓] STOMP 연결 성공:', frame);
+            globalSpeechIsConnected = true;
+            globalSpeechIsConnecting = false;
+            setIsSpeechConnected(true);
+            setIsSpeechConnecting(false);
+            resolve(true);
+          },
+          (err: any) => {
+            const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
+            console.error('[음성 웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
+            globalSpeechIsConnected = false;
+            globalSpeechIsConnecting = false;
+            setIsSpeechConnected(false);
+            setIsSpeechConnecting(false);
+            resolve(false);
+          }
+        );
+      });
+
+    } catch (error) {
+      console.error('[음성 웹소켓] 연결 실패:', error);
+      globalSpeechIsConnecting = false;
+      setIsSpeechConnecting(false);
+      return false;
+    }
+  }, [ensureAccessToken]);
+
   const disconnect = useCallback(() => {
     try {
+      // 기존 토론 웹소켓 구독 해제
       if (globalRoomSub) { 
         globalRoomSub.unsubscribe(); 
         globalRoomSub = null; 
@@ -256,6 +334,26 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       console.warn('[웹소켓] 언서브 중 경고:', e);
     }
 
+    // 음성 웹소켓 연결 해제
+    if (globalSpeechStompClient && globalSpeechStompClient.connected) {
+      console.log('[음성 웹소켓] 연결 종료 중...');
+      globalSpeechStompClient.disconnect(() => {
+        console.log('[음성 웹소켓] 연결 종료 완료');
+        globalSpeechIsConnected = false;
+        globalSpeechIsConnecting = false;
+        setIsSpeechConnected(false);
+        setIsSpeechConnecting(false);
+        globalSpeechStompClient = null;
+      });
+    } else {
+      globalSpeechIsConnected = false;
+      globalSpeechIsConnecting = false;
+      setIsSpeechConnected(false);
+      setIsSpeechConnecting(false);
+      globalSpeechStompClient = null;
+    }
+
+    // 기존 토론 웹소켓 연결 해제
     if (!globalStompClient || !globalStompClient.connected) {
       globalIsConnected = false;
       globalIsConnecting = false;
@@ -270,6 +368,7 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       globalIsConnecting = false;
       setIsConnected(false);
       setIsConnecting(false);
+      globalStompClient = null;
       // 모든 컴포넌트의 onDisconnect 콜백 호출
       globalDisconnectCallbacks.forEach(cb => cb());
     });
@@ -528,7 +627,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
   return {
     isConnected,
     isConnecting,
+    isSpeechConnected,
+    isSpeechConnecting,
     connect,
+    connectSpeechWebSocket,
     disconnect,
     joinRoom,
     sendMessage,
