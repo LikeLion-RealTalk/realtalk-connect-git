@@ -24,7 +24,7 @@ interface JoinResponse {
 
 // 전역 웹소켓 인스턴스 (싱글톤)
 let globalStompClient: any = null;
-let globalSpeechStompClient: any = null; // 음성 웹소켓 클라이언트
+let globalSpeechWebSocket: any = null; // 순수 음성 웹소켓
 let globalRoomSub: any = null;
 let globalParticipantsSub: any = null;
 let globalExpireSub: any = null;
@@ -257,42 +257,44 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         authorization: 'Bearer ' + token 
       };
       
-      // 음성 웹소켓 연결
-      const speechSocket = new window.SockJS(`https://api.realtalks.co.kr:8443/ws/speech?userId=${userId}`);
-      speechSocket.onopen = () => console.log('[음성 웹소켓] SockJS 연결 열림');
-      speechSocket.onclose = (e: any) => console.warn('[음성 웹소켓] SockJS 연결 종료:', e);
-      speechSocket.onerror = (e: any) => console.error('[음성 웹소켓] SockJS 오류:', e);
+      // 음성 웹소켓 연결 (순수 WebSocket 사용)
+      const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const host = 'api.realtalks.co.kr:8443';
+      const url = `${scheme}${host}/ws/speech?userId=${encodeURIComponent(userId)}`;
+      
+      console.log('[음성 웹소켓] 연결 URL:', url);
+      const speechSocket = new WebSocket(url);
+      speechSocket.binaryType = 'arraybuffer';
 
-      globalSpeechStompClient = window.Stomp.over(speechSocket);
-      globalSpeechStompClient.debug = (msg: string) => {
-        console.log('[음성 STOMP 디버그]', msg);
+      speechSocket.onopen = () => {
+        console.log('[음성 웹소켓] WebSocket 연결 열림');
+        globalSpeechIsConnected = true;
+        globalSpeechIsConnecting = false;
+        setIsSpeechConnected(true);
+        setIsSpeechConnecting(false);
       };
-      globalSpeechStompClient.heartbeat.outgoing = 10000;
-      globalSpeechStompClient.heartbeat.incoming = 10000;
+      speechSocket.onclose = (e: any) => {
+        console.warn('[음성 웹소켓] WebSocket 연결 종료:', e);
+        globalSpeechIsConnected = false;
+        setIsSpeechConnected(false);
+      };
+      speechSocket.onerror = (e: any) => {
+        console.error('[음성 웹소켓] WebSocket 오류:', e);
+        globalSpeechIsConnected = false;
+        globalSpeechIsConnecting = false;
+        setIsSpeechConnected(false);
+        setIsSpeechConnecting(false);
+      };
+      speechSocket.onmessage = (ev: any) => {
+        console.log('[음성 웹소켓] 메시지 수신:', ev.data);
+      };
 
-      console.log('[음성 웹소켓] STOMP connect 호출');
+      // 전역 변수에 저장 (disconnect에서 사용)
+      globalSpeechWebSocket = speechSocket;
       
       return new Promise((resolve) => {
-        globalSpeechStompClient.connect(
-          connectHeaders,
-          (frame: any) => {
-            console.log('[음성 웹소켓] STOMP 연결 성공:', frame);
-            globalSpeechIsConnected = true;
-            globalSpeechIsConnecting = false;
-            setIsSpeechConnected(true);
-            setIsSpeechConnecting(false);
-            resolve(true);
-          },
-          (err: any) => {
-            const msg = (err && err.headers && err.headers.message) ? err.headers.message : '알 수 없는 오류';
-            console.error('[음성 웹소켓][오류] STOMP 연결 실패:', { 메시지: msg, 원본: err });
-            globalSpeechIsConnected = false;
-            globalSpeechIsConnecting = false;
-            setIsSpeechConnected(false);
-            setIsSpeechConnecting(false);
-            resolve(false);
-          }
-        );
+        speechSocket.addEventListener('open', () => resolve(true));
+        speechSocket.addEventListener('error', () => resolve(false));
       });
 
     } catch (error) {
@@ -334,24 +336,16 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       console.warn('[웹소켓] 언서브 중 경고:', e);
     }
 
-    // 음성 웹소켓 연결 해제
-    if (globalSpeechStompClient && globalSpeechStompClient.connected) {
+    // 음성 웹소켓 연결 해제 (순수 WebSocket)
+    if (globalSpeechWebSocket && globalSpeechWebSocket.readyState === WebSocket.OPEN) {
       console.log('[음성 웹소켓] 연결 종료 중...');
-      globalSpeechStompClient.disconnect(() => {
-        console.log('[음성 웹소켓] 연결 종료 완료');
-        globalSpeechIsConnected = false;
-        globalSpeechIsConnecting = false;
-        setIsSpeechConnected(false);
-        setIsSpeechConnecting(false);
-        globalSpeechStompClient = null;
-      });
-    } else {
-      globalSpeechIsConnected = false;
-      globalSpeechIsConnecting = false;
-      setIsSpeechConnected(false);
-      setIsSpeechConnecting(false);
-      globalSpeechStompClient = null;
+      globalSpeechWebSocket.close();
+      globalSpeechWebSocket = null;
     }
+    globalSpeechIsConnected = false;
+    globalSpeechIsConnecting = false;
+    setIsSpeechConnected(false);
+    setIsSpeechConnecting(false);
 
     // 기존 토론 웹소켓 연결 해제
     if (!globalStompClient || !globalStompClient.connected) {
