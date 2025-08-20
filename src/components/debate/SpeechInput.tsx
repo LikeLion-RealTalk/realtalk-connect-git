@@ -160,28 +160,11 @@ export function SpeechInput({
     }
   }, [isRecording, speechSupported, isListening]);
 
-  // 음성 인식 완료 후 발언 확인 표시 및 카운트다운
+  // 음성 인식 결과 표시만 (자동 전송 제거)
   useEffect(() => {
     if (!isRecording && !isListening && speechText.trim()) {
-      setShowConfirmSend(true);
-      setCountdown(3);
-      
-      // 카운트다운 시작
-      countdownRef.current = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            handleSendVoice();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      return () => {
-        if (countdownRef.current) {
-          clearInterval(countdownRef.current);
-        }
-      };
+      // 음성 인식 결과만 표시하고 자동 전송하지 않음
+      console.log('[음성 인식] 인식된 텍스트:', speechText);
     }
   }, [isRecording, isListening, speechText]);
 
@@ -340,33 +323,6 @@ export function SpeechInput({
                     <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
                     <span>마이크 준비됨</span>
                   </div>
-                </div>
-              )}
-              {(speechText || interimSpeechText) && (
-                <div className="mt-4 p-3 bg-muted rounded-lg text-left">
-                  <p className="text-sm text-muted-foreground mb-1">인식된 음성:</p>
-                  <p className="text-sm mb-3">
-                    <span className="text-foreground">{speechText}</span>
-                    {interimSpeechText && (
-                      <span className="text-muted-foreground italic">{interimSpeechText}</span>
-                    )}
-                  </p>
-                  {showConfirmSend && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-center text-muted-foreground">
-                        {countdown}초 후 자동으로 발언됩니다
-                      </p>
-                      <div className="flex gap-2 justify-center">
-                        <Button size="sm" onClick={handleSendVoice} className="flex items-center gap-1">
-                          <Send className="h-3 w-3" />
-                          지금 발언하기
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={handleCancelVoice}>
-                          취소
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
               
