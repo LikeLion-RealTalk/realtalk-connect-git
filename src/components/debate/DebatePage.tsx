@@ -14,6 +14,7 @@ import { DebateScrollButtons } from './DebateScrollButtons';
 import { ShareRoomModal } from './modal/ShareRoomModal';
 import { DebateExtensionModal } from './modal/DebateExtensionModal';
 import { DebateExitConfirmModal } from './modal/DebateExitConfirmModal';
+import { SpeakerNotificationModal } from '../modal/SpeakerNotificationModal';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Menu, Users } from 'lucide-react';
@@ -106,6 +107,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [isAiSummaryModalOpen, setIsAiSummaryModalOpen] = useState(false);
   const [isExitConfirmModalOpen, setIsExitConfirmModalOpen] = useState(false);
   const [hasEnteredRoom, setHasEnteredRoom] = useState(false);
+  const [isSpeakerNotificationOpen, setIsSpeakerNotificationOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -122,6 +124,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [debateExpireTime, setDebateExpireTime] = useState<Date | null>(null); // 토론 만료 시간
   const [expireTimeDisplay, setExpireTimeDisplay] = useState<string>('--'); // 만료시간 표시용
   const [currentUserId, setCurrentUserId] = useState<string | null>(null); // 현재 발언자 ID
+  const [previousUserId, setPreviousUserId] = useState<string | null>(null); // 이전 발언자 ID (모달 트리거용)
   const [speakerExpireTime, setSpeakerExpireTime] = useState<Date | null>(null); // 발언자 만료 시간
   const [currentDebateStage, setCurrentDebateStage] = useState<'1. 발언' | '2. 논의'>('1. 발언'); // 현재 토론 단계
   const [maxSpeakerTime, setMaxSpeakerTime] = useState(30); // 발언 시간 총 길이
@@ -315,17 +318,26 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         startDiscussionCycle(remainingDiscussionTime, totalDiscussionTime);
       }
       
-      // 현재 사용자 ID와 비교해서 로그 출력
+      // 현재 사용자 ID와 비교해서 로그 출력 및 모달 표시
       const myUserId = user?.id?.toString();
       if (myUserId === data.currentUserId) {
         console.log('[발언자] 내가 현재 발언자로 지정됨:', data.currentUserId);
+        
+        // 이전 발언자와 다르고, 내가 새로 발언자가 된 경우에만 모달 표시
+        if (previousUserId !== data.currentUserId) {
+          console.log('[발언자 모달] 발언자 지정 모달 표시');
+          setIsSpeakerNotificationOpen(true);
+        }
       } else {
         console.log('[발언자] 다른 사용자가 발언자로 지정됨:', data.currentUserId, '내 ID:', myUserId);
       }
+      
+      // 이전 발언자 ID 업데이트
+      setPreviousUserId(data.currentUserId);
     } catch (error) {
       console.error('[발언자] 발언자 만료시간 파싱 실패:', error);
     }
-  }, [user?.id]);
+  }, [user?.id, previousUserId]);
 
   // 참가자 목록 업데이트 함수
   const handleParticipantsUpdate = useCallback((participants: any[]) => {
@@ -1596,6 +1608,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         onClose={handleExitCancel}
         onConfirm={handleExitConfirm}
         context="summary"
+      />
+
+      <SpeakerNotificationModal
+        isOpen={isSpeakerNotificationOpen}
+        onClose={() => setIsSpeakerNotificationOpen(false)}
       />
     </>
   );
