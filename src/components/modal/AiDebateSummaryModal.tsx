@@ -64,7 +64,7 @@ export function AiDebateSummaryModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
-        className="max-w-lg"
+        className="max-w-2xl max-h-[90vh] flex flex-col"
         // 기본 닫기 동작을 커스텀 핸들러로 처리
         onEscapeKeyDown={(e) => {
           e.preventDefault();
@@ -89,7 +89,7 @@ export function AiDebateSummaryModal({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
           {/* 토론 기본 정보 */}
           <div className="space-y-3">
             <h4 className="font-medium">{summary.title}</h4>
@@ -121,7 +121,7 @@ export function AiDebateSummaryModal({
               <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-800 dark:text-green-300">A입장</span>
+                  <span className="text-sm font-medium text-green-800 dark:text-green-300">{summary.sideA || 'A입장'}</span>
                 </div>
                 <p className="text-sm text-green-900 dark:text-green-100 leading-relaxed">
                   "{summary.keyStatements.aSide[0]}"
@@ -131,7 +131,7 @@ export function AiDebateSummaryModal({
               <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-red-800 dark:text-red-300">B입장</span>
+                  <span className="text-sm font-medium text-red-800 dark:text-red-300">{summary.sideB || 'B입장'}</span>
                 </div>
                 <p className="text-sm text-red-900 dark:text-red-100 leading-relaxed">
                   "{summary.keyStatements.bSide[0]}"
@@ -147,7 +147,7 @@ export function AiDebateSummaryModal({
             <h4 className="font-medium">여론 동향</h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-green-600 dark:text-green-400">A입장</span>
+                <span className="text-green-600 dark:text-green-400">{summary.sideA || 'A입장'}</span>
                 <span className="font-medium">{summary.publicOpinion.aPercentage}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -158,7 +158,7 @@ export function AiDebateSummaryModal({
               </div>
               
               <div className="flex justify-between items-center text-sm">
-                <span className="text-red-600 dark:text-red-400">B입장</span>
+                <span className="text-red-600 dark:text-red-400">{summary.sideB || 'B입장'}</span>
                 <span className="font-medium">{summary.publicOpinion.bPercentage}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -188,7 +188,7 @@ export function AiDebateSummaryModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button
             onClick={handleRequestExit}
             className="w-full"

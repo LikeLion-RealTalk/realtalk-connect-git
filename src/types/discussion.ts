@@ -134,6 +134,8 @@ export interface DebateSummary {
   category: DiscussionCategory;
   duration: number; // 실제 소요 시간 (분)
   participantCount: number;
+  sideA?: string; // A입장 텍스트 (예: "찬성")
+  sideB?: string; // B입장 텍스트 (예: "반대")
   keyStatements: {
     aSide: string[];
     bSide: string[];

@@ -917,6 +917,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         category: apiResponse.categoryName,
         duration: Math.floor(apiResponse.durationSeconds / 60), // 초를 분으로 변환
         participantCount: apiResponse.totalCount,
+        sideA: apiResponse.sideA, // API에서 받은 A입장 텍스트
+        sideB: apiResponse.sideB, // API에서 받은 B입장 텍스트
         keyStatements: {
           aSide: [apiResponse.aiSummaryResult.sideA],
           bSide: [apiResponse.aiSummaryResult.sideB]
