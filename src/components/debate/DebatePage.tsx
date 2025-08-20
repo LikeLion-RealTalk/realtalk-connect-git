@@ -847,11 +847,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         // 텍스트 발언 완료 토스트 메시지
         toast.success('발언 완료하였습니다');
         
-        // 1.5초간 발언 섹션 비활성화 (발언 분석 중 느낌)
+        // 2초간 발언 섹션 비활성화 (발언 분석 중 느낌)
         setIsProcessingSpeech(true);
         setTimeout(() => {
           setIsProcessingSpeech(false);
-        }, 1500);
+        }, 2000);
         
         // 서버 응답은 /topic/speaker/{roomUUID} 구독으로 받아서 처리됨
       } else {
@@ -1009,11 +1009,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // 음성 발언 완료 토스트 메시지
       toast.success('발언 완료하였습니다');
       
-      // 1.5초간 발언 섹션 비활성화 (발언 분석 중 느낌)
+      // 2초간 발언 섹션 비활성화 (발언 분석 중 느낌)
       setIsProcessingSpeech(true);
       setTimeout(() => {
         setIsProcessingSpeech(false);
-      }, 1500);
+      }, 2000);
 
       // 2. 녹음 중지
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
