@@ -56,7 +56,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         
         console.log('[채팅] 메시지 수신:', newChatMessage);
         setChatMessages(prev => [...prev, newChatMessage]);
-      } else if (message.message && message.username && message.side) {
+      } else if (message.message && message.username) {
         // /topic/speaker 발언 메시지 수신
         console.log('[발언] 원본 웹소켓 메시지:', message);
         console.log('[발언] side 값:', message.side);
