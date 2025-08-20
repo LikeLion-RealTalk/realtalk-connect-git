@@ -129,6 +129,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const [currentDebateStage, setCurrentDebateStage] = useState<'1. 발언' | '2. 논의'>('1. 발언'); // 현재 토론 단계
   const [maxSpeakerTime, setMaxSpeakerTime] = useState(30); // 발언 시간 총 길이
   const [isProcessingSpeech, setIsProcessingSpeech] = useState(false); // 발언 처리 중 상태 (1.5초 비활성화)
+  const [userSubjectId, setUserSubjectId] = useState<string | null>(null); // JOIN_ACCEPTED에서 받은 subjectId
   
   // debateType에 따른 논의 시간 계산 함수
   const getDiscussionTime = () => {
@@ -525,6 +526,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
             
             // 입장 완료 후 side 정보 API 호출
             if (result.subjectId) {
+              // subjectId 상태에 저장 (입장 변경 시 사용)
+              setUserSubjectId(result.subjectId);
+              
               try {
                 await debateApi.sendSideInfo(debateRoomInfo.id, result.subjectId, userSide);
                 console.log('[토론방] 입장 정보 전송 완료:', { roomId: debateRoomInfo.id, subjectId: result.subjectId, side: userSide });
@@ -1419,6 +1423,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
                   sideA={sideA}
                   sideB={sideB}
+                  roomId={debateRoomInfo.id}
+                  userSubjectId={userSubjectId}
                 />
               </div>
 
@@ -1495,6 +1501,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   isSpeakerMode={participationMode === PARTICIPATION_ROLES[0]}
                   sideA={sideA}
                   sideB={sideB}
+                  roomId={debateRoomInfo.id}
+                  userSubjectId={userSubjectId}
                 />
               </div>
 

@@ -4,6 +4,8 @@ import { Button } from '../../ui/button';
 import { Card, CardContent } from '../../ui/card';
 import { RotateCcw } from 'lucide-react';
 import { DiscussionCategory, DebateType, Position, POSITIONS } from '../../../types/discussion';
+import { debateApi } from '../../../lib/api/apiClient';
+import { toast } from 'sonner';
 
 interface PositionChangeModalProps {
   isOpen: boolean;
@@ -17,6 +19,8 @@ interface PositionChangeModalProps {
   bDescription: string;
   sideA: string;
   sideB: string;
+  roomId: string;
+  userSubjectId: string | null;
 }
 
 export function PositionChangeModal({ 
@@ -30,9 +34,12 @@ export function PositionChangeModal({
   aDescription,
   bDescription,
   sideA,
-  sideB
+  sideB,
+  roomId,
+  userSubjectId
 }: PositionChangeModalProps) {
   const [selectedPosition, setSelectedPosition] = useState<Position>(currentPosition);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 모달이 열릴 때마다 selectedPosition을 현재 입장으로 초기화
   useEffect(() => {
@@ -41,8 +48,37 @@ export function PositionChangeModal({
     }
   }, [isOpen, currentPosition]);
 
-  const handleConfirm = () => {
-    onConfirm(selectedPosition);
+  const handleConfirm = async () => {
+    if (!userSubjectId) {
+      toast.error('사용자 정보가 없습니다. 다시 시도해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // 선택한 입장을 'A' 또는 'B'로 변환
+      const side: 'A' | 'B' = selectedPosition === POSITIONS[0] ? 'A' : 'B';
+      
+      // API 호출
+      await debateApi.sendSideInfo(roomId, userSubjectId, side);
+      
+      // 성공 시 토스트 메시지
+      if (selectedPosition === currentPosition) {
+        toast.success('현재 입장을 유지합니다');
+      } else {
+        const sideText = selectedPosition === POSITIONS[0] ? (sideA || POSITIONS[0]) : (sideB || POSITIONS[1]);
+        toast.success(`입장을 ${sideText}으로 변경했습니다`);
+      }
+      
+      // 부모 컴포넌트에 변경된 입장 전달
+      onConfirm(selectedPosition);
+    } catch (error) {
+      console.error('[입장 변경] API 호출 실패:', error);
+      toast.error('입장 변경에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -143,14 +179,16 @@ export function PositionChangeModal({
             variant="outline"
             onClick={handleClose}
             className="flex-1"
+            disabled={isLoading}
           >
             취소
           </Button>
           <Button
             onClick={handleConfirm}
             className="flex-1"
+            disabled={isLoading}
           >
-            {selectedPosition === currentPosition ? '현재 입장 유지' : '입장 변경하기'}
+            {isLoading ? '처리 중...' : selectedPosition === currentPosition ? '현재 입장 유지' : '입장 변경하기'}
           </Button>
         </DialogFooter>
       </DialogContent>

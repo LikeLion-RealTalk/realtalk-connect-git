@@ -15,6 +15,8 @@ interface PositionSelectorProps {
   isSpeakerMode?: boolean;
   sideA?: string;
   sideB?: string;
+  roomId: string;
+  userSubjectId: string | null;
 }
 
 export function PositionSelector({ 
@@ -29,7 +31,9 @@ export function PositionSelector({
   isUserCurrentlySpeaking = false,
   isSpeakerMode = false,
   sideA,
-  sideB
+  sideB,
+  roomId,
+  userSubjectId
 }: PositionSelectorProps) {
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [hoveredPosition, setHoveredPosition] = useState<Position | null>(null);
@@ -225,6 +229,8 @@ export function PositionSelector({
           bDescription={bDescription}
           sideA={sideA}
           sideB={sideB}
+          roomId={roomId}
+          userSubjectId={userSubjectId}
         />
       )}
     </>
