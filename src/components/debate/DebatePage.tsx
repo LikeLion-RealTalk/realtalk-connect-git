@@ -494,8 +494,12 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     if (isConnected && hasEnteredRoom && debateRoomInfo.userRole && debateRoomInfo.userPosition) {
       console.log('[토론방] 콜백 등록 완료 - joinRoom 호출 시작');
       
-      // userPosition을 side로 변환
-      const userSide: 'A' | 'B' = debateRoomInfo.userPosition === sideA ? 'A' : 'B';
+      // 사용자가 선택한 A/B 입장 사용 (확실함)
+      console.log('[joinRoom] userSelectedSide:', debateRoomInfo.userSelectedSide);
+      console.log('[joinRoom] userPosition:', debateRoomInfo.userPosition);
+      
+      const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
+      console.log('[joinRoom] 계산된 userSide:', userSide);
       
       // joinRoom 호출
       joinRoom(debateRoomInfo.id, debateRoomInfo.userRole, userSide)
@@ -798,10 +802,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     if (participationMode === PARTICIPATION_ROLES[0] && user?.id && debateRoomInfo.userPosition) {
       // 채팅 모드인 경우 웹소켓으로 서버에 전송
       if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
-        // userPosition을 A/B로 변환 (joinRoom과 동일한 로직 사용)
+        // 사용자가 선택한 A/B 입장 사용 (확실함)
+        console.log('[발언] userSelectedSide:', debateRoomInfo.userSelectedSide);
         console.log('[발언] userPosition:', debateRoomInfo.userPosition);
-        console.log('[발언] sideA:', sideA);
-        const userSide: 'A' | 'B' = debateRoomInfo.userPosition === sideA ? 'A' : 'B';
+        
+        const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
         console.log('[발언] 계산된 userSide:', userSide);
         
         const speechMessage = {

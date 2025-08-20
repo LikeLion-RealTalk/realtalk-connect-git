@@ -14,7 +14,7 @@ interface JoinDiscussionModalProps {
   onClose: () => void;
   discussion: Discussion | null;
   onJoin: (discussionId: string, nickname: string, role: UserRole, participationMode?: ParticipationRole) => void;
-  onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
+  onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string, userSelectedSide: 'A' | 'B' }) => void;
 }
 
 export function JoinDiscussionModal({ 
@@ -111,7 +111,8 @@ export function JoinDiscussionModal({
         if (onNavigate) {
           onNavigate('debate', discussion.id, {
             userRole: selectedRole,
-            userPosition: selectedSide === 'A' ? discussion.sideA : discussion.sideB
+            userPosition: selectedSide === 'A' ? discussion.sideA : discussion.sideB,
+            userSelectedSide: selectedSide
           });
         }
         onClose();

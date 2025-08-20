@@ -33,7 +33,7 @@ function AppWithPermissions() {
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
 
-  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => {
+  const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string, userSelectedSide?: 'A' | 'B' }) => {
     if (page !== currentPage) {
       setPageHistory(prev => [...prev, currentPage]);
     }
@@ -49,6 +49,7 @@ function AppWithPermissions() {
           debateType: '토론 유형 확인 중',
           isCreatedByUser: false,
           userPosition: userInfo ? userInfo.userPosition : null,
+          userSelectedSide: userInfo ? userInfo.userSelectedSide : undefined,
           userRole: userInfo ? userInfo.userRole : undefined,
           aDescription: 'A입장입니다.',
           bDescription: 'B입장입니다.',
@@ -63,10 +64,11 @@ function AppWithPermissions() {
         };
         setCurrentDebateRoom(debateRoom);
       } else if (debateRoomInfoOrId) {
-        // userInfo가 있으면 userPosition과 userRole 설정
+        // userInfo가 있으면 userPosition, userRole, userSelectedSide 설정
         if (userInfo) {
           debateRoomInfoOrId.userPosition = userInfo.userPosition;
           debateRoomInfoOrId.userRole = userInfo.userRole;
+          debateRoomInfoOrId.userSelectedSide = userInfo.userSelectedSide;
         }
         setCurrentDebateRoom(debateRoomInfoOrId);
       }

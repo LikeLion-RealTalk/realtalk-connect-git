@@ -7,6 +7,7 @@ export interface DebateRoomInfo {
   debateType: DebateType;
   isCreatedByUser: boolean;
   userPosition?: Position;
+  userSelectedSide?: 'A' | 'B'; // 사용자가 선택한 A/B 입장
   userRole?: 'SPEAKER' | 'AUDIENCE';
   aDescription: string;
   bDescription: string;
