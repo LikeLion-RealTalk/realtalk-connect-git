@@ -533,13 +533,13 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [isConnected, hasEnteredRoom, debateRoomInfo.id, debateRoomInfo.userRole, debateRoomInfo.userPosition, sideA, joinRoom]);
 
-  // 로그인한 사용자일 때 음성 웹소켓 연결
+  // 로그인한 사용자일 때 음성 웹소켓 연결 (connectSpeechWebSocket 의존성 제거로 중복 연결 방지)
   useEffect(() => {
     if (isConnected && isLoggedIn && user?.id && !isSpeechConnected) {
       console.log('[음성 웹소켓] 로그인한 사용자 - 음성 웹소켓 연결 시작:', user.id);
       connectSpeechWebSocket(user.id.toString());
     }
-  }, [isConnected, isLoggedIn, user?.id, isSpeechConnected, connectSpeechWebSocket]);
+  }, [isConnected, isLoggedIn, user?.id, isSpeechConnected]);
 
   const [speechMessages, setSpeechMessages] = useState([]);
   const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
@@ -914,13 +914,23 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
             const speechSocket = globalSpeechWebSocket;
             if (speechSocket && speechSocket.readyState === WebSocket.OPEN) {
               speechSocket.send(buffer);
-              console.log('[음성 녹음] 청크 전송:', event.data.size, 'bytes');
+              console.log('[음성 녹음] 청크 전송 성공:', {
+                크기: event.data.size + 'bytes',
+                웹소켓상태: speechSocket.readyState,
+                타임스탬프: new Date().toISOString()
+              });
             } else {
-              console.warn('[음성 녹음] 음성 웹소켓이 연결되지 않음');
+              console.warn('[음성 녹음] 음성 웹소켓이 연결되지 않음:', {
+                웹소켓존재: !!speechSocket,
+                웹소켓상태: speechSocket?.readyState,
+                예상상태: WebSocket.OPEN
+              });
             }
           } catch (error) {
             console.error('[음성 녹음] 청크 전송 실패:', error);
           }
+        } else {
+          console.warn('[음성 녹음] 빈 데이터 청크:', event.data);
         }
       };
 
