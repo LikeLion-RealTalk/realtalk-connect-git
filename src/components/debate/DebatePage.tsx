@@ -477,18 +477,16 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     // JOIN_ACCEPTED 후 토론방 상태 조회
     fetchDebateRoomStatus();
     
-    // userPosition이 이미 설정되어 있으면 해당 입장으로 설정 (JoinDiscussionModal에서 선택한 입장)
-    console.log('[디버그] debateRoomInfo.userPosition:', debateRoomInfo.userPosition);
-    console.log('[디버그] POSITIONS:', POSITIONS);
-    if (debateRoomInfo.userPosition) {
-      const mappedPosition = debateRoomInfo.userPosition === 'A입장' ? POSITIONS[0] : POSITIONS[1];
-      console.log('[디버그] 매핑된 position:', mappedPosition);
+    // userSelectedSide를 사용해서 해당 입장으로 설정 (JoinDiscussionModal에서 선택한 입장)
+    if (debateRoomInfo.userSelectedSide) {
+      // userSelectedSide를 사용해서 A입장/B입장 매핑
+      const mappedPosition = debateRoomInfo.userSelectedSide === 'A' ? POSITIONS[0] : POSITIONS[1];
       setCurrentPosition(mappedPosition);
     } else {
       // 청중으로 참여하는 경우 기본 입장을 null로 설정
       setCurrentPosition(null);
     }
-  }, [debateRoomInfo.userPosition, debateRoomInfo.id]);
+  }, [debateRoomInfo.userSelectedSide, debateRoomInfo.id]);
 
   // 웹소켓 연결 후 expire 구독
   useEffect(() => {
