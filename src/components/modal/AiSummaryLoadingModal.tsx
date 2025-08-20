@@ -47,7 +47,7 @@ export function AiSummaryLoadingModal({ isOpen, onComplete }: AiSummaryLoadingMo
     }, 50);
 
     return () => clearInterval(timer);
-  }, [isOpen, onComplete]);
+  }, [isOpen]); // onComplete 의존성 제거
 
   const CurrentIcon = LOADING_STEPS[currentStep]?.icon;
 
