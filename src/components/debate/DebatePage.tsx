@@ -849,8 +849,150 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [participationMode, user?.id, user?.username, nickname, currentPosition, debateRoomInfo.id, debateRoomInfo.userPosition, isConnected, sendMessage]);
 
+  // 음성 녹음 관련 상태
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  // 음성 녹음 시작 함수
+  const startRecording = useCallback(async () => {
+    if (!isConnected || !isSpeechConnected) {
+      toast.error('웹소켓 연결을 확인해주세요');
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다');
+      return;
+    }
+
+    try {
+      console.log('[음성 녹음] 녹음 시작 요청');
+
+      // 1. STOMP로 제어 신호 전송
+      const voiceControlMessage = {
+        roomUUID: debateRoomInfo.id,
+        userId: user.id,
+        mode: '녹음 시작'
+      };
+      
+      console.log('[음성 녹음] STOMP 제어 신호 전송:', voiceControlMessage);
+      sendMessage('/pub/speaker/voice', voiceControlMessage);
+
+      // 2. 브라우저 마이크 권한 요청
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMediaStream(stream);
+
+      // 3. MediaRecorder 설정
+      const preferTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/ogg'
+      ];
+      
+      let mimeType = '';
+      for (const type of preferTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
+      }
+
+      console.log('[음성 녹음] 사용할 MIME 타입:', mimeType || '기본값');
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      setMediaRecorder(recorder);
+      mediaRecorderRef.current = recorder;
+
+      // 4. 실시간 전송 설정
+      recorder.ondataavailable = async (event) => {
+        if (event.data && event.data.size > 0) {
+          try {
+            const buffer = await event.data.arrayBuffer();
+            // 순수 WebSocket으로 바이너리 전송
+            const speechSocket = globalSpeechWebSocket;
+            if (speechSocket && speechSocket.readyState === WebSocket.OPEN) {
+              speechSocket.send(buffer);
+              console.log('[음성 녹음] 청크 전송:', event.data.size, 'bytes');
+            } else {
+              console.warn('[음성 녹음] 음성 웹소켓이 연결되지 않음');
+            }
+          } catch (error) {
+            console.error('[음성 녹음] 청크 전송 실패:', error);
+          }
+        }
+      };
+
+      recorder.onstart = () => {
+        console.log('[음성 녹음] MediaRecorder 시작됨');
+        setIsRecording(true);
+      };
+
+      recorder.onstop = () => {
+        console.log('[음성 녹음] MediaRecorder 중지됨');
+        setIsRecording(false);
+      };
+
+      recorder.onerror = (event) => {
+        console.error('[음성 녹음] MediaRecorder 오류:', event);
+        toast.error('녹음 중 오류가 발생했습니다');
+      };
+
+      // 5. 녹음 시작! (250ms마다 청크 생성)
+      recorder.start(250);
+      console.log('[음성 녹음] 녹음 시작됨');
+
+    } catch (error) {
+      console.error('[음성 녹음] 녹음 시작 실패:', error);
+      toast.error('마이크 권한이 필요합니다');
+    }
+  }, [isConnected, isSpeechConnected, user?.id, debateRoomInfo.id, sendMessage]);
+
+  // 음성 녹음 완료 함수
+  const finishRecording = useCallback(() => {
+    if (!user?.id) return;
+
+    try {
+      console.log('[음성 녹음] 녹음 완료 요청');
+
+      // 1. STOMP로 종료 신호
+      const voiceControlMessage = {
+        roomUUID: debateRoomInfo.id,
+        userId: user.id,
+        mode: '종료'
+      };
+      
+      console.log('[음성 녹음] STOMP 종료 신호 전송:', voiceControlMessage);
+      sendMessage('/pub/speaker/voice', voiceControlMessage);
+
+      // 2. 녹음 중지
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+
+      // 3. 미디어 스트림 정리
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        setMediaStream(null);
+      }
+
+      setMediaRecorder(null);
+      mediaRecorderRef.current = null;
+      console.log('[음성 녹음] 녹음 완료 및 정리됨');
+
+    } catch (error) {
+      console.error('[음성 녹음] 녹음 완료 실패:', error);
+      toast.error('녹음 완료 중 오류가 발생했습니다');
+    }
+  }, [user?.id, debateRoomInfo.id, sendMessage, mediaStream]);
+
   const handleToggleRecording = () => {
-    setIsRecording(!isRecording);
+    if (isRecording) {
+      finishRecording();
+    } else {
+      startRecording();
+    }
   };
 
   const handleSendMessage = useCallback(async (message: string) => {
