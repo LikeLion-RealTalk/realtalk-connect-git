@@ -488,6 +488,46 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [debateRoomInfo.id]);
 
+  // 기존 발언 내용 조회 함수
+  const loadExistingSpeechMessages = useCallback(async () => {
+    try {
+      console.log('[발언 내용] 기존 발언 내용 조회 시작:', debateRoomInfo.id);
+      const existingSpeakers = await debateApi.getSpeakers(debateRoomInfo.id);
+      console.log('[발언 내용] 기존 발언 내용 조회 성공:', existingSpeakers);
+      
+      if (Array.isArray(existingSpeakers) && existingSpeakers.length > 0) {
+        // API 응답을 기존 SpeechMessage 구조에 매핑
+        const mappedMessages = existingSpeakers.map((apiMessage, index) => ({
+          id: `existing-speech-${Date.now()}-${index}`,
+          speakerName: apiMessage.username,
+          position: apiMessage.side === 'A' ? POSITIONS[0] : POSITIONS[1], // 'A' -> 'A입장', 'B' -> 'B입장'
+          content: apiMessage.message,
+          timestamp: new Date(), // 현재 시간으로 설정 (서버에서 타임스탬프를 제공하지 않는 경우)
+          factCheck: apiMessage.verificationResult ? {
+            result: apiMessage.verificationResult, // "사실", "거짓", "불분명", "검증 불가" 등
+            explanation: apiMessage.evidence || '',
+            sourceLinks: apiMessage.sourceLinks || []
+          } : undefined
+        }));
+        
+        console.log('[발언 내용] 매핑된 발언 메시지들:', mappedMessages);
+        
+        // 기존 발언 내용을 speechMessages에 추가 (덮어쓰기가 아닌 설정)
+        setSpeechMessages(mappedMessages);
+        
+        toast.info(`기존 발언 내용 ${mappedMessages.length}개를 불러왔습니다.`, {
+          position: 'bottom-right',
+          duration: 3000,
+        });
+      } else {
+        console.log('[발언 내용] 기존 발언 내용이 없습니다.');
+      }
+    } catch (error) {
+      console.error('[발언 내용] 기존 발언 내용 조회 실패:', error);
+      toast.error('기존 발언 내용을 불러오는데 실패했습니다.');
+    }
+  }, [debateRoomInfo.id]);
+
   // 토론방 입장 시 로직
   useEffect(() => {
     setHasEnteredRoom(true);
@@ -549,6 +589,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               try {
                 await debateApi.sendSideInfo(debateRoomInfo.id, result.subjectId, userSide);
                 console.log('[토론방] 입장 정보 전송 완료:', { roomId: debateRoomInfo.id, subjectId: result.subjectId, side: userSide });
+                
+                // 토론방 입장 완료 후 기존 발언 내용 조회
+                await loadExistingSpeechMessages();
               } catch (error) {
                 console.error('[토론방] 입장 정보 전송 실패:', error);
               }

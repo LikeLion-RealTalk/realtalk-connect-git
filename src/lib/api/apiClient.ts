@@ -59,6 +59,12 @@ export const debateApi = {
     });
     return response.data;
   },
+  
+  // 발언 내용 전체 조회
+  getSpeakers: async (roomUUID: string) => {
+    const response = await axiosInstance.get(`/api/debate/${roomUUID}/speakers`);
+    return response.data;
+  },
 };
 
 export const categoryApi = {
