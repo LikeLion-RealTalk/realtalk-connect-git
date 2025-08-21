@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { useIsMobile } from '../ui/use-mobile';
 import { Button } from '../ui/button';
@@ -58,6 +58,12 @@ export function CreateDiscussionModal({
   });
   const [isCreating, setIsCreating] = useState(false);
   
+  // 토론 주제 추천 관련 상태
+  const [debateTopics, setDebateTopics] = useState<Array<{id: number, title: string}>>([]);
+  const [showTopicSuggestions, setShowTopicSuggestions] = useState(false);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  
   const { connect, joinRoom } = useWebSocket();
 
   // 카테고리 데이터 로드
@@ -78,6 +84,43 @@ export function CreateDiscussionModal({
       loadCategories();
     }
   }, [isOpen]);
+
+  // 토론 주제 추천 로드 함수
+  const loadDebateTopics = async () => {
+    if (debateTopics.length > 0) {
+      setShowTopicSuggestions(true);
+      return;
+    }
+
+    setIsLoadingTopics(true);
+    try {
+      const topics = await debateApi.getDebateTopics();
+      setDebateTopics(topics);
+      setShowTopicSuggestions(true);
+    } catch (error) {
+      console.error('토론 주제 추천 로드 실패:', error);
+    } finally {
+      setIsLoadingTopics(false);
+    }
+  };
+
+  // 추천 주제 클릭 핸들러
+  const handleTopicSuggestionClick = (topicTitle: string) => {
+    setFormData(prev => ({ ...prev, title: topicTitle }));
+    setShowTopicSuggestions(false);
+  };
+
+  // 토론 주제 입력 필드 포커스 핸들러
+  const handleTitleInputFocus = () => {
+    loadDebateTopics();
+  };
+
+  // 토론 주제 입력 필드 블러 핸들러 (지연 처리로 클릭 이벤트 허용)
+  const handleTitleInputBlur = () => {
+    setTimeout(() => {
+      setShowTopicSuggestions(false);
+    }, 200);
+  };
 
   // 토론방 카드와 동일한 뱃지 색상 함수
   const getDebateTypeBadgeClass = (type: string, isSelected: boolean) => {
@@ -287,15 +330,49 @@ export function CreateDiscussionModal({
           <div className="flex-1 overflow-y-auto bg-background">
             <div className="space-y-6 p-4 pb-24">{/* 하단 버튼 공간 확보 */}
             {/* 토론 주제 */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="title">토론 주제 *</Label>
               <Input
+                ref={titleInputRef}
                 id="title"
                 placeholder="토론하고 싶은 주제를 입력하세요"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
+                onFocus={handleTitleInputFocus}
+                onBlur={handleTitleInputBlur}
                 maxLength={100}
               />
+              
+              {/* 토론 주제 추천 드롭다운 */}
+              {showTopicSuggestions && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {isLoadingTopics ? (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      추천 주제를 불러오는 중...
+                    </div>
+                  ) : debateTopics.length > 0 ? (
+                    <>
+                      <div className="p-2 border-b border-border bg-muted/50">
+                        <span className="text-xs text-muted-foreground font-medium">추천 토론 주제</span>
+                      </div>
+                      {debateTopics.map((topic) => (
+                        <div
+                          key={topic.id}
+                          className="p-3 hover:bg-accent cursor-pointer transition-colors border-b border-border last:border-b-0"
+                          onClick={() => handleTopicSuggestionClick(topic.title)}
+                        >
+                          <span className="text-sm text-foreground">{topic.title}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      추천 주제가 없습니다
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="text-xs text-muted-foreground">
                 {formData.title.length}/100자
               </p>
@@ -585,15 +662,49 @@ export function CreateDiscussionModal({
         <div className="flex-1 overflow-y-auto px-1">
           <div className="space-y-6 py-4">
             {/* 토론 주제 */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="title">토론 주제 *</Label>
               <Input
+                ref={titleInputRef}
                 id="title"
                 placeholder="토론하고 싶은 주제를 입력하세요"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
+                onFocus={handleTitleInputFocus}
+                onBlur={handleTitleInputBlur}
                 maxLength={100}
               />
+              
+              {/* 토론 주제 추천 드롭다운 */}
+              {showTopicSuggestions && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {isLoadingTopics ? (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      추천 주제를 불러오는 중...
+                    </div>
+                  ) : debateTopics.length > 0 ? (
+                    <>
+                      <div className="p-2 border-b border-border bg-muted/50">
+                        <span className="text-xs text-muted-foreground font-medium">추천 토론 주제</span>
+                      </div>
+                      {debateTopics.map((topic) => (
+                        <div
+                          key={topic.id}
+                          className="p-3 hover:bg-accent cursor-pointer transition-colors border-b border-border last:border-b-0"
+                          onClick={() => handleTopicSuggestionClick(topic.title)}
+                        >
+                          <span className="text-sm text-foreground">{topic.title}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      추천 주제가 없습니다
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="text-xs text-muted-foreground">
                 {formData.title.length}/100자
               </p>

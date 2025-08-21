@@ -71,6 +71,12 @@ export const debateApi = {
     const response = await axiosInstance.get(`/api/debate/${roomUUID}/ai/summaries`);
     return response.data;
   },
+  
+  // 토론 주제 추천 조회
+  getDebateTopics: async () => {
+    const response = await axiosInstance.get('/api/debate-topics');
+    return response.data;
+  },
 };
 
 export const categoryApi = {
