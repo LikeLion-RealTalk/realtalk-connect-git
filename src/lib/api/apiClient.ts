@@ -65,6 +65,12 @@ export const debateApi = {
     const response = await axiosInstance.get(`/api/debate/${roomUUID}/speakers`);
     return response.data;
   },
+  
+  // AI 요약 전체 조회
+  getAiSummaries: async (roomUUID: string) => {
+    const response = await axiosInstance.get(`/api/debate/${roomUUID}/ai/summaries`);
+    return response.data;
+  },
 };
 
 export const categoryApi = {

@@ -528,6 +528,41 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   }, [debateRoomInfo.id]);
 
+  // 기존 AI 요약 조회 함수  
+  const loadExistingAiSummaries = useCallback(async () => {
+    try {
+      console.log('[AI 요약] 기존 AI 요약 조회 시작:', debateRoomInfo.id);
+      const existingAiSummaries = await debateApi.getAiSummaries(debateRoomInfo.id);
+      console.log('[AI 요약] 기존 AI 요약 조회 성공:', existingAiSummaries);
+      
+      if (Array.isArray(existingAiSummaries) && existingAiSummaries.length > 0) {
+        // API 응답을 기존 SummaryItem 구조에 매핑
+        const mappedSummaries = existingAiSummaries.map((apiSummary, index) => ({
+          id: `existing-ai-summary-${Date.now()}-${index}`,
+          speakerName: apiSummary.username,
+          position: apiSummary.side === 'A' ? POSITIONS[0] : POSITIONS[1], // 'A' -> 'A입장', 'B' -> 'B입장'
+          summary: apiSummary.summary,
+          timestamp: new Date() // 현재 시간으로 설정
+        }));
+        
+        console.log('[AI 요약] 매핑된 AI 요약들:', mappedSummaries);
+        
+        // 기존 AI 요약을 aiSummaries에 설정
+        setAiSummaries(mappedSummaries);
+        
+        toast.info(`기존 AI 요약 ${mappedSummaries.length}개를 불러왔습니다.`, {
+          position: 'bottom-right',
+          duration: 3000,
+        });
+      } else {
+        console.log('[AI 요약] 기존 AI 요약이 없습니다.');
+      }
+    } catch (error) {
+      console.error('[AI 요약] 기존 AI 요약 조회 실패:', error);
+      toast.error('기존 AI 요약을 불러오는데 실패했습니다.');
+    }
+  }, [debateRoomInfo.id]);
+
   // 토론방 입장 시 로직
   useEffect(() => {
     setHasEnteredRoom(true);
@@ -590,8 +625,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 await debateApi.sendSideInfo(debateRoomInfo.id, result.subjectId, userSide);
                 console.log('[토론방] 입장 정보 전송 완료:', { roomId: debateRoomInfo.id, subjectId: result.subjectId, side: userSide });
                 
-                // 토론방 입장 완료 후 기존 발언 내용 조회
+                // 토론방 입장 완료 후 기존 발언 내용 및 AI 요약 조회
                 await loadExistingSpeechMessages();
+                await loadExistingAiSummaries();
               } catch (error) {
                 console.error('[토론방] 입장 정보 전송 실패:', error);
               }
