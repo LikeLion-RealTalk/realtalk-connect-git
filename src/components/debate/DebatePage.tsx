@@ -20,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Menu, Users } from 'lucide-react';
 import { DebateRoomInfo } from '../../mock/debateRooms';
 import { MOCK_SPEAKERS, Speaker } from '../../mock/speakers';
-import { MOCK_AI_SUMMARIES } from '../../mock/aiSummaries';
 import { MOCK_CHAT_MESSAGES, ChatMessage } from '../../mock/chatMessages';
 import { MOCK_DEBATE_SUMMARIES } from '../../mock/debateSummaries';
 import { useWebSocket, getSpeechWebSocket } from '../../hooks/useWebSocket';
@@ -85,6 +84,24 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         // /sub/debate-room/{roomUUID}/side-stats 메시지 수신
         console.log('[사이드 통계] 메시지 수신:', message);
         setSideStats({ percentA: message.percentA, percentB: message.percentB });
+      } else if (message.summary && message.username && message.userId !== undefined) {
+        // /topic/ai/{roomUUID} AI 요약 메시지 수신
+        console.log('[AI 요약] 메시지 수신:', message);
+        
+        // 현재 참가자 목록에서 해당 사용자 찾기 (입장 정보를 얻기 위함)
+        const targetUser = speakers.find(speaker => speaker.id === message.userId.toString());
+        const userPosition = targetUser ? targetUser.position : POSITIONS[0]; // 기본값은 A입장
+        
+        const newAiSummary = {
+          id: `ai-summary-${Date.now()}-${Math.random()}`,
+          speakerName: message.username,
+          position: userPosition,
+          summary: message.summary,
+          timestamp: new Date()
+        };
+        
+        console.log('[AI 요약] 새 요약 생성:', newAiSummary);
+        setAiSummaries(prev => [...prev, newAiSummary]);
       }
     },
     onParticipantsUpdate: (participants) => {
@@ -561,34 +578,13 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   }, [isConnected, isLoggedIn, user?.id, isSpeechConnected]);
 
   const [speechMessages, setSpeechMessages] = useState([]);
-  const [aiSummaries, setAiSummaries] = useState(MOCK_AI_SUMMARIES);
+  const [aiSummaries, setAiSummaries] = useState([]);
   const [isGeneratingAISummary, setIsGeneratingAISummary] = useState(false);
   
   // 현재 발언자 추적 (웹소켓 데이터 기반)
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
 
 
-  // 새로운 발언에 대한 AI 요약 자동 생성 (다른 발언자들의 발언 포함)
-  useEffect(() => {
-    const existingSummaryIds = new Set(aiSummaries.map(summary => summary.id.replace('summary-', 'speech-')));
-    const newSpeeches = speechMessages.filter(speech => !existingSummaryIds.has(speech.id));
-    
-    if (newSpeeches.length > 0) {
-      setIsGeneratingAISummary(true);
-    }
-    
-    newSpeeches.forEach((speech, index) => {
-      // 각 발언마다 다른 지연 시간 적용 (2-5초 랜덤)
-      const summaryDelay = Math.random() * 3000 + 2000 + (index * 1000);
-      setTimeout(() => {
-        generateAISummaryForSpeech(speech);
-        // 마지막 요약이 생성되면 로딩 상태 해제
-        if (index === newSpeeches.length - 1) {
-          setTimeout(() => setIsGeneratingAISummary(false), 500);
-        }
-      }, summaryDelay);
-    });
-  }, [speechMessages, aiSummaries]);
 
   // 토론 종료 처리 함수
   const handleDebateEnd = useCallback(() => {
@@ -1171,67 +1167,6 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     }
   };
 
-  // AI 요약 자동 생성 함수 (외부 발언용)
-  const generateAISummaryForSpeech = useCallback((speech: any) => {
-    // 이미 요약이 존재하는지 확인
-    const existingSummary = aiSummaries.find(summary => 
-      summary.id === `summary-${speech.id.replace('speech-', '')}`
-    );
-    
-    if (existingSummary) {
-      return; // 이미 요약이 존재하면 생성하지 않음
-    }
-
-    const positionText = speech.position === POSITIONS[0] ? 'A입장' : 'B입장';
-    const content = speech.content;
-    
-    // 발언 내용의 키워드를 바탕으로 요약 생성
-    let summaryText = '';
-    
-    if (content.includes('장점') || content.includes('이점') || content.includes('좋은')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}의 장점과 긍정적 측면을 강조하며 논증했습니다.`;
-    } else if (content.includes('문제') || content.includes('단점') || content.includes('위험')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}에서 현재 상황의 문제점과 위험성을 지적했습니다.`;
-    } else if (content.includes('해결') || content.includes('방안') || content.includes('개선')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}에서 구체적인 해결방안과 개선책을 제시했습니다.`;
-    } else if (content.includes('예시') || content.includes('사례') || content.includes('경험')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}을 뒷받침하는 구체적 사례와 경험을 제시했습니다.`;
-    } else if (content.includes('반대') || content.includes('반박') || content.includes('비판')) {
-      summaryText = `${speech.speakerName}님이 상대방 논리에 대한 반박과 비판적 관점을 제시했습니다.`;
-    } else if (content.includes('데이터') || content.includes('통계') || content.includes('연구')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}을 뒷받침하는 객관적 데이터와 연구 결과를 제시했습니다.`;
-    } else if (content.includes('경제') || content.includes('비용') || content.includes('효율')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}의 경제적 측면과 효율성에 대해 분석했습니다.`;
-    } else if (content.includes('사회') || content.includes('공동체') || content.includes('사람')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}의 사회적 영향과 공동체에 미치는 효과를 강조했습니다.`;
-    } else if (content.includes('미래') || content.includes('전망') || content.includes('발전')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}의 미래 전망과 발전 가능성에 대해 논의했습니다.`;
-    } else if (content.includes('현실') || content.includes('실제') || content.includes('현장')) {
-      summaryText = `${speech.speakerName}님이 ${positionText}의 현실적 적용과 실제 상황을 고려한 관점을 제시했습니다.`;
-    } else {
-      // 기본 템플릿
-      const summaryTemplates = [
-        `${speech.speakerName}님이 ${positionText}에서 핵심 논점을 체계적으로 제시했습니다.`,
-        `${speech.speakerName}님의 발언에서 중요한 근거와 논리적 분석이 이루어졌습니다.`,
-        `${speech.speakerName}님이 ${positionText}의 관점에서 깊이 있는 분석을 제공했습니다.`,
-        `${speech.speakerName}님이 토론 주제에 대한 새로운 시각을 제시했습니다.`,
-        `${speech.speakerName}님이 ${positionText}의 논리적 근거를 명확히 설명했습니다.`,
-        `${speech.speakerName}님의 발언에서 설득력 있는 주장과 논증이 전개되었습니다.`
-      ];
-      summaryText = summaryTemplates[Math.floor(Math.random() * summaryTemplates.length)];
-    }
-    
-    const newSummary = {
-      id: `summary-${speech.id.replace('speech-', '')}`,
-      speakerName: speech.speakerName,
-      position: speech.position,
-      summary: summaryText,
-      timestamp: new Date()
-    };
-
-    setAiSummaries(prev => [...prev, newSummary]);
-    console.log('AI ���약 생성됨:', newSummary);
-  }, []);
 
   const handleToggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
