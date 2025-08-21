@@ -111,9 +111,13 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   });
   // 참여 모드: 입장 시 선택한 역할에 따라 결정 (토글 불가)
   const participationMode: ParticipationRole = debateRoomInfo.userRole === 'SPEAKER' ? PARTICIPATION_ROLES[0] : PARTICIPATION_ROLES[1];
-  const [currentPosition, setCurrentPosition] = useState<Position | null>(
-    debateRoomInfo.userPosition || null
-  );
+  const [currentPosition, setCurrentPosition] = useState<Position | null>(() => {
+    // JoinDiscussionModal에서 선택한 입장을 바로 사용
+    if (debateRoomInfo.userSelectedSide) {
+      return debateRoomInfo.userSelectedSide === 'A' ? POSITIONS[0] : POSITIONS[1];
+    }
+    return debateRoomInfo.userPosition || null;
+  });
   const [isRecording, setIsRecording] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
