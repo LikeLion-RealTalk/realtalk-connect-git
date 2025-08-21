@@ -34,6 +34,7 @@ let globalExpireSub: any = null;
 let globalSpeakerExpireSub: any = null;
 let globalSpeakerSub: any = null;
 let globalSideStatsSub: any = null;
+let globalAiSub: any = null;
 let globalIsConnected = false;
 let globalIsConnecting = false;
 let globalConnectInFlight = false;
@@ -152,6 +153,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       if (globalSpeakerSub) { 
         globalSpeakerSub.unsubscribe(); 
         globalSpeakerSub = null; 
+      }
+      if (globalAiSub) { 
+        globalAiSub.unsubscribe(); 
+        globalAiSub = null; 
       }
       if (globalStompClient && globalStompClient.connected) {
         await new Promise(res => globalStompClient.disconnect(res));
@@ -335,6 +340,10 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         globalSideStatsSub.unsubscribe(); 
         globalSideStatsSub = null; 
       }
+      if (globalAiSub) { 
+        globalAiSub.unsubscribe(); 
+        globalAiSub = null; 
+      }
     } catch (e) {
       console.warn('[웹소켓] 언서브 중 경고:', e);
     }
@@ -399,6 +408,11 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
       console.log('[웹소켓] 기존 사이드 통계 구독 정리');
       globalSideStatsSub.unsubscribe(); 
       globalSideStatsSub = null; 
+    }
+    if (globalAiSub) { 
+      console.log('[웹소켓] 기존 AI 구독 정리');
+      globalAiSub.unsubscribe(); 
+      globalAiSub = null; 
     }
 
     return new Promise((resolve) => {
@@ -502,6 +516,22 @@ export const useWebSocket = (options: WebSocketHookOptions = {}) => {
         console.log('[웹소켓][사이드 통계] 메시지 수신:', payload);
         
         // 사이드 통계 메시지를 모든 컴포넌트에 전달
+        globalMessageCallbacks.forEach(cb => cb(payload));
+      });
+
+      const topicAi = `/topic/ai/${roomId}`;
+      console.log('[웹소켓] 구독 시작5:', topicAi);
+      globalAiSub = globalStompClient.subscribe(topicAi, function (message: any) {
+        let payload;
+        try {
+          payload = JSON.parse(message.body);
+        } catch (e) {
+          console.error('[웹소켓][AI] JSON 파싱 실패:', e, message.body);
+          return;
+        }
+        console.log('[웹소켓][AI] 메시지 수신:', payload);
+        
+        // AI 메시지를 모든 컴포넌트에 전달
         globalMessageCallbacks.forEach(cb => cb(payload));
       });
 
