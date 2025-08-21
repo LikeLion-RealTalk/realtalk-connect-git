@@ -15,6 +15,7 @@ interface JoinDiscussionModalProps {
   discussion: Discussion | null;
   onJoin: (discussionId: string, nickname: string, role: UserRole, participationMode?: ParticipationRole) => void;
   onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string, userSelectedSide: 'A' | 'B' }) => void;
+  isDirectLink?: boolean;
 }
 
 export function JoinDiscussionModal({ 
@@ -22,7 +23,8 @@ export function JoinDiscussionModal({
   onClose, 
   discussion, 
   onJoin,
-  onNavigate
+  onNavigate,
+  isDirectLink = false
 }: JoinDiscussionModalProps) {
   const { isLoggedIn } = useUser();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -164,6 +166,7 @@ export function JoinDiscussionModal({
   const isSpeakerFull = discussion.speakers.current >= discussion.speakers.max;
   const isAudienceFull = discussion.audience.current >= discussion.audience.max;
   const canJoin = discussion.status !== DISCUSSION_STATUSES[2]; // '종료됨'
+  const isSpeakerDisabledForDirectLink = isDirectLink; // 직접 링크로 들어온 경우 발언자 비활성화
 
   return (
     <>
@@ -212,11 +215,13 @@ export function JoinDiscussionModal({
                     <div className="flex flex-col gap-2">
                       <Button
                         onClick={handleJoinAsSpeaker}
-                        disabled={isSpeakerFull}
+                        disabled={isSpeakerFull || isSpeakerDisabledForDirectLink}
                         className="w-full"
+                        title={isSpeakerDisabledForDirectLink ? "링크로 들어온 사용자는 청중으로만 참여할 수 있습니다" : undefined}
                       >
                         발언자로 참여하기
                         {isSpeakerFull && ' (정원 초과)'}
+                        {isSpeakerDisabledForDirectLink && ' (로그인 필요)'}
                       </Button>
                       <Button
                         variant="outline"
@@ -232,6 +237,11 @@ export function JoinDiscussionModal({
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>• 발언자: 토론에 직접 발언할 수 있습니다</p>
                       <p>• 청중: 토론을 관찰하고 채팅으로 참여할 수 있습니다</p>
+                      {isDirectLink && (
+                        <p className="text-orange-600 dark:text-orange-400 font-medium">
+                          ⚠️ 링크로 들어온 사용자는 발언자로 참여하려면 별도 로그인이 필요합니다
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}

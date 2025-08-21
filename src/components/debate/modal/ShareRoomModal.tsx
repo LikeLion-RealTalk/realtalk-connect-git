@@ -14,7 +14,7 @@ interface ShareRoomModalProps {
 
 export function ShareRoomModal({ isOpen, onClose, roomId }: ShareRoomModalProps) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = `https://realtalks.co.kr/debate/share/${roomId}`;
+  const shareUrl = `https://www.realtalks.co.kr/${roomId}`;
 
   const handleCopyUrl = async () => {
     try {

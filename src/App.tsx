@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { TopNav } from './components/TopNav';
 import { HeroSection } from './components/HeroSection';
@@ -32,6 +32,26 @@ function AppWithPermissions() {
   const [currentPage, setCurrentPage] = useState<'landing' | 'browser' | 'debate'>('landing');
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
+  const [directLinkRoomId, setDirectLinkRoomId] = useState<string | null>(null);
+
+  // URL에서 roomUUID 감지 및 처리
+  useEffect(() => {
+    const checkURLForRoomId = () => {
+      const path = window.location.pathname;
+      const roomUUIDPattern = /^\/([a-f0-9-]{36})$/; // UUID 패턴 매칭
+      const match = path.match(roomUUIDPattern);
+      
+      if (match) {
+        const roomUUID = match[1];
+        console.log('[직접 링크] roomUUID 감지:', roomUUID);
+        setDirectLinkRoomId(roomUUID);
+        // browser 페이지로 이동하여 JoinDiscussionModal을 띄울 준비
+        setCurrentPage('browser');
+      }
+    };
+
+    checkURLForRoomId();
+  }, []);
 
   const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string, userSelectedSide?: 'A' | 'B' }) => {
     if (page !== currentPage) {
@@ -168,6 +188,8 @@ function AppWithPermissions() {
               <BrowserPage
                   onNavigate={handleNavigate}
                   onJoinDebate={handleJoinExistingDebate}
+                  directLinkRoomId={directLinkRoomId}
+                  onDirectLinkProcessed={() => setDirectLinkRoomId(null)}
               />
             </BrowserLayout>
         )}

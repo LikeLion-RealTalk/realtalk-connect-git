@@ -18,9 +18,11 @@ import { toast } from "sonner";
 interface BrowserPageProps {
   onNavigate?: (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: any) => void;
   onJoinDebate?: () => void;
+  directLinkRoomId?: string | null;
+  onDirectLinkProcessed?: () => void;
 }
 
-export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
+export function BrowserPage({ onNavigate, onJoinDebate, directLinkRoomId, onDirectLinkProcessed }: BrowserPageProps) {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [filteredDiscussions, setFilteredDiscussions] = useState<Discussion[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +37,10 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedSummary, setSelectedSummary] = useState<DebateSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  
+  // 직접 링크 처리를 위한 상태
+  const [directLinkDiscussion, setDirectLinkDiscussion] = useState<Discussion | null>(null);
+  const [isDirectLink, setIsDirectLink] = useState(false);
   
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const discussionsPerPage = 6;
@@ -182,6 +188,51 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
       stopPolling();
     };
   }, []);
+
+  // 직접 링크 처리
+  useEffect(() => {
+    const handleDirectLink = async () => {
+      if (directLinkRoomId) {
+        try {
+          console.log('[직접 링크] roomId로 토론방 정보 조회:', directLinkRoomId);
+          const roomData = await debateApi.getDebateRoom(directLinkRoomId);
+          
+          // API 응답을 Discussion 형태로 변환
+          const discussion: Discussion = {
+            id: roomData.roomId,
+            type: roomData.debateType === 'FAST' ? '3분토론' : '일반토론',
+            status: roomData.status === 'waiting' ? '대기중' : roomData.status === 'started' ? '진행중' : '종료됨',
+            title: roomData.title,
+            category: roomData.category?.id ? getCategoryName(roomData.category.id) : '💬자유 주제',
+            timeStatus: roomData.elapsedSeconds ? `${Math.floor(roomData.elapsedSeconds / 60)}분 째 진행중` : '곧 시작',
+            speakers: { 
+              current: roomData.currentSpeaker || 0, 
+              max: roomData.maxSpeaker || 0 
+            },
+            audience: { 
+              current: roomData.currentAudience || 0, 
+              max: roomData.maxAudience || 0 
+            },
+            sideA: roomData.sideA,
+            sideB: roomData.sideB
+          };
+
+          setDirectLinkDiscussion(discussion);
+          setIsDirectLink(true);
+          setIsJoinModalOpen(true);
+          
+          if (onDirectLinkProcessed) {
+            onDirectLinkProcessed();
+          }
+        } catch (error) {
+          console.error('[직접 링크] 토론방 정보 조회 실패:', error);
+          toast.error('존재하지 않는 토론방이거나 접근할 수 없습니다.');
+        }
+      }
+    };
+
+    handleDirectLink();
+  }, [directLinkRoomId, onDirectLinkProcessed]);
 
   useEffect(() => {
     let filtered = discussions;
@@ -363,10 +414,15 @@ export function BrowserPage({ onNavigate, onJoinDebate }: BrowserPageProps) {
 
       <JoinDiscussionModal
         isOpen={isJoinModalOpen}
-        onClose={() => setIsJoinModalOpen(false)}
-        discussion={selectedDiscussion}
+        onClose={() => {
+          setIsJoinModalOpen(false);
+          setIsDirectLink(false);
+          setDirectLinkDiscussion(null);
+        }}
+        discussion={isDirectLink ? directLinkDiscussion : selectedDiscussion}
         onJoin={handleJoinConfirm}
         onNavigate={onNavigate}
+        isDirectLink={isDirectLink}
       />
 
       <CreateDiscussionModal
