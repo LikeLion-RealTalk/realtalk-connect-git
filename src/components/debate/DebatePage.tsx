@@ -579,9 +579,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       // userSelectedSide를 사용해서 A입장/B입장 매핑
       const mappedPosition = debateRoomInfo.userSelectedSide === 'A' ? POSITIONS[0] : POSITIONS[1];
       setCurrentPosition(mappedPosition);
+      console.log('[토론방] 입장 설정 완료:', { userSelectedSide: debateRoomInfo.userSelectedSide, mappedPosition });
     } else {
-      // 청중으로 참여하는 경우 기본 입장을 null로 설정
-      setCurrentPosition(null);
+      console.log('[토론방] userSelectedSide가 없음:', debateRoomInfo.userSelectedSide);
+      // 이미 useState 초기값에서 설정했으므로 여기서는 null로 설정하지 않음
     }
   }, [debateRoomInfo.userSelectedSide, debateRoomInfo.id]);
 
@@ -914,8 +915,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
         // 현재 변경된 입장을 기반으로 side 계산
         const userSide: 'A' | 'B' = currentPosition === POSITIONS[0] ? 'A' : 'B';
-        console.log('[발언] currentPosition:', currentPosition);
-        console.log('[발언] 계산된 userSide:', userSide);
+        console.log('[발언] 디버깅 정보:', {
+          currentPosition,
+          'POSITIONS[0]': POSITIONS[0],
+          'POSITIONS[1]': POSITIONS[1],
+          'currentPosition === POSITIONS[0]': currentPosition === POSITIONS[0],
+          'debateRoomInfo.userSelectedSide': debateRoomInfo.userSelectedSide,
+          '계산된 userSide': userSide
+        });
         
         const speechMessage = {
           roomUUID: debateRoomInfo.id,
