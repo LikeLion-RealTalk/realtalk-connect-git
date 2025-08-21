@@ -833,11 +833,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     if (participationMode === PARTICIPATION_ROLES[0] && user?.id && debateRoomInfo.userPosition) {
       // 채팅 모드인 경우 웹소켓으로 서버에 전송
       if (type === SPEECH_INPUT_TYPES[1] && isConnected) { // 'text' 모드
-        // 사용자가 선택한 A/B 입장 사용 (확실함)
-        console.log('[발언] userSelectedSide:', debateRoomInfo.userSelectedSide);
-        console.log('[발언] userPosition:', debateRoomInfo.userPosition);
-        
-        const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
+        // 현재 변경된 입장을 기반으로 side 계산
+        const userSide: 'A' | 'B' = currentPosition === POSITIONS[0] ? 'A' : 'B';
+        console.log('[발언] currentPosition:', currentPosition);
         console.log('[발언] 계산된 userSide:', userSide);
         
         const speechMessage = {
@@ -906,7 +904,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       });
 
       // 1. STOMP로 제어 신호 전송
-      const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
+      const userSide: 'A' | 'B' = currentPosition === POSITIONS[0] ? 'A' : 'B';
       const voiceControlMessage = {
         roomUUID: debateRoomInfo.id,
         userId: user.id,
@@ -995,7 +993,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[음성 녹음] 녹음 시작 실패:', error);
       toast.error('마이크 권한이 필요합니다');
     }
-  }, [isConnected, isSpeechConnected, user?.id, debateRoomInfo.id, sendMessage]);
+  }, [isConnected, isSpeechConnected, user?.id, debateRoomInfo.id, sendMessage, currentPosition]);
 
   // 음성 녹음 완료 함수
   const finishRecording = useCallback(() => {
@@ -1005,7 +1003,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.log('[음성 녹음] 녹음 완료 요청');
 
       // 1. STOMP로 종료 신호
-      const userSide: 'A' | 'B' = debateRoomInfo.userSelectedSide || 'A';
+      const userSide: 'A' | 'B' = currentPosition === POSITIONS[0] ? 'A' : 'B';
       const voiceControlMessage = {
         roomUUID: debateRoomInfo.id,
         userId: user.id,
@@ -1044,7 +1042,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[음성 녹음] 녹음 완료 실패:', error);
       toast.error('녹음 완료 중 오류가 발생했습니다');
     }
-  }, [user?.id, debateRoomInfo.id, sendMessage, mediaStream]);
+  }, [user?.id, debateRoomInfo.id, sendMessage, mediaStream, currentPosition]);
 
   const handleToggleRecording = () => {
     if (isRecording) {
