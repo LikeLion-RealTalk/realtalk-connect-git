@@ -224,7 +224,8 @@ export function CreateDiscussionModal({
         if (onNavigate) {
           onNavigate('debate', roomId, {
             userRole: 'SPEAKER',
-            userPosition: selectedUserPosition
+            userPosition: selectedUserPosition,
+            userSelectedSide: selectedSide
           });
         }
         
