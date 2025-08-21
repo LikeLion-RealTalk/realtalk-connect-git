@@ -112,7 +112,10 @@ export function CreateDiscussionModal({
 
   // 토론 주제 입력 필드 포커스 핸들러
   const handleTitleInputFocus = () => {
-    loadDebateTopics();
+    // 입력 필드가 비어있을 때만 추천 주제 표시
+    if (formData.title.trim() === '') {
+      loadDebateTopics();
+    }
   };
 
   // 토론 주제 입력 필드 블러 핸들러 (지연 처리로 클릭 이벤트 허용)
@@ -151,6 +154,11 @@ export function CreateDiscussionModal({
 
   const handleInputChange = (field: keyof DiscussionData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // 토론 주제 입력 시 추천 메뉴 숨기기
+    if (field === 'title' && typeof value === 'string' && value.length > 0) {
+      setShowTopicSuggestions(false);
+    }
   };
 
   const handleDurationChange = (value: number[]) => {
