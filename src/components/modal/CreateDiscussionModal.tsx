@@ -336,7 +336,7 @@ export function CreateDiscussionModal({
           
           {/* 스크롤 가능한 콘텐츠 영역 */}
           <div className="flex-1 overflow-y-auto bg-background">
-            <div className="space-y-6 p-4 pb-24">{/* 하단 버튼 공간 확보 */}
+            <div className="space-y-6 p-4 pb-32">{/* 하단 버튼 공간 확보 (24 -> 32) */}
             {/* 토론 주제 */}
             <div className="space-y-2 relative">
               <Label htmlFor="title">토론 주제 *</Label>
@@ -632,7 +632,7 @@ export function CreateDiscussionModal({
           </div>
 
           {/* 고정된 하단 버튼 영역 */}
-          <div className="flex-shrink-0 bg-surface border-t border-divider elevation-4 p-4 safe-bottom">
+          <div className="flex-shrink-0 bg-surface border-t border-divider elevation-4 p-4 pb-6 safe-bottom">
             <div className="flex gap-3">
               <Button
                 variant="outline"
