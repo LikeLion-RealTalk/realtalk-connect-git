@@ -53,7 +53,7 @@ export function AiSummaryLoadingModal({ isOpen, onComplete }: AiSummaryLoadingMo
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-md mx-4" hideCloseButton>
+      <DialogContent className="max-w-md" hideCloseButton>
         <div className="flex flex-col items-center justify-center py-8 space-y-6">
           {/* AI 아이콘과 제목 */}
           <div className="flex flex-col items-center space-y-4">
