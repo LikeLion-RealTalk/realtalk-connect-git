@@ -23,6 +23,7 @@ import { MOCK_SPEAKERS, Speaker } from '../../mock/speakers';
 import { MOCK_CHAT_MESSAGES, ChatMessage } from '../../mock/chatMessages';
 import { MOCK_DEBATE_SUMMARIES } from '../../mock/debateSummaries';
 import { useWebSocket, getSpeechWebSocket } from '../../hooks/useWebSocket';
+import { useWebRTC } from '../../hooks/useWebRTC';
 import { AiDebateSummaryModal } from '../modal/AiDebateSummaryModal';
 import { AiSummaryLoadingModal } from '../modal/AiSummaryLoadingModal';
 import { Position, ParticipationRole, SpeechInputType, PARTICIPATION_ROLES, POSITIONS, SPEECH_INPUT_TYPES } from '../../types/discussion';
@@ -38,6 +39,28 @@ interface DebatePageProps {
 export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageProps) {
   const { nickname, isLoggedIn, user } = useUser();
   const [debateSummary, setDebateSummary] = useState(null);
+  
+  // 화상회의 모드 판별 (URL 파라미터 또는 제목으로 구분)
+  const urlParams = new URLSearchParams(window.location.search);
+  const isVideoMode = urlParams.get('video') === 'true' || debateRoomInfo.title.startsWith('video-');
+  const videoRoomId = urlParams.get('room') || (debateRoomInfo.title.startsWith('video-') ? debateRoomInfo.title.replace('video-', '') : null);
+  const videoUsername = urlParams.get('name') || user?.name || user?.email || 'User';
+  
+  // WebRTC Hook 초기화 (화상회의 모드일 때만)
+  const {
+    localStream,
+    remoteUsers,
+    isVideoEnabled,
+    isAudioEnabled,
+    connectionStatus,
+    toggleVideo,
+    toggleAudio,
+    disconnect: disconnectWebRTC
+  } = useWebRTC({
+    roomId: videoRoomId || '',
+    username: videoUsername,
+    isEnabled: isVideoMode
+  });
   
   // 웹소켓 훅 초기화
   const { sendChatMessage, sendMessage, isConnected, isSpeechConnected, connectSpeechWebSocket, subscribeExpire, subscribeSpeakerExpire, joinRoom, disconnect } = useWebSocket({
@@ -1341,25 +1364,27 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
         {/* 메인 컨텐츠 영역 */}
         <div className="flex-1 flex h-[calc(100vh-64px)] lg:h-[calc(100vh-64px-48px)]">
-          {/* 데스크톱 왼쪽 사이드바 - 1/4 너비 */}
-          <div className="hidden lg:block lg:w-1/4 border-r border-divider">
-            <SpeakersSidebar
-              speakers={speakers}
-              debateStartTime={debateStartTime}
-              isDebateStarted={isDebateStarted}
-              onStartDebate={handleStartDebate}
-              onLeaveRoom={handleLeaveRoom}
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={handleToggleSidebar}
-              isOpen={false}
-              onClose={() => {}}
-              isRoomOwner={isRoomOwner}
-              roomStatus={roomStatus}
-            />
-          </div>
+          {/* 데스크톱 왼쪽 사이드바 - 화상회의 모드가 아닐 때만 표시 */}
+          {!isVideoMode && (
+            <div className="hidden lg:block lg:w-1/4 border-r border-divider">
+              <SpeakersSidebar
+                speakers={speakers}
+                debateStartTime={debateStartTime}
+                isDebateStarted={isDebateStarted}
+                onStartDebate={handleStartDebate}
+                onLeaveRoom={handleLeaveRoom}
+                isCollapsed={isSidebarCollapsed}
+                onToggleCollapse={handleToggleSidebar}
+                isOpen={false}
+                onClose={() => {}}
+                isRoomOwner={isRoomOwner}
+                roomStatus={roomStatus}
+              />
+            </div>
+          )}
 
-          {/* 모바일 사이드바 토글 버튼 (숨김 상태일 때 화면에 표시) */}
-          {!isMobileSidebarOpen && (
+          {/* 모바일 사이드바 토글 버튼 - 화상회의 모드가 아닐 때만 */}
+          {!isVideoMode && !isMobileSidebarOpen && (
             <div className="lg:hidden fixed left-0 top-1/2 -translate-y-1/2 z-30">
               <Button
                 onClick={handleToggleMobileSidebar}
@@ -1370,8 +1395,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
             </div>
           )}
 
-          {/* 모바일 사이드바 오버레이 (조건부 렌더링) */}
-          {isMobileSidebarOpen && (
+          {/* 모바일 사이드바 오버레이 - 화상회의 모드가 아닐 때만 */}
+          {!isVideoMode && isMobileSidebarOpen && (
             <div className="lg:hidden">
               <SpeakersSidebar
                 speakers={speakers}
@@ -1389,10 +1414,141 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
             </div>
           )}
 
-          {/* 중앙 토론 영역 - 데스크톱: 2/4 너비, 모바일: 전체 너비 */}
-          <div className="flex-1 lg:w-2/4 h-full flex flex-col bg-background">
-            {/* 데스크톱 레이아웃 */}
-            <div className="hidden lg:flex lg:flex-col h-full">
+          {/* 중앙 토론 영역 - 화상회의 모드: 전체 너비, 일반 모드: 데스크톱 2/4 너비, 모바일 전체 너비 */}
+          <div className={`flex-1 ${isVideoMode ? 'w-full' : 'lg:w-2/4'} h-full flex flex-col bg-background`}>
+            
+            {/* 화상회의 모드 레이아웃 */}
+            {isVideoMode ? (
+              <div className="flex flex-col h-full">
+                {/* 연결 상태 */}
+                <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3">
+                  <div className="text-center">
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+                      connectionStatus === 'connecting' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {connectionStatus === 'connected' ? '연결됨' : 
+                       connectionStatus === 'connecting' ? '연결 중...' : '연결 실패'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 비디오 그리드 */}
+                <div className="flex-1 p-4">
+                  <div className={`
+                    grid gap-4 h-full
+                    ${remoteUsers.size + 1 === 1 ? 'grid-cols-1' :
+                      remoteUsers.size + 1 === 2 ? 'grid-cols-2' :
+                      remoteUsers.size + 1 <= 4 ? 'grid-cols-2 grid-rows-2' :
+                      'grid-cols-3 grid-rows-2'
+                    }
+                  `}>
+                    {/* 로컬 비디오 */}
+                    <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                      {localStream ? (
+                        <video
+                          ref={(video) => {
+                            if (video && localStream) {
+                              video.srcObject = localStream;
+                            }
+                          }}
+                          autoPlay
+                          muted
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <span className="text-2xl font-bold">
+                                {videoUsername.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="text-sm">카메라 연결 중...</div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm font-medium">
+                        {videoUsername} (나)
+                      </div>
+                      {!isVideoEnabled && (
+                        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                          <div className="text-white text-center">
+                            <div className="text-3xl mb-2">📹</div>
+                            <div className="text-sm">비디오 꺼짐</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 원격 비디오들 */}
+                    {Array.from(remoteUsers.values()).map((remoteUser) => (
+                      <div key={remoteUser.userId} className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                        {remoteUser.stream ? (
+                          <video
+                            ref={(video) => {
+                              if (video && remoteUser.stream) {
+                                video.srcObject = remoteUser.stream;
+                              }
+                            }}
+                            autoPlay
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
+                            <div className="text-center">
+                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-2xl font-bold">
+                                  {remoteUser.username.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="text-sm">연결 중...</div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm font-medium">
+                          {remoteUser.username}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 미디어 컨트롤 */}
+                <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
+                  <div className="flex justify-center items-center gap-4">
+                    <button
+                      onClick={toggleVideo}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors ${
+                        isVideoEnabled ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-500 hover:bg-red-600'
+                      }`}
+                    >
+                      <span className="text-xl">📹</span>
+                    </button>
+                    <button
+                      onClick={toggleAudio}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors ${
+                        isAudioEnabled ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-500 hover:bg-red-600'
+                      }`}
+                    >
+                      <span className="text-xl">🎤</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        disconnectWebRTC();
+                        onGoBack?.();
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors"
+                    >
+                      나가기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* 일반 토론 모드 레이아웃 */
+              <div className="hidden lg:flex lg:flex-col h-full">
               {/* 상단 고정 영역 */}
               <div className="flex-shrink-0 border-b border-divider elevation-1" id="debate-fixed-header">
                 <DebateInfo
@@ -1594,9 +1750,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               </div>
             </div>
           </div>
+            )} {/* 일반 토론 모드 끝 */}
 
-          {/* 우측 영역 - 1/4 너비, 데스크톱에서만 표시 */}
-          <div className="hidden lg:flex lg:flex-col lg:w-1/4 h-full border-l border-divider bg-surface elevation-1">
+          {/* 우측 영역 - 1/4 너비, 데스크톱에서만 표시, 화상회의 모드가 아닐 때만 */}
+          {!isVideoMode && (
+            <div className="hidden lg:flex lg:flex-col lg:w-1/4 h-full border-l border-divider bg-surface elevation-1">
             {/* AI 요약 영역 - 리사이즈 가능한 높이 */}
             <div className="flex-shrink-0 bg-surface-variant/30" style={{ height: `${aiSummaryHeight}px` }}>
               <AISummary summaries={aiSummaries} isGenerating={isGeneratingAISummary} />
@@ -1620,6 +1778,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
 

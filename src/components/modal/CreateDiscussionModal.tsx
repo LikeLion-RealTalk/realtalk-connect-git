@@ -57,6 +57,7 @@ export function CreateDiscussionModal({
     maxAudience: 20
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [isVideoMode, setIsVideoMode] = useState(false); // 화상회의 모드 토글
   
   // 토론 주제 추천 관련 상태
   const [debateTopics, setDebateTopics] = useState<Array<{id: number, title: string}>>([]);
@@ -199,7 +200,64 @@ export function CreateDiscussionModal({
     return formData.position === 'A입장' ? formData.aPosition : formData.bPosition;
   };
 
+  // 화상회의 방 생성 핸들러
+  const handleCreateVideoRoom = async () => {
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    if (isCreating) return; // 중복 호출 방지
+
+    setIsCreating(true);
+    
+    try {
+      // 4자리 랜덤 방 번호 생성
+      const videoRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+      
+      // 화상회의용 페이로드 (기존 API 활용)
+      const requestData = {
+        userId: user.id,
+        title: `video-${videoRoomId}`,
+        debateDescription: `video-${videoRoomId}`,
+        category: { id: 0 },
+        sideA: `video-${videoRoomId}`,
+        sideB: `video-${videoRoomId}`,
+        debateType: 'NORMAL',
+        durationSeconds: 0,
+        maxSpeaker: 0,
+        maxAudience: 0
+      };
+
+      console.log('[화상토론방 생성] API 호출 시작, videoRoomId:', videoRoomId);
+      
+      // 토론방 생성 API 호출 (화상회의용)
+      const createdRoom = await debateApi.createDebateRoom(requestData);
+      console.log('[화상토론방 생성] API 응답:', createdRoom);
+      
+      // 성공 시 화상채팅 페이지로 이동
+      const userName = user.name || user.email || 'User';
+      window.location.href = `/debate/${createdRoom.roomId || createdRoom.id}?video=true&room=${videoRoomId}&name=${encodeURIComponent(userName)}`;
+      
+      toast.success('화상토론방이 생성되었습니다!');
+      handleClose();
+      
+    } catch (error) {
+      console.error('[화상토론방 생성] 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '화상토론방 생성에 실패했습니다.';
+      toast.error(errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleSubmit = async () => {
+    // 화상회의 모드일 때는 화상토론방 생성
+    if (isVideoMode) {
+      await handleCreateVideoRoom();
+      return;
+    }
+
     // 필수 필드 검증
     if (!formData.title.trim() || !selectedCategoryId) {
       toast.error('모든 필수 항목을 입력해주세요.');
@@ -312,6 +370,7 @@ export function CreateDiscussionModal({
       maxSpeakers: 2,
       maxAudience: 20
     });
+    setIsVideoMode(false); // 화상회의 모드 초기화
   };
 
   const currentPositionText = getCurrentPositionText();
@@ -337,6 +396,35 @@ export function CreateDiscussionModal({
           {/* 스크롤 가능한 콘텐츠 영역 */}
           <div className="flex-1 overflow-y-auto bg-background">
             <div className="space-y-6 p-4 pb-32">{/* 하단 버튼 공간 확보 (24 -> 32) */}
+            
+            {/* 화상회의 토글 */}
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📹</span>
+                <div>
+                  <Label className="font-medium">화상회의로 전환</Label>
+                  <p className="text-xs text-muted-foreground">화상채팅으로 실시간 대화</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVideoMode(!isVideoMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isVideoMode ? 'bg-primary' : 'bg-input'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
+                    isVideoMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* 기존 폼들 - 화상회의 모드일 때 비활성화 */}
+            <div className={`space-y-6 transition-all duration-300 ${
+              isVideoMode ? 'opacity-50 pointer-events-none' : 'opacity-100'
+            }`}>
             {/* 토론 주제 */}
             <div className="space-y-2 relative">
               <Label htmlFor="title">토론 주제 *</Label>
@@ -629,6 +717,8 @@ export function CreateDiscussionModal({
               </RadioGroup>
             </div>
             </div>
+            </div> {/* 기존 폼들 div 닫기 */}
+            </div>
           </div>
 
           {/* 고정된 하단 버튼 영역 */}
@@ -643,10 +733,10 @@ export function CreateDiscussionModal({
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={!isValid}
+                disabled={isVideoMode ? false : !isValid}
                 className="flex-1 h-12"
               >
-                만들기
+                {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
               </Button>
             </div>
           </div>
@@ -669,6 +759,35 @@ export function CreateDiscussionModal({
         {/* 스크롤 가능한 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto px-1">
           <div className="space-y-6 py-4">
+            
+            {/* 화상회의 토글 */}
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📹</span>
+                <div>
+                  <Label className="font-medium">화상회의로 전환</Label>
+                  <p className="text-xs text-muted-foreground">화상채팅으로 실시간 대화</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVideoMode(!isVideoMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isVideoMode ? 'bg-primary' : 'bg-input'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
+                    isVideoMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* 기존 폼들 - 화상회의 모드일 때 비활성화 */}
+            <div className={`space-y-6 transition-all duration-300 ${
+              isVideoMode ? 'opacity-50 pointer-events-none' : 'opacity-100'
+            }`}>
             {/* 토론 주제 */}
             <div className="space-y-2 relative">
               <Label htmlFor="title">토론 주제 *</Label>
@@ -960,6 +1079,7 @@ export function CreateDiscussionModal({
                 ))}
               </RadioGroup>
             </div>
+            </div> {/* 기존 폼들 div 닫기 */}
           </div>
         </div>
 
@@ -974,10 +1094,10 @@ export function CreateDiscussionModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!isValid}
+            disabled={isVideoMode ? false : !isValid}
             className="flex-1"
           >
-            만들기
+            {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
           </Button>
         </div>
       </DialogContent>
