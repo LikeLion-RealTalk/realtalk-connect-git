@@ -49,10 +49,15 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // WebSocket 연결
   const connectWebSocket = useCallback(() => {
-    if (!isEnabled || !roomId || !username) return;
+    if (!isEnabled || !roomId || !username) {
+      console.log('WebRTC 연결 조건 미충족:', { isEnabled, roomId, username });
+      return;
+    }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//api.realtalks.co.kr:8443/signal`;
+    
+    console.log('WebRTC WebSocket 연결 시도:', { wsUrl, roomId, username });
     
     socketRef.current = new WebSocket(wsUrl);
     userIdRef.current = `${username}-${Math.random().toString(36).substr(2, 5)}`;
@@ -61,12 +66,16 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       console.log('WebRTC WebSocket 연결됨');
       setConnectionStatus('connecting');
       
-      // 방 입장 요청
-      socketRef.current?.send(JSON.stringify({
+      const joinMessage = {
         type: 'join-room',
         roomId: roomId,
         userId: userIdRef.current
-      }));
+      };
+      
+      console.log('방 입장 메시지 전송:', joinMessage);
+      
+      // 방 입장 요청
+      socketRef.current?.send(JSON.stringify(joinMessage));
     };
 
     socketRef.current.onmessage = async (event) => {
@@ -173,7 +182,8 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // 피어 연결 생성
   const createPeerConnection = useCallback(async (remoteUserId: string, shouldOffer: boolean) => {
-    if (!localStream) return;
+    const currentLocalStream = localStream;
+    if (!currentLocalStream) return;
 
     console.log(`피어 연결 생성: ${remoteUserId}, offer: ${shouldOffer}`);
 
@@ -181,8 +191,8 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     peerConnectionsRef.current.set(remoteUserId, pc);
 
     // 로컬 스트림 추가
-    localStream.getTracks().forEach(track => {
-      pc.addTrack(track, localStream);
+    currentLocalStream.getTracks().forEach(track => {
+      pc.addTrack(track, currentLocalStream);
     });
 
     // 원격 스트림 수신
@@ -230,7 +240,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         offer: offer
       }));
     }
-  }, [localStream]);
+  }, []);
 
   // Offer 처리
   const handleOffer = useCallback(async (data: any) => {
