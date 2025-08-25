@@ -24,6 +24,7 @@ import {
 } from '../../types/discussion';
 import { categoryApi, debateApi } from '../../lib/api/apiClient';
 import { useUser } from '../UserProvider';
+import { DebateRoomInfo } from '../../mock/debateRooms';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { toast } from "sonner";
 
@@ -296,7 +297,27 @@ export function CreateDiscussionModal({
         console.log('[화상토론방 생성] API 응답:', createdRoom);
 
         // 화상토론방으로 이동
-        onNavigate('debate', createdRoom.id, {
+        const videoDebateRoom: DebateRoomInfo = {
+          id: createdRoom.id,
+          title: `video-${videoRoomId}`, // video- prefix 포함
+          category: '화상토론',
+          debateType: '화상토론',
+          isCreatedByUser: true,
+          userPosition: 'A입장',
+          userRole: 'SPEAKER',
+          aDescription: 'A입장입니다.',
+          bDescription: 'B입장입니다.',
+          creator: { name: user.name || user.email },
+          duration: 0,
+          maxSpeakers: 0,
+          maxAudience: 0,
+          currentSpeakers: 1,
+          currentAudience: 0,
+          startTime: new Date(),
+          remainingTime: 0
+        };
+        
+        onNavigate('debate', videoDebateRoom, {
           userRole: 'SPEAKER',
           userPosition: 'A입장'
         });

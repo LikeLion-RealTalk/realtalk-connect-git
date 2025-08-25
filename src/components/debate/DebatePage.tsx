@@ -46,6 +46,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const videoRoomId = urlParams.get('room') || (debateRoomInfo.title.startsWith('video-') ? debateRoomInfo.title.replace('video-', '') : null);
   const videoUsername = urlParams.get('name') || user?.name || user?.email || 'User';
   
+  console.log('DebatePage - Video Mode Debug:', {
+    urlParams: Object.fromEntries(urlParams.entries()),
+    debateRoomTitle: debateRoomInfo.title,
+    isVideoMode,
+    videoRoomId,
+    videoUsername
+  });
+  
   // WebRTC Hook 초기화 (화상회의 모드일 때만)
   const {
     localStream,
