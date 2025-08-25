@@ -254,7 +254,7 @@ export function CreateDiscussionModal({
 
   const handleSubmit = async () => {
     // 화상회의 모드일 때는 화상토론방 생성
-    if (isVideoMode) {
+    if (formData.debateType === '화상토론') {
       await handleCreateVideoRoom();
       return;
     }
@@ -1081,10 +1081,10 @@ export function CreateDiscussionModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isVideoMode ? false : !isValid}
+            disabled={formData.debateType === '화상토론' ? false : !isValid}
             className="flex-1"
           >
-            {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
+            {formData.debateType === '화상토론' ? '화상토론방 만들기' : '토론방 만들기'}
           </Button>
         </div>
         </div>
