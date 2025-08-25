@@ -54,19 +54,49 @@ function AppWithPermissions() {
       const path = window.location.pathname;
       const search = window.location.search;
       
-      // /debate/{uuid} 패턴 체크 - 모든 토론방은 일단 browser로 보내서 실제 정보 확인
+      // /debate/{uuid}?video=true 패턴 체크 - 화상토론방 직접 입장
       const debateRoomPattern = /^\/debate\/([a-f0-9-]{36})$/;
       const debateMatch = path.match(debateRoomPattern);
       
       if (debateMatch) {
         const roomUUID = debateMatch[1];
         const urlParams = new URLSearchParams(search);
+        const isVideoMode = urlParams.get('video') === 'true';
         
-        console.log('[직접 링크] debate room 감지:', { roomUUID, search });
+        console.log('[직접 링크] debate room 감지:', { roomUUID, isVideoMode, search });
         
-        // 모든 /debate/{uuid} 링크는 browser 페이지로 보내서 실제 토론방 정보를 확인
-        setDirectLinkRoomId(roomUUID);
-        setCurrentPage('browser');
+        // 화상토론방인 경우 바로 DebatePage로 입장
+        if (isVideoMode) {
+          const videoRoomId = urlParams.get('room') || 'unknown';
+          const username = urlParams.get('name') || 'User';
+          
+          const videoDebateRoom: DebateRoomInfo = {
+            id: roomUUID,
+            title: `video-${videoRoomId}`,
+            category: '화상토론',
+            debateType: '화상토론',
+            isCreatedByUser: false,
+            userPosition: 'A입장',
+            userRole: 'SPEAKER',
+            aDescription: 'A입장입니다.',
+            bDescription: 'B입장입니다.',
+            creator: { name: username },
+            duration: 0,
+            maxSpeakers: 0,
+            maxAudience: 0,
+            currentSpeakers: 1,
+            currentAudience: 0,
+            startTime: new Date(),
+            remainingTime: 0
+          };
+          
+          setCurrentDebateRoom(videoDebateRoom);
+          setCurrentPage('debate');
+        } else {
+          // 일반 토론방은 browser 페이지로
+          setDirectLinkRoomId(roomUUID);
+          setCurrentPage('browser');
+        }
         return;
       }
       
@@ -125,6 +155,14 @@ function AppWithPermissions() {
           debateRoomInfoOrId.userSelectedSide = userInfo.userSelectedSide;
         }
         setCurrentDebateRoom(debateRoomInfoOrId);
+        
+        // 화상토론방인 경우 URL을 /debate/{uuid}?video=true&room={roomId}&name={username} 형태로 변경
+        if (debateRoomInfoOrId.title.startsWith('video-')) {
+          const videoRoomId = debateRoomInfoOrId.title.replace('video-', '');
+          const username = debateRoomInfoOrId.creator.name || 'User';
+          const newUrl = `/debate/${debateRoomInfoOrId.id}?video=true&room=${videoRoomId}&name=${encodeURIComponent(username)}`;
+          window.history.pushState({}, '', newUrl);
+        }
       }
     } else {
       setCurrentDebateRoom(null);
