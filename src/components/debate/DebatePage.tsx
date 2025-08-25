@@ -40,9 +40,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   const { nickname, isLoggedIn, user } = useUser();
   const [debateSummary, setDebateSummary] = useState(null);
   
-  // 화상회의 모드 판별 (URL 파라미터 또는 제목으로 구분)
+  // 화상회의 모드 판별 (토론방 제목으로만 구분)
   const urlParams = new URLSearchParams(window.location.search);
-  const isVideoMode = urlParams.get('video') === 'true' || debateRoomInfo.title.startsWith('video-');
+  const isVideoMode = debateRoomInfo.title.startsWith('video-');
   const videoRoomId = urlParams.get('room') || (debateRoomInfo.title.startsWith('video-') ? debateRoomInfo.title.replace('video-', '') : null);
   const videoUsername = urlParams.get('name') || user?.name || user?.email || 'User';
   
