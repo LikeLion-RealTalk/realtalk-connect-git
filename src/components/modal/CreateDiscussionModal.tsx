@@ -428,7 +428,7 @@ export function CreateDiscussionModal({
     // 모바일 전체 화면 모달
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+        <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
           {/* 고정된 헤더 */}
           <div className="flex-shrink-0 px-4 py-4">
             <DialogHeader className="text-center">
@@ -775,7 +775,7 @@ export function CreateDiscussionModal({
   // 데스크톱 모달
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+      <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>토론방 만들기</DialogTitle>
           <DialogDescription>
