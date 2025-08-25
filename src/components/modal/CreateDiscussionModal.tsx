@@ -428,10 +428,10 @@ export function CreateDiscussionModal({
     // 모바일 전체 화면 모달
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-none w-full h-full max-h-screen p-0 m-0 rounded-none border-0 flex flex-col overflow-hidden">
+        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
           {/* 고정된 헤더 */}
-          <div className="flex-shrink-0 bg-surface border-b border-divider elevation-2 px-4 py-4 safe-top">
-            <DialogHeader>
+          <div className="flex-shrink-0 px-4 py-4">
+            <DialogHeader className="text-center">
               <DialogTitle className="text-lg">토론방 만들기</DialogTitle>
               <DialogDescription>
                 새로운 토론방을 생성하여 다른 사용자들과 토론을 시작해보세요.
@@ -440,8 +440,8 @@ export function CreateDiscussionModal({
           </div>
           
           {/* 스크롤 가능한 콘텐츠 영역 */}
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="space-y-6 p-4 pb-32">{/* 하단 버튼 공간 확보 (24 -> 32) */}
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="space-y-6 p-4">
             
             {/* 기존 폼들 - 화상토론일 때 비활성화 */}
             <div className={`space-y-6 transition-all duration-300 ${
@@ -748,7 +748,7 @@ export function CreateDiscussionModal({
           </div>
 
           {/* 고정된 하단 버튼 영역 */}
-          <div className="flex-shrink-0 bg-surface border-t border-divider elevation-4 p-4 pb-6 safe-bottom">
+          <div className="flex-shrink-0 p-4 pt-0">
             <div className="flex gap-3">
               <Button
                 variant="outline"
