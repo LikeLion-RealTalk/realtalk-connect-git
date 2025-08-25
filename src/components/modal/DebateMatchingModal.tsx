@@ -184,7 +184,7 @@ export function DebateMatchingModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md mx-2 sm:mx-auto">
+        <DialogContent className="max-w-md mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>토론 매칭 시작</DialogTitle>
             <DialogDescription>
