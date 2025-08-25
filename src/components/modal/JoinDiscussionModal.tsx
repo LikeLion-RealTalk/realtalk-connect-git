@@ -171,7 +171,7 @@ export function JoinDiscussionModal({
   return (
     <>
       <Dialog open={isOpen && !showLoginModal} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>토론방 입장</DialogTitle>
             <DialogDescription>

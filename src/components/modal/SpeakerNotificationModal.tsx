@@ -11,7 +11,7 @@ export function SpeakerNotificationModal({ isOpen, onClose }: SpeakerNotificatio
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="max-w-sm mx-4 text-center"
+        className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-sm text-center"
         onEscapeKeyDown={onClose}
         onPointerDownOutside={onClose}
       >

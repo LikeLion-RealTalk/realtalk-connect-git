@@ -775,7 +775,7 @@ export function CreateDiscussionModal({
   // 데스크톱 모달
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>토론방 만들기</DialogTitle>
           <DialogDescription>

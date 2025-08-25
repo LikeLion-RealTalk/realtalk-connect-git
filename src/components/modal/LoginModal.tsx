@@ -27,7 +27,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">로그인</DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">

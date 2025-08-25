@@ -86,7 +86,7 @@ export const PermissionRequestModal: React.FC<PermissionRequestModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-[500px]">
+      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-[500px]">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             {info.icon}
