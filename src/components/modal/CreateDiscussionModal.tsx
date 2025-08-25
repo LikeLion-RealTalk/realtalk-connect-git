@@ -31,7 +31,7 @@ interface CreateDiscussionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (data: DiscussionData) => void;
-  onNavigate?: (page: 'debate', discussionId: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
+  onNavigate?: (page: 'landing' | 'browser' | 'debate', discussionId?: string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string }) => void;
 }
 
 export function CreateDiscussionModal({ 
