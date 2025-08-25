@@ -270,6 +270,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    scrollbar-gutter: stable;
   }
 /*}*/
 
