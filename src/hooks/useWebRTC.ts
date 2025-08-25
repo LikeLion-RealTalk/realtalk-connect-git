@@ -137,9 +137,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // 기존 사용자 목록 처리
   const handleRoomUsers = useCallback(async (users: string[]) => {
-    if (!localStream) return;
-
-    console.log('기존 사용자들:', users);
+    console.log('기존 사용자들:', users, 'localStream 상태:', !!localStream);
     
     for (const existingUserId of users) {
       if (existingUserId !== userIdRef.current) {
@@ -154,7 +152,12 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           return updated;
         });
         
-        await createPeerConnection(existingUserId, false);
+        // localStream이 없어도 원격 사용자 추가는 진행
+        if (localStream) {
+          await createPeerConnection(existingUserId, false);
+        } else {
+          console.log('localStream 대기 중, 피어 연결 지연:', existingUserId);
+        }
       }
     }
 

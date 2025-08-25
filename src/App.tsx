@@ -33,19 +33,7 @@ function AppWithPermissions() {
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
   
-  // 디버깅용 로그
-  console.log('App.tsx State Debug:', {
-    currentPage,
-    currentDebateRoom: currentDebateRoom ? {
-      id: currentDebateRoom.id,
-      title: currentDebateRoom.title,
-      category: currentDebateRoom.category
-    } : null,
-    windowLocation: {
-      pathname: window.location.pathname,
-      search: window.location.search
-    }
-  });
+  // 디버그 로그 제거 (성능 개선)
   const [directLinkRoomId, setDirectLinkRoomId] = useState<string | null>(null);
 
   // URL에서 roomUUID 감지 및 처리
