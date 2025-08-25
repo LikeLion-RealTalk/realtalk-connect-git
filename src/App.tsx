@@ -32,20 +32,78 @@ function AppWithPermissions() {
   const [currentPage, setCurrentPage] = useState<'landing' | 'browser' | 'debate'>('landing');
   const [pageHistory, setPageHistory] = useState<('landing' | 'browser' | 'debate')[]>(['landing']);
   const [currentDebateRoom, setCurrentDebateRoom] = useState<DebateRoomInfo | null>(null);
+  
+  // 디버깅용 로그
+  console.log('App.tsx State Debug:', {
+    currentPage,
+    currentDebateRoom: currentDebateRoom ? {
+      id: currentDebateRoom.id,
+      title: currentDebateRoom.title,
+      category: currentDebateRoom.category
+    } : null,
+    windowLocation: {
+      pathname: window.location.pathname,
+      search: window.location.search
+    }
+  });
   const [directLinkRoomId, setDirectLinkRoomId] = useState<string | null>(null);
 
   // URL에서 roomUUID 감지 및 처리
   useEffect(() => {
     const checkURLForRoomId = () => {
       const path = window.location.pathname;
-      const roomUUIDPattern = /^\/([a-f0-9-]{36})$/; // UUID 패턴 매칭
+      const search = window.location.search;
+      
+      // /debate/{uuid} 패턴 체크
+      const debateRoomPattern = /^\/debate\/([a-f0-9-]{36})$/;
+      const debateMatch = path.match(debateRoomPattern);
+      
+      if (debateMatch) {
+        const roomUUID = debateMatch[1];
+        const urlParams = new URLSearchParams(search);
+        const isVideoMode = urlParams.get('video') === 'true';
+        
+        console.log('[직접 링크] debate room 감지:', { roomUUID, isVideoMode, search });
+        
+        // 화상토론방인 경우 바로 debate 페이지로 이동
+        if (isVideoMode) {
+          const videoDebateRoom: DebateRoomInfo = {
+            id: roomUUID,
+            title: `video-${urlParams.get('room') || 'unknown'}`,
+            category: '화상토론',
+            debateType: '화상토론',
+            isCreatedByUser: false,
+            userPosition: 'A입장',
+            userRole: 'SPEAKER',
+            aDescription: 'A입장입니다.',
+            bDescription: 'B입장입니다.',
+            creator: { name: urlParams.get('name') || 'User' },
+            duration: 0,
+            maxSpeakers: 0,
+            maxAudience: 0,
+            currentSpeakers: 1,
+            currentAudience: 0,
+            startTime: new Date(),
+            remainingTime: 0
+          };
+          
+          setCurrentDebateRoom(videoDebateRoom);
+          setCurrentPage('debate');
+        } else {
+          setDirectLinkRoomId(roomUUID);
+          setCurrentPage('browser');
+        }
+        return;
+      }
+      
+      // 기존 /{uuid} 패턴도 유지
+      const roomUUIDPattern = /^\/([a-f0-9-]{36})$/;
       const match = path.match(roomUUIDPattern);
       
       if (match) {
         const roomUUID = match[1];
         console.log('[직접 링크] roomUUID 감지:', roomUUID);
         setDirectLinkRoomId(roomUUID);
-        // browser 페이지로 이동하여 JoinDiscussionModal을 띄울 준비
         setCurrentPage('browser');
       }
     };
@@ -54,6 +112,8 @@ function AppWithPermissions() {
   }, []);
 
   const handleNavigate = (page: 'landing' | 'browser' | 'debate', debateRoomInfoOrId?: DebateRoomInfo | string, userInfo?: { userRole: 'SPEAKER' | 'AUDIENCE', userPosition: string, userSelectedSide?: 'A' | 'B' }) => {
+    console.log('handleNavigate called:', { page, debateRoomInfoOrId, userInfo });
+    
     if (page !== currentPage) {
       setPageHistory(prev => [...prev, currentPage]);
     }
@@ -181,6 +241,13 @@ function AppWithPermissions() {
                   debateRoomInfo={currentDebateRoom}
               />
             </DebateLayout>
+        )}
+        
+        {/* 디버깅: 조건 체크 */}
+        {currentPage === 'debate' && !currentDebateRoom && (
+          <div style={{position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '10px', zIndex: 9999}}>
+            DEBUG: currentPage is 'debate' but currentDebateRoom is null
+          </div>
         )}
 
         {currentPage === 'browser' && (
