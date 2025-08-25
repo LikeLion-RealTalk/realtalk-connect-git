@@ -427,7 +427,7 @@ export function CreateDiscussionModal({
   // 모든 디바이스에서 동일한 모달 구조 사용
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl sm:max-w-lg">
         <DialogHeader className="text-center flex-shrink-0">
           <DialogTitle>토론방 만들기</DialogTitle>
           <DialogDescription>

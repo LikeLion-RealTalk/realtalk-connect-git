@@ -184,7 +184,7 @@ export function DebateMatchingModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+        <DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl sm:max-w-lg">
           <DialogHeader className="text-center">
             <DialogTitle>토론 매칭 시작</DialogTitle>
             <DialogDescription>
