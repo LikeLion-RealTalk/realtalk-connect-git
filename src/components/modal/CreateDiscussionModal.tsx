@@ -57,7 +57,6 @@ export function CreateDiscussionModal({
     maxAudience: 20
   });
   const [isCreating, setIsCreating] = useState(false);
-  const [isVideoMode, setIsVideoMode] = useState(false); // 화상회의 모드 토글
   
   // 토론 주제 추천 관련 상태
   const [debateTopics, setDebateTopics] = useState<Array<{id: number, title: string}>>([]);
@@ -131,6 +130,8 @@ export function CreateDiscussionModal({
     if (isSelected) {
       return type === '3분토론' 
         ? 'bg-purple-500 text-white hover:bg-purple-600' 
+        : type === '화상토론'
+        ? 'bg-green-500 text-white hover:bg-green-600'
         : 'bg-blue-500 text-white hover:bg-blue-600';
     }
     return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
@@ -274,75 +275,100 @@ export function CreateDiscussionModal({
     setIsCreating(true);
     
     try {
-      // API 요청 데이터 구성
-      const requestData = {
-        userId: user.id,
-        title: formData.title.trim(),
-        debateDescription: formData.description.trim() || formData.title.trim(),
-        category: {
-          id: selectedCategoryId
-        },
-        sideA: formData.aPosition.trim() || '찬성',
-        sideB: formData.bPosition.trim() || '반대',
-        debateType: formData.debateType === '3분토론' ? 'FAST' : 'NORMAL',
-        durationSeconds: formData.duration * 60, // 분을 초로 변환
-        maxSpeaker: formData.maxSpeakers,
-        maxAudience: formData.maxAudience
-      };
+      // 화상토론일 때는 특별한 처리
+      if (formData.debateType === '화상토론') {
+        const videoRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+        const requestData = {
+          userId: user.id,
+          title: `video-${videoRoomId}`,
+          debateDescription: `video-${videoRoomId}`,
+          category: { id: 0 },
+          sideA: `video-${videoRoomId}`,
+          sideB: `video-${videoRoomId}`,
+          debateType: 'NORMAL',
+          durationSeconds: 0,
+          maxSpeaker: 0,
+          maxAudience: 0
+        };
 
-      console.log('[토론방 생성] API 호출 시작');
-      
-      // 토론방 생성 API 호출
-      const createdRoom = await debateApi.createDebateRoom(requestData);
-      console.log('[토론방 생성] API 응답:', createdRoom);
-      
-      // 생성된 토론방 ID 추출 (API 응답 구조에 따라 조정 필요)
-      const roomId = createdRoom?.roomId || createdRoom?.id;
-      
-      if (!roomId) {
-        throw new Error('생성된 토론방 ID를 가져올 수 없습니다.');
-      }
+        console.log('[화상토론방 생성] API 호출 시작');
+        const createdRoom = await debateApi.createDebateRoom(requestData);
+        console.log('[화상토론방 생성] API 응답:', createdRoom);
 
-      console.log('[토론방 생성] 웹소켓 연결 시작, roomId:', roomId);
-
-      // 웹소켓 연결 (토론방 생성자는 항상 SPEAKER)
-      const connected = await connect('SPEAKER');
-      
-      if (!connected) {
-        throw new Error('WebSocket 연결에 실패했습니다');
-      }
-
-      console.log('[토론방 생성] JOIN 요청 시작');
-
-      // 토론방 입장 (생성자는 SPEAKER, 선택한 입장으로)
-      const selectedSide = formData.position === 'A입장' ? 'A' : 'B';
-      const selectedUserPosition = formData.position === 'A입장' ? 
-        (formData.aPosition.trim() || '찬성') : 
-        (formData.bPosition.trim() || '반대');
-
-      const result = await joinRoom(roomId, 'SPEAKER', selectedSide);
-
-      if (result && result.type === 'JOIN_ACCEPTED') {
-        console.log('[토론방 생성] 입장 성공');
-        
-        // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
-        onCreate(formData);
-        handleClose();
-        
-        // 토론방 페이지로 이동 (선택한 역할과 입장 정보 포함)
-        if (onNavigate) {
-          onNavigate('debate', roomId, {
-            userRole: 'SPEAKER',
-            userPosition: selectedUserPosition,
-            userSelectedSide: selectedSide
-          });
-        }
-        
-        toast.success('토론방이 생성되었습니다!');
-      } else if (result && result.type === 'JOIN_REJECTED') {
-        throw new Error(result.reason || '토론방 입장이 거절되었습니다');
+        // 화상토론방으로 이동
+        onNavigate('debate', createdRoom.id, {
+          userRole: 'SPEAKER',
+          userPosition: 'A입장'
+        });
       } else {
-        throw new Error('토론방 입장 요청이 타임아웃되었습니다');
+        // 일반토론/3분토론 처리
+        const requestData = {
+          userId: user.id,
+          title: formData.title.trim(),
+          debateDescription: formData.description.trim() || formData.title.trim(),
+          category: {
+            id: selectedCategoryId
+          },
+          sideA: formData.aPosition.trim() || '찬성',
+          sideB: formData.bPosition.trim() || '반대',
+          debateType: formData.debateType === '3분토론' ? 'FAST' : 'NORMAL',
+          durationSeconds: formData.duration * 60, // 분을 초로 변환
+          maxSpeaker: formData.maxSpeakers,
+          maxAudience: formData.maxAudience
+        };
+
+        console.log('[토론방 생성] API 호출 시작');
+        const createdRoom = await debateApi.createDebateRoom(requestData);
+        console.log('[토론방 생성] API 응답:', createdRoom);
+        
+        // 생성된 토론방 ID 추출 (API 응답 구조에 따라 조정 필요)
+        const roomId = createdRoom?.roomId || createdRoom?.id;
+      
+        if (!roomId) {
+          throw new Error('생성된 토론방 ID를 가져올 수 없습니다.');
+        }
+
+        console.log('[토론방 생성] 웹소켓 연결 시작, roomId:', roomId);
+
+        // 웹소켓 연결 (토론방 생성자는 항상 SPEAKER)
+        const connected = await connect('SPEAKER');
+        
+        if (!connected) {
+          throw new Error('WebSocket 연결에 실패했습니다');
+        }
+
+        console.log('[토론방 생성] JOIN 요청 시작');
+
+        // 토론방 입장 (생성자는 SPEAKER, 선택한 입장으로)
+        const selectedSide = formData.position === 'A입장' ? 'A' : 'B';
+        const selectedUserPosition = formData.position === 'A입장' ? 
+          (formData.aPosition.trim() || '찬성') : 
+          (formData.bPosition.trim() || '반대');
+
+        const result = await joinRoom(roomId, 'SPEAKER', selectedSide);
+
+        if (result && result.type === 'JOIN_ACCEPTED') {
+          console.log('[토론방 생성] 입장 성공');
+          
+          // 성공 시 기존 onCreate 콜백 호출 (토론방 목록 새로고침 등을 위해)
+          onCreate(formData);
+          handleClose();
+          
+          // 토론방 페이지로 이동 (선택한 역할과 입장 정보 포함)
+          if (onNavigate) {
+            onNavigate('debate', roomId, {
+              userRole: 'SPEAKER',
+              userPosition: selectedUserPosition,
+              userSelectedSide: selectedSide
+            });
+          }
+          
+          toast.success('토론방이 생성되었습니다!');
+        } else if (result && result.type === 'JOIN_REJECTED') {
+          throw new Error(result.reason || '토론방 입장이 거절되었습니다');
+        } else {
+          throw new Error('토론방 입장 요청이 타임아웃되었습니다');
+        }
       }
       
     } catch (error) {
@@ -370,7 +396,6 @@ export function CreateDiscussionModal({
       maxSpeakers: 2,
       maxAudience: 20
     });
-    setIsVideoMode(false); // 화상회의 모드 초기화
   };
 
   const currentPositionText = getCurrentPositionText();
@@ -397,33 +422,9 @@ export function CreateDiscussionModal({
           <div className="flex-1 overflow-y-auto bg-background">
             <div className="space-y-6 p-4 pb-32">{/* 하단 버튼 공간 확보 (24 -> 32) */}
             
-            {/* 화상회의 토글 */}
-            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📹</span>
-                <div>
-                  <Label className="font-medium">화상회의로 전환</Label>
-                  <p className="text-xs text-muted-foreground">화상채팅으로 실시간 대화</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsVideoMode(!isVideoMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isVideoMode ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-                    isVideoMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* 기존 폼들 - 화상회의 모드일 때 비활성화 */}
+            {/* 기존 폼들 - 화상토론일 때 비활성화 */}
             <div className={`space-y-6 transition-all duration-300 ${
-              isVideoMode ? 'opacity-50 pointer-events-none' : 'opacity-100'
+              formData.debateType === '화상토론' ? 'opacity-50 pointer-events-none' : 'opacity-100'
             }`}>
             {/* 토론 주제 */}
             <div className="space-y-2 relative">
@@ -623,6 +624,12 @@ export function CreateDiscussionModal({
                   onClick={() => handleDebateTypeChange('3분토론')}
                 >
                   3분 토론
+                </Badge>
+                <Badge
+                  className={`cursor-pointer px-4 py-2 text-sm transition-colors hover:opacity-80 ${getDebateTypeBadgeClass('화상토론', formData.debateType === '화상토론')}`}
+                  onClick={() => handleDebateTypeChange('화상토론')}
+                >
+                  📹 화상 토론
                 </Badge>
               </div>
             </div>
@@ -731,10 +738,10 @@ export function CreateDiscussionModal({
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={isVideoMode ? false : !isValid}
+                disabled={formData.debateType === '화상토론' ? false : !isValid}
                 className="flex-1 h-12"
               >
-                {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
+                {formData.debateType === '화상토론' ? '화상토론방 만들기' : '토론방 만들기'}
               </Button>
             </div>
           </div>
@@ -759,33 +766,9 @@ export function CreateDiscussionModal({
         <div className="flex-1 overflow-y-auto px-1">
           <div className="space-y-6 py-4">
             
-            {/* 화상회의 토글 */}
-            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📹</span>
-                <div>
-                  <Label className="font-medium">화상회의로 전환</Label>
-                  <p className="text-xs text-muted-foreground">화상채팅으로 실시간 대화</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsVideoMode(!isVideoMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isVideoMode ? 'bg-primary' : 'bg-input'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-                    isVideoMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* 기존 폼들 - 화상회의 모드일 때 비활성화 */}
+            {/* 기존 폼들 - 화상토론일 때 비활성화 */}
             <div className={`space-y-6 transition-all duration-300 ${
-              isVideoMode ? 'opacity-50 pointer-events-none' : 'opacity-100'
+              formData.debateType === '화상토론' ? 'opacity-50 pointer-events-none' : 'opacity-100'
             }`}>
             {/* 토론 주제 */}
             <div className="space-y-2 relative">
@@ -985,6 +968,12 @@ export function CreateDiscussionModal({
                   onClick={() => handleDebateTypeChange('3분토론')}
                 >
                   3분 토론
+                </Badge>
+                <Badge
+                  className={`cursor-pointer px-4 py-2 text-sm transition-colors hover:opacity-80 ${getDebateTypeBadgeClass('화상토론', formData.debateType === '화상토론')}`}
+                  onClick={() => handleDebateTypeChange('화상토론')}
+                >
+                  📹 화상 토론
                 </Badge>
               </div>
             </div>
