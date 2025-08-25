@@ -64,7 +64,7 @@ export function AiDebateSummaryModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
-        className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl"
+        className="w-[90vw] max-w-lg max-h-[85vh] flex flex-col"
         // 기본 닫기 동작을 커스텀 핸들러로 처리
         onEscapeKeyDown={(e) => {
           e.preventDefault();

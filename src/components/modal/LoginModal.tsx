@@ -27,7 +27,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl sm:max-w-lg">
+      <DialogContent className="w-[90vw] max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader className="text-center">
           <DialogTitle className="text-center">로그인</DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
