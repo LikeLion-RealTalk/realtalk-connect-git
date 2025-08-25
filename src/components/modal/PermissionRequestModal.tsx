@@ -86,7 +86,7 @@ export const PermissionRequestModal: React.FC<PermissionRequestModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-[500px]">
+      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             {info.icon}
@@ -101,7 +101,7 @@ export const PermissionRequestModal: React.FC<PermissionRequestModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {/* 권한 상태 표시 */}
           <div className="flex items-center justify-center space-x-2 p-3 bg-surface-variant rounded-lg">
             {getStatusIcon()}

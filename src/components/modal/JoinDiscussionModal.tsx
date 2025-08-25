@@ -171,7 +171,7 @@ export function JoinDiscussionModal({
   return (
     <>
       <Dialog open={isOpen && !showLoginModal} onOpenChange={handleClose}>
-        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
           <DialogHeader>
             <DialogTitle>토론방 입장</DialogTitle>
             <DialogDescription>
@@ -182,7 +182,7 @@ export function JoinDiscussionModal({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
             {/* 토론방 카드 */}
             <Card>
               <CardContent className="p-4">

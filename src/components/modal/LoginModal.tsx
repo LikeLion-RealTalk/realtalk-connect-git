@@ -27,7 +27,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+      <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-center">로그인</DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
@@ -35,7 +35,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps)
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
+        <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
           
           <div className="space-y-3">
             {/* 카카오 로그인 버튼 */}

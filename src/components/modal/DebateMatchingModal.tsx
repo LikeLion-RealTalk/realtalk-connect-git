@@ -184,7 +184,7 @@ export function DebateMatchingModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+        <DialogContent className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
           <DialogHeader>
             <DialogTitle>토론 매칭 시작</DialogTitle>
             <DialogDescription>
@@ -192,7 +192,7 @@ export function DebateMatchingModal({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
             {matchingState === 'idle' && (
               <>
                 <div className="text-center">

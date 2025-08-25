@@ -64,7 +64,7 @@ export function AiDebateSummaryModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
-        className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[85vh] flex flex-col"
+        className="mx-4 sm:mx-auto w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl"
         // 기본 닫기 동작을 커스텀 핸들러로 처리
         onEscapeKeyDown={(e) => {
           e.preventDefault();
@@ -89,7 +89,7 @@ export function AiDebateSummaryModal({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-6 pr-2 max-h-[calc(85vh-200px)]">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
           {/* 토론 기본 정보 */}
           <div className="space-y-3">
             <h4 className="font-medium">{summary.title}</h4>
