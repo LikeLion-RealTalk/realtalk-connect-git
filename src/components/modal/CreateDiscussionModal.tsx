@@ -424,24 +424,20 @@ export function CreateDiscussionModal({
   const minDuration = getMinDuration(formData.maxSpeakers);
   const availableDurations = getAvailableDurations(formData.maxSpeakers);
 
-  if (isMobile) {
-    // 모바일 전체 화면 모달
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
-          {/* 고정된 헤더 */}
-          <div className="flex-shrink-0 px-4 py-4">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-lg">토론방 만들기</DialogTitle>
-              <DialogDescription>
-                새로운 토론방을 생성하여 다른 사용자들과 토론을 시작해보세요.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          
-          {/* 스크롤 가능한 콘텐츠 영역 */}
-          <div className="flex-1 overflow-y-auto pr-2">
-            <div className="space-y-6 p-4">
+  // 모든 디바이스에서 동일한 모달 구조 사용
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+        <DialogHeader className="text-center flex-shrink-0">
+          <DialogTitle>토론방 만들기</DialogTitle>
+          <DialogDescription>
+            새로운 토론방을 생성하여 다른 사용자들과 토론을 시작해보세요.
+          </DialogDescription>
+        </DialogHeader>
+        
+        {/* 스크롤 가능한 콘텐츠 영역 */}
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="space-y-6 p-4">
             
             {/* 기존 폼들 - 화상토론일 때 비활성화 */}
             <div className={`space-y-6 transition-all duration-300 ${
@@ -747,8 +743,8 @@ export function CreateDiscussionModal({
           </div>
           </div>
 
-          {/* 고정된 하단 버튼 영역 */}
-          <div className="flex-shrink-0 p-4 pt-0">
+        {/* 고정된 하단 버튼 영역 */}
+        <div className="flex-shrink-0 p-4 pt-0">
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -767,15 +763,9 @@ export function CreateDiscussionModal({
             </div>
           </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // 데스크톱 모달
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
+      </DialogContent>
+    </Dialog>
+  );
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>토론방 만들기</DialogTitle>
           <DialogDescription>
