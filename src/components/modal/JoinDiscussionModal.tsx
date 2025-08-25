@@ -172,7 +172,7 @@ export function JoinDiscussionModal({
     <>
       <Dialog open={isOpen && !showLoginModal} onOpenChange={handleClose}>
         <DialogContent className="w-[90vw] sm:w-auto sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-2xl border-2 shadow-xl">
-          <DialogHeader>
+          <DialogHeader className="text-center">
             <DialogTitle>토론방 입장</DialogTitle>
             <DialogDescription>
               {currentStep === 'role' 
