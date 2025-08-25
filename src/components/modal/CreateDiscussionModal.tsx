@@ -742,6 +742,7 @@ export function CreateDiscussionModal({
             </div>
             </div>
           </div>
+        </div>
 
         {/* 고정된 하단 버튼 영역 */}
         <div className="flex-shrink-0 p-4 pt-0">
