@@ -1547,7 +1547,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 </div>
               </div>
             ) : (
-              /* 일반 토론 모드 레이아웃 */
+              <div className="w-full h-full">
+              {/* 일반 토론 모드 레이아웃 */}
               <div className="hidden lg:flex lg:flex-col h-full">
               {/* 상단 고정 영역 */}
               <div className="flex-shrink-0 border-b border-divider elevation-1" id="debate-fixed-header">
@@ -1750,12 +1751,11 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               </div>
             </div>
           </div>
-            )} {/* 일반 토론 모드 끝 */}
+        )}
+        </div>
 
-          {/* 우측 영역 - 1/4 너비, 데스크톱에서만 표시, 화상회의 모드가 아닐 때만 */}
-          {!isVideoMode && (
+        {!isVideoMode && (
             <div className="hidden lg:flex lg:flex-col lg:w-1/4 h-full border-l border-divider bg-surface elevation-1">
-            {/* AI 요약 영역 - 리사이즈 가능한 높이 */}
             <div className="flex-shrink-0 bg-surface-variant/30" style={{ height: `${aiSummaryHeight}px` }}>
               <AISummary summaries={aiSummaries} isGenerating={isGeneratingAISummary} />
             </div>
@@ -1778,7 +1778,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               )}
             </div>
           </div>
-          )}
+        )}
         </div>
       </div>
 

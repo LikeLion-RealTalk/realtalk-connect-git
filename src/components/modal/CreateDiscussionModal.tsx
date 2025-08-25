@@ -716,9 +716,7 @@ export function CreateDiscussionModal({
                 ))}
               </RadioGroup>
             </div>
-            </div>
-            </div> {/* 기존 폼들 div 닫기 */}
-            </div>
+          </div>
           </div>
 
           {/* 고정된 하단 버튼 영역 */}
@@ -739,6 +737,7 @@ export function CreateDiscussionModal({
                 {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
               </Button>
             </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -1080,7 +1079,6 @@ export function CreateDiscussionModal({
               </RadioGroup>
             </div>
             </div> {/* 기존 폼들 div 닫기 */}
-          </div>
         </div>
 
         {/* 하단 버튼 영역 */}
@@ -1099,6 +1097,7 @@ export function CreateDiscussionModal({
           >
             {isVideoMode ? '화상토론방 만들기' : '토론방 만들기'}
           </Button>
+        </div>
         </div>
       </DialogContent>
     </Dialog>
