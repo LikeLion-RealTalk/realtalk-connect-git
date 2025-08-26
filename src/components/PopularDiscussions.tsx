@@ -170,6 +170,20 @@ export function PopularDiscussions({ onNavigate, onJoinDebate }: PopularDiscussi
   const handleJoinDiscussion = (discussionId: string) => {
     const discussion = discussions.find(d => d.id === discussionId);
     if (discussion) {
+      // 화상회의 방인지 확인 (title이 video-로 시작하는 경우)
+      if (discussion.title.startsWith('video-')) {
+        // video- 다음에 오는 숫자 ID 추출
+        const videoRoomId = discussion.title.replace('video-', '');
+        
+        // 화상회의 방으로 직접 이동 (입장 선택 플로우 생략)
+        window.location.href = `/debate/${discussionId}?video=true&room=${videoRoomId}`;
+        
+        // 폴링 중단
+        stopPolling();
+        return;
+      }
+      
+      // 일반 토론방인 경우 기존 플로우
       setSelectedDiscussion(discussion);
       setIsJoinModalOpen(true);
     }

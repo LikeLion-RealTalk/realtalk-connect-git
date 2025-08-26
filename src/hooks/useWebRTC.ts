@@ -117,9 +117,9 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // 새 사용자 입장 처리
   const handleUserJoined = useCallback(async (newUserId: string) => {
-    if (!localStream || newUserId === userIdRef.current) return;
+    if (newUserId === userIdRef.current) return;
 
-    console.log(`새 사용자 입장: ${newUserId}`);
+    console.log(`새 사용자 입장: ${newUserId}, localStream 상태:`, !!localStream);
     
     setRemoteUsers(prev => {
       const updated = new Map(prev);
@@ -132,8 +132,14 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       return updated;
     });
 
-    await createPeerConnection(newUserId, true);
-  }, [localStream]);
+    // localStream이 있을 때만 피어 연결 생성 (offer 생성)
+    if (localStream) {
+      console.log(`새 사용자와 피어 연결 생성 (offer): ${newUserId}`);
+      await createPeerConnection(newUserId, true);
+    } else {
+      console.log('localStream 없음 - 피어 연결 지연:', newUserId);
+    }
+  }, [localStream, createPeerConnection]);
 
   // 기존 사용자 목록 처리
   const handleRoomUsers = useCallback(async (users: string[]) => {
@@ -152,11 +158,12 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           return updated;
         });
         
-        // localStream이 없어도 원격 사용자 추가는 진행
+        // localStream이 있을 때만 피어 연결 생성
         if (localStream) {
+          console.log(`기존 사용자와 피어 연결 생성: ${existingUserId}`);
           await createPeerConnection(existingUserId, false);
         } else {
-          console.log('localStream 대기 중, 피어 연결 지연:', existingUserId);
+          console.log('localStream 없음 - 피어 연결 지연:', existingUserId);
         }
       }
     }
@@ -164,7 +171,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     if (users.length > 0) {
       setConnectionStatus('connected');
     }
-  }, [localStream]);
+  }, [localStream, createPeerConnection]);
 
   // 사용자 퇴장 처리
   const handleUserLeft = useCallback((leftUserId: string) => {
@@ -186,27 +193,32 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
   // 피어 연결 생성
   const createPeerConnection = useCallback(async (remoteUserId: string, shouldOffer: boolean) => {
     const currentLocalStream = localStream;
-    if (!currentLocalStream) return;
+    if (!currentLocalStream) {
+      console.log(`피어 연결 생성 실패 - localStream 없음: ${remoteUserId}`);
+      return;
+    }
 
-    console.log(`피어 연결 생성: ${remoteUserId}, offer: ${shouldOffer}`);
+    console.log(`피어 연결 생성: ${remoteUserId}, offer: ${shouldOffer}, localStream 트랙:`, currentLocalStream.getTracks().length);
 
     const pc = new RTCPeerConnection(config);
     peerConnectionsRef.current.set(remoteUserId, pc);
 
     // 로컬 스트림 추가
     currentLocalStream.getTracks().forEach(track => {
+      console.log(`트랙 추가: ${track.kind} - ${track.label}`);
       pc.addTrack(track, currentLocalStream);
     });
 
     // 원격 스트림 수신
     pc.ontrack = (event) => {
-      console.log(`원격 스트림 수신: ${remoteUserId}`);
+      console.log(`원격 스트림 수신: ${remoteUserId}, 스트림:`, event.streams[0]);
       const [stream] = event.streams;
       
       setRemoteUsers(prev => {
         const updated = new Map(prev);
         const user = updated.get(remoteUserId);
         if (user) {
+          console.log(`원격 사용자 스트림 업데이트: ${remoteUserId}`);
           updated.set(remoteUserId, { ...user, stream });
         }
         return updated;
@@ -216,6 +228,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     // ICE candidate
     pc.onicecandidate = (event) => {
       if (event.candidate && socketRef.current) {
+        console.log(`ICE candidate 전송: ${remoteUserId}`);
         socketRef.current.send(JSON.stringify({
           type: 'ice-candidate',
           targetUserId: remoteUserId,
@@ -229,6 +242,8 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       console.log(`연결 상태 (${remoteUserId}):`, pc.connectionState);
       if (pc.connectionState === 'connected') {
         setConnectionStatus('connected');
+      } else if (pc.connectionState === 'failed') {
+        console.error(`피어 연결 실패: ${remoteUserId}`);
       }
     };
 
@@ -237,13 +252,14 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
+      console.log(`Offer 전송: ${remoteUserId}`);
       socketRef.current?.send(JSON.stringify({
         type: 'offer',
         targetUserId: remoteUserId,
         offer: offer
       }));
     }
-  }, []);
+  }, [localStream]);
 
   // Offer 처리
   const handleOffer = useCallback(async (data: any) => {
@@ -324,6 +340,23 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     setConnectionStatus('disconnected');
   }, [localStream]);
 
+  // localStream이 준비된 후 지연된 피어 연결 처리
+  useEffect(() => {
+    if (localStream && remoteUsers.size > 0) {
+      console.log('localStream 준비됨 - 지연된 피어 연결 생성:', remoteUsers.size);
+      
+      // 기존 원격 사용자들과 피어 연결 생성
+      Array.from(remoteUsers.keys()).forEach(async (userId) => {
+        const pc = peerConnectionsRef.current.get(userId);
+        if (!pc) {
+          console.log(`지연된 피어 연결 생성: ${userId}`);
+          // 기존 사용자이므로 offer를 보내지 않음 (상대방이 먼저 들어온 경우)
+          await createPeerConnection(userId, false);
+        }
+      });
+    }
+  }, [localStream, createPeerConnection]);
+
   // 초기화
   useEffect(() => {
     if (isEnabled && roomId && username) {
@@ -339,7 +372,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     return () => {
       disconnect();
     };
-  }, [isEnabled, roomId, username]);
+  }, [isEnabled, roomId, username, initializeLocalStream, connectWebSocket, disconnect]);
 
   return {
     localStream,
