@@ -139,7 +139,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     } else {
       console.log('localStream 없음 - 피어 연결 지연:', newUserId);
     }
-  }, [localStream]);
+  }, [localStream, createPeerConnection]);
 
   // 기존 사용자 목록 처리
   const handleRoomUsers = useCallback(async (users: string[]) => {
@@ -171,7 +171,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     if (users.length > 0) {
       setConnectionStatus('connected');
     }
-  }, [localStream]);
+  }, [localStream, createPeerConnection]);
 
   // 사용자 퇴장 처리
   const handleUserLeft = useCallback((leftUserId: string) => {
@@ -348,14 +348,47 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       // 기존 원격 사용자들과 피어 연결 생성
       Array.from(remoteUsers.keys()).forEach(async (userId) => {
         const pc = peerConnectionsRef.current.get(userId);
-        if (!pc) {
+        if (!pc && localStream) {
           console.log(`지연된 피어 연결 생성: ${userId}`);
-          // 기존 사용자이므로 offer를 보내지 않음 (상대방이 먼저 들어온 경우)
-          await createPeerConnection(userId, false);
+          
+          // 피어 연결을 직접 여기서 생성 (createPeerConnection 호출하지 않음)
+          const newPc = new RTCPeerConnection(config);
+          peerConnectionsRef.current.set(userId, newPc);
+
+          // 로컬 스트림 추가
+          localStream.getTracks().forEach(track => {
+            newPc.addTrack(track, localStream);
+          });
+
+          // 원격 스트림 수신
+          newPc.ontrack = (event) => {
+            console.log(`지연 연결 - 원격 스트림 수신: ${userId}`);
+            const [stream] = event.streams;
+            
+            setRemoteUsers(prev => {
+              const updated = new Map(prev);
+              const user = updated.get(userId);
+              if (user) {
+                updated.set(userId, { ...user, stream });
+              }
+              return updated;
+            });
+          };
+
+          // ICE candidate
+          newPc.onicecandidate = (event) => {
+            if (event.candidate && socketRef.current) {
+              socketRef.current.send(JSON.stringify({
+                type: 'ice-candidate',
+                targetUserId: userId,
+                candidate: event.candidate
+              }));
+            }
+          };
         }
       });
     }
-  }, [localStream]);
+  }, [localStream, remoteUsers]);
 
   // 초기화
   useEffect(() => {
