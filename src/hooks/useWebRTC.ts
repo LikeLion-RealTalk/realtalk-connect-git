@@ -440,7 +440,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         if (!pc && localStream) {
           console.log(`지연된 피어 연결 생성: ${userId}`);
           
-          // 피어 연결을 직접 여기서 생성 (createPeerConnection 호출하지 않음)
+          // 피어 연결을 직접 여기서 생성하고 offer 전송
           const newPc = new RTCPeerConnection(config);
           peerConnectionsRef.current.set(userId, newPc);
 
@@ -478,6 +478,22 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
               }));
             }
           };
+
+          // 지연 연결에서 offer 생성 (상대방이 우리를 인지할 수 있도록)
+          try {
+            console.log(`지연 연결 ${userId}에게 Offer 생성 중...`);
+            const offer = await newPc.createOffer();
+            await newPc.setLocalDescription(offer);
+            console.log(`지연 연결 ${userId}에게 Offer 전송:`, offer.type);
+
+            socketRef.current?.send(JSON.stringify({
+              type: 'offer',
+              targetUserId: userId,
+              offer: offer
+            }));
+          } catch (error) {
+            console.error(`지연 연결 ${userId} offer 생성 실패:`, error);
+          }
         }
       });
     }
