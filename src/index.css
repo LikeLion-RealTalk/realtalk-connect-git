@@ -267,10 +267,21 @@
     @apply border-border outline-ring/50;
   }
 
+  html, body {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     scrollbar-gutter: stable;
+  }
+
+  #root {
+    width: 100%;
+    min-width: 320px;
   }
 
   /* 모달이 열릴 때 scrollbar compensation */
