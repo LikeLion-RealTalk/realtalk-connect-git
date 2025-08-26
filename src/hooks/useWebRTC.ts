@@ -193,7 +193,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     }
   }, [localStream]);
 
-  // 기존 사용자 목록 처리
+  // 기존 사용자 목록 처리 - HTML과 동일하게 offer 생성하지 않음
   const handleRoomUsers = useCallback(async (users: string[]) => {
     console.log('기존 사용자들:', users, 'localStream 상태:', !!localStream);
     
@@ -210,11 +210,11 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           return updated;
         });
         
-        // localStream이 있을 때만 피어 연결 생성
+        // HTML과 달리 기존 사용자와는 피어 연결만 생성하고 offer는 보내지 않음
+        // 기존 사용자가 새 사용자(우리)에게 offer를 보낼 것임
         if (localStream) {
-          console.log(`기존 사용자와 피어 연결 생성: ${existingUserId}`);
+          console.log(`기존 사용자와 피어 연결 생성 (offer 없음): ${existingUserId}`);
           
-          // 직접 피어 연결 생성 (순환 참조 방지)
           const pc = new RTCPeerConnection(config);
           peerConnectionsRef.current.set(existingUserId, pc);
 
@@ -252,6 +252,9 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
               }));
             }
           };
+          
+          // 기존 사용자와는 offer를 생성하지 않음 (HTML과 동일)
+          // 기존 사용자가 우리에게 offer를 보낼 것임
         } else {
           console.log('localStream 없음 - 피어 연결 지연:', existingUserId);
         }
