@@ -772,7 +772,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
         
         // 동적 계산된 기준 시간 이하로 남았을 때 연장 모달 표시 (한 번만)
         const threshold = getExtensionThreshold();
-        if (threshold !== null && prev === threshold && !hasShownExtensionModal) {
+        if (threshold !== null && prev <= threshold && prev > threshold - 5 && !hasShownExtensionModal) {
           console.log(`[토론방] 연장 모달 표시 - 남은시간: ${prev}초, 기준: ${threshold}초`);
           setIsExtensionModalOpen(true);
           setHasShownExtensionModal(true);
