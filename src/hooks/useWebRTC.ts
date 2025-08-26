@@ -489,11 +489,27 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
               newPc.addTrack(track, localStream);
             });
 
-            // 원격 스트림 수신
+            // 원격 스트림 수신 - 직접 DOM 조작 추가
             newPc.ontrack = (event) => {
-              console.log(`지연 연결 - 원격 스트림 수신: ${userId}`, 'streams:', event.streams.length);
+              console.log(`🎯 지연 연결 ONTRACK 이벤트 발생! - ${userId}`, 'streams:', event.streams.length);
               const [stream] = event.streams;
               console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
+              
+              // 직접 DOM 조작 추가!
+              setTimeout(() => {
+                const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement;
+                if (videoElement && stream) {
+                  console.log(`🎥 직접 DOM 조작으로 비디오 할당 (지연 연결): ${userId}`);
+                  videoElement.srcObject = stream;
+                  
+                  const noVideoElement = document.getElementById(`no-video-${userId}`);
+                  if (noVideoElement) {
+                    noVideoElement.style.display = 'none';
+                  }
+                } else {
+                  console.log(`❌ 비디오 요소 찾기 실패: video-${userId}`);
+                }
+              }, 100);
               
               setRemoteUsers(prev => {
                 const updated = new Map(prev);
