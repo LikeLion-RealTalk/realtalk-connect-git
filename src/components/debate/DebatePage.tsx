@@ -1508,7 +1508,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                           id={`video-${remoteUser.userId}`}
                           autoPlay
                           playsInline
-                          muted={true}
+                          muted={false}
                           className="w-full h-full object-cover"
                         />
                         <div 
