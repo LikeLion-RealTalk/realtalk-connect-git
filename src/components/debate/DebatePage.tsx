@@ -1534,23 +1534,49 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 </div>
 
                 {/* 미디어 컨트롤 */}
-                <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
-                  <div className="flex justify-center items-center gap-4">
+                <div className="flex-shrink-0 bg-white border-t border-gray-200 p-3 md:p-4">
+                  <div className="flex justify-center items-center gap-3 md:gap-4">
                     <button
                       onClick={toggleVideo}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors ${
-                        isVideoEnabled ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-500 hover:bg-red-600'
+                      className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-lg ${
+                        isVideoEnabled 
+                          ? 'bg-gray-600 hover:bg-gray-700 hover:scale-105' 
+                          : 'bg-red-500 hover:bg-red-600 hover:scale-105'
                       }`}
+                      aria-label={isVideoEnabled ? '비디오 끄기' : '비디오 켜기'}
                     >
-                      <span className="text-xl">📹</span>
+                      {isVideoEnabled ? (
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82l8.18 8.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/>
+                        </svg>
+                      )}
                     </button>
                     <button
                       onClick={toggleAudio}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors ${
-                        isAudioEnabled ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-500 hover:bg-red-600'
+                      className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-lg ${
+                        isAudioEnabled 
+                          ? 'bg-gray-600 hover:bg-gray-700 hover:scale-105' 
+                          : 'bg-red-500 hover:bg-red-600 hover:scale-105'
                       }`}
+                      aria-label={isAudioEnabled ? '마이크 끄기' : '마이크 켜기'}
                     >
-                      <span className="text-xl">🎤</span>
+                      {isAudioEnabled ? (
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M19 11h-2c0 .91-.23 1.76-.61 2.5l1.44 1.44c.71-1.21 1.17-2.6 1.17-3.94z"/>
+                          <path d="M15.54 17c-.15-.17-.24-.39-.24-.63v-1.37c.3-.06.6-.14.88-.24l1.44 1.44c-.42.24-.87.44-1.35.6-.24.06-.48.12-.73.2z"/>
+                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                          <path d="M2.27 1.72L1 3l3 3v5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c1.13-.16 2.17-.57 3.05-1.18l2.22 2.22 1.27-1.27L2.27 1.72z"/>
+                        </svg>
+                      )}
                     </button>
                     <button
                       onClick={() => {
