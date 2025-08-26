@@ -271,8 +271,57 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // Offer 처리
   const handleOffer = useCallback(async (data: any) => {
-    const pc = peerConnectionsRef.current.get(data.fromUserId);
-    if (!pc) return;
+    console.log(`Offer 수신: ${data.fromUserId}`);
+    
+    let pc = peerConnectionsRef.current.get(data.fromUserId);
+    
+    // 피어 연결이 없으면 새로 생성
+    if (!pc) {
+      console.log(`Offer 수신 - 새 피어 연결 생성: ${data.fromUserId}`);
+      
+      pc = new RTCPeerConnection(config);
+      peerConnectionsRef.current.set(data.fromUserId, pc);
+
+      // 현재 localStream 참조
+      const currentLocalStream = localStream;
+      if (currentLocalStream) {
+        currentLocalStream.getTracks().forEach(track => {
+          pc!.addTrack(track, currentLocalStream);
+        });
+      }
+
+      // 원격 스트림 수신
+      pc.ontrack = (event) => {
+        console.log(`Offer 처리 - 원격 스트림 수신: ${data.fromUserId}`);
+        const [stream] = event.streams;
+        
+        setRemoteUsers(prev => {
+          const updated = new Map(prev);
+          const user = updated.get(data.fromUserId);
+          if (user) {
+            updated.set(data.fromUserId, { ...user, stream });
+          } else {
+            updated.set(data.fromUserId, {
+              userId: data.fromUserId,
+              username: data.fromUserId.split('-')[0],
+              stream
+            });
+          }
+          return updated;
+        });
+      };
+
+      // ICE candidate
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socketRef.current) {
+          socketRef.current.send(JSON.stringify({
+            type: 'ice-candidate',
+            targetUserId: data.fromUserId,
+            candidate: event.candidate
+          }));
+        }
+      };
+    }
 
     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
     const answer = await pc.createAnswer();
