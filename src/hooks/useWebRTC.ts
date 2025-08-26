@@ -139,7 +139,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     } else {
       console.log('localStream 없음 - 피어 연결 지연:', newUserId);
     }
-  }, [localStream, createPeerConnection]);
+  }, [localStream]);
 
   // 기존 사용자 목록 처리
   const handleRoomUsers = useCallback(async (users: string[]) => {
@@ -171,7 +171,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     if (users.length > 0) {
       setConnectionStatus('connected');
     }
-  }, [localStream, createPeerConnection]);
+  }, [localStream]);
 
   // 사용자 퇴장 처리
   const handleUserLeft = useCallback((leftUserId: string) => {
@@ -355,7 +355,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         }
       });
     }
-  }, [localStream, createPeerConnection]);
+  }, [localStream]);
 
   // 초기화
   useEffect(() => {
@@ -372,7 +372,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     return () => {
       disconnect();
     };
-  }, [isEnabled, roomId, username, initializeLocalStream, connectWebSocket, disconnect]);
+  }, [isEnabled, roomId, username]);
 
   return {
     localStream,
