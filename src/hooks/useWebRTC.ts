@@ -35,10 +35,12 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     if (!isEnabled) return;
     
     try {
+      console.log('로컬 스트림 초기화 시작...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
       });
+      console.log('로컬 스트림 생성 성공:', stream.id, 'tracks:', stream.getTracks().length);
       setLocalStream(stream);
       return stream;
     } catch (error) {
@@ -141,20 +143,24 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       peerConnectionsRef.current.set(newUserId, pc);
 
       // 로컬 스트림 추가
+      console.log(`${newUserId}에게 로컬 스트림 전송:`, localStream.id, 'tracks:', localStream.getTracks().length);
       localStream.getTracks().forEach(track => {
+        console.log(`트랙 추가:`, track.kind, track.id);
         pc.addTrack(track, localStream);
       });
 
       // 원격 스트림 수신
       pc.ontrack = (event) => {
-        console.log(`원격 스트림 수신: ${newUserId}`);
+        console.log(`원격 스트림 수신: ${newUserId}`, 'streams:', event.streams.length);
         const [stream] = event.streams;
+        console.log(`수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
         
         setRemoteUsers(prev => {
           const updated = new Map(prev);
           const user = updated.get(newUserId);
           if (user) {
             updated.set(newUserId, { ...user, stream });
+            console.log(`사용자 ${newUserId}에게 스트림 할당 완료`);
           }
           return updated;
         });
@@ -172,8 +178,10 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       };
 
       // Offer 생성
+      console.log(`${newUserId}에게 Offer 생성 중...`);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      console.log(`${newUserId}에게 Offer 전송:`, offer.type);
 
       socketRef.current?.send(JSON.stringify({
         type: 'offer',
@@ -211,20 +219,24 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           peerConnectionsRef.current.set(existingUserId, pc);
 
           // 로컬 스트림 추가
+          console.log(`기존 사용자 ${existingUserId}에게 로컬 스트림 전송:`, localStream.id);
           localStream.getTracks().forEach(track => {
+            console.log(`기존 사용자 트랙 추가:`, track.kind, track.id);
             pc.addTrack(track, localStream);
           });
 
           // 원격 스트림 수신
           pc.ontrack = (event) => {
-            console.log(`원격 스트림 수신: ${existingUserId}`);
+            console.log(`기존 사용자 원격 스트림 수신: ${existingUserId}`, 'streams:', event.streams.length);
             const [stream] = event.streams;
+            console.log(`기존 사용자 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
             
             setRemoteUsers(prev => {
               const updated = new Map(prev);
               const user = updated.get(existingUserId);
               if (user) {
                 updated.set(existingUserId, { ...user, stream });
+                console.log(`기존 사용자 ${existingUserId}에게 스트림 할당 완료`);
               }
               return updated;
             });
@@ -285,27 +297,32 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       // 현재 localStream 참조
       const currentLocalStream = localStream;
       if (currentLocalStream) {
+        console.log(`Offer 수신 - ${data.fromUserId}에게 로컬 스트림 전송:`, currentLocalStream.id);
         currentLocalStream.getTracks().forEach(track => {
+          console.log(`Offer 수신 - 트랙 추가:`, track.kind, track.id);
           pc!.addTrack(track, currentLocalStream);
         });
       }
 
       // 원격 스트림 수신
       pc.ontrack = (event) => {
-        console.log(`Offer 처리 - 원격 스트림 수신: ${data.fromUserId}`);
+        console.log(`Offer 처리 - 원격 스트림 수신: ${data.fromUserId}`, 'streams:', event.streams.length);
         const [stream] = event.streams;
+        console.log(`Offer 처리 - 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
         
         setRemoteUsers(prev => {
           const updated = new Map(prev);
           const user = updated.get(data.fromUserId);
           if (user) {
             updated.set(data.fromUserId, { ...user, stream });
+            console.log(`Offer 처리 - ${data.fromUserId}에게 스트림 할당 완료`);
           } else {
             updated.set(data.fromUserId, {
               userId: data.fromUserId,
               username: data.fromUserId.split('-')[0],
               stream
             });
+            console.log(`Offer 처리 - 새 사용자 ${data.fromUserId}에게 스트림 할당 완료`);
           }
           return updated;
         });
@@ -323,9 +340,11 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
       };
     }
 
+    console.log(`${data.fromUserId}에게 Answer 생성 중...`);
     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    console.log(`${data.fromUserId}에게 Answer 전송:`, answer.type);
 
     socketRef.current?.send(JSON.stringify({
       type: 'answer',
@@ -336,19 +355,29 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // Answer 처리
   const handleAnswer = useCallback(async (data: any) => {
+    console.log(`Answer 수신: ${data.fromUserId}`);
     const pc = peerConnectionsRef.current.get(data.fromUserId);
-    if (!pc) return;
+    if (!pc) {
+      console.log(`Answer 처리 실패: ${data.fromUserId} 피어 연결 없음`);
+      return;
+    }
 
     await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+    console.log(`Answer 처리 완료: ${data.fromUserId}`);
   }, []);
 
   // ICE Candidate 처리
   const handleIceCandidate = useCallback(async (data: any) => {
+    console.log(`ICE Candidate 수신: ${data.fromUserId}`);
     const pc = peerConnectionsRef.current.get(data.fromUserId);
-    if (!pc) return;
+    if (!pc) {
+      console.log(`ICE Candidate 처리 실패: ${data.fromUserId} 피어 연결 없음`);
+      return;
+    }
 
     try {
       await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      console.log(`ICE Candidate 처리 완료: ${data.fromUserId}`);
     } catch (error) {
       console.error('ICE candidate 오류:', error);
     }
@@ -413,20 +442,24 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           peerConnectionsRef.current.set(userId, newPc);
 
           // 로컬 스트림 추가
+          console.log(`지연 연결 ${userId}에게 로컬 스트림 전송:`, localStream.id);
           localStream.getTracks().forEach(track => {
+            console.log(`지연 연결 트랙 추가:`, track.kind, track.id);
             newPc.addTrack(track, localStream);
           });
 
           // 원격 스트림 수신
           newPc.ontrack = (event) => {
-            console.log(`지연 연결 - 원격 스트림 수신: ${userId}`);
+            console.log(`지연 연결 - 원격 스트림 수신: ${userId}`, 'streams:', event.streams.length);
             const [stream] = event.streams;
+            console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
             
             setRemoteUsers(prev => {
               const updated = new Map(prev);
               const user = updated.get(userId);
               if (user) {
                 updated.set(userId, { ...user, stream });
+                console.log(`지연 연결 ${userId}에게 스트림 할당 완료`);
               }
               return updated;
             });
