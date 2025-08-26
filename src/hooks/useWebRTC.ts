@@ -495,11 +495,25 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
               const [stream] = event.streams;
               console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
               
-              // 직접 DOM 조작 추가!
+              // 직접 DOM 조작 추가 - 중복 방지
               setTimeout(async () => {
                 const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement;
                 if (videoElement && stream) {
+                  // 이미 동일한 스트림이 할당되어 있는지 확인
+                  if (videoElement.srcObject === stream) {
+                    console.log(`⏭️ 이미 동일한 스트림이 할당됨 - 스킵: ${userId}`);
+                    return;
+                  }
+                  
                   console.log(`🎥 직접 DOM 조작으로 비디오 할당 (지연 연결): ${userId}`);
+                  
+                  // 기존 스트림이 있으면 정리
+                  if (videoElement.srcObject) {
+                    console.log(`🧹 기존 스트림 정리 중: ${userId}`);
+                    videoElement.srcObject = null;
+                    await new Promise(resolve => setTimeout(resolve, 50)); // 짧은 대기
+                  }
+                  
                   videoElement.srcObject = stream;
                   
                   // 비디오 재생 강제 시도
@@ -507,14 +521,16 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
                     await videoElement.play();
                     console.log(`✅ 비디오 재생 성공: ${userId}`);
                   } catch (error) {
-                    console.log(`⚠️ 비디오 재생 실패 (autoplay 정책):`, error);
+                    console.log(`⚠️ 비디오 재생 실패:`, error.message);
                     // muted로 재시도
-                    videoElement.muted = true;
-                    try {
-                      await videoElement.play();
-                      console.log(`✅ muted 비디오 재생 성공: ${userId}`);
-                    } catch (mutedError) {
-                      console.log(`❌ muted 비디오 재생도 실패:`, mutedError);
+                    if (!videoElement.muted) {
+                      videoElement.muted = true;
+                      try {
+                        await videoElement.play();
+                        console.log(`✅ muted 비디오 재생 성공: ${userId}`);
+                      } catch (mutedError) {
+                        console.log(`❌ muted 비디오 재생도 실패:`, mutedError.message);
+                      }
                     }
                   }
                   
@@ -525,7 +541,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
                 } else {
                   console.log(`❌ 비디오 요소 찾기 실패: video-${userId}`);
                 }
-              }, 100);
+              }, 200); // 시간을 조금 늘림
               
               setRemoteUsers(prev => {
                 const updated = new Map(prev);
