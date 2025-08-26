@@ -1500,37 +1500,42 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                     </div>
 
                     {/* 원격 비디오들 */}
-                    {Array.from(remoteUsers.values()).map((remoteUser) => (
-                      <div key={remoteUser.userId} className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
-                        {remoteUser.stream ? (
-                          <video
-                            key={`${remoteUser.userId}-${remoteUser.stream.id}`}
-                            ref={(video) => {
-                              if (video && remoteUser.stream) {
-                                console.log(`비디오 요소에 스트림 할당: ${remoteUser.userId}`, remoteUser.stream.id);
-                                video.srcObject = remoteUser.stream;
-                              }
-                            }}
-                            autoPlay
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
-                            <div className="text-center">
-                              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span className="text-2xl font-bold">
-                                  {remoteUser.username.charAt(0).toUpperCase()}
-                                </span>
+                    {Array.from(remoteUsers.values()).map((remoteUser) => {
+                      console.log(`렌더링 중인 사용자: ${remoteUser.userId}, 스트림:`, !!remoteUser.stream);
+                      return (
+                        <div key={remoteUser.userId} className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                          {remoteUser.stream ? (
+                            <video
+                              key={`${remoteUser.userId}-${remoteUser.stream.id}`}
+                              ref={(video) => {
+                                if (video && remoteUser.stream) {
+                                  console.log(`비디오 요소에 스트림 할당: ${remoteUser.userId}`, remoteUser.stream.id);
+                                  video.srcObject = remoteUser.stream;
+                                }
+                              }}
+                              autoPlay
+                              playsInline
+                              muted={false}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
+                              <div className="text-center">
+                                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                  <span className="text-2xl font-bold">
+                                    {remoteUser.username.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div className="text-sm">연결 중...</div>
                               </div>
-                              <div className="text-sm">연결 중...</div>
                             </div>
+                          )}
+                          <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm font-medium">
+                            {remoteUser.username}
                           </div>
-                        )}
-                        <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-sm font-medium">
-                          {remoteUser.username}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
