@@ -763,6 +763,8 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
     timerRef.current = setInterval(() => {
       // speaker expire 타이머가 별도로 관리되므로 여기서는 debateTimeLeft만 관리
       setDebateTimeLeft(prev => {
+        console.log(`[DEBUG 타이머] 타이머 작동중 - 현재 남은시간: ${prev}초`);
+        
         if (prev <= 0) {
           clearInterval(timerRef.current!);
           // 토론 시간 소진 시 바로 토론 종료 처리 (연장 모달 건너뛰기)
