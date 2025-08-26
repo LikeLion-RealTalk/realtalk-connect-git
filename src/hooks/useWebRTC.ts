@@ -305,6 +305,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     console.log(`Offer 수신: ${data.fromUserId}`);
     
     let pc = peerConnectionsRef.current.get(data.fromUserId);
+    console.log(`기존 피어 연결 존재 여부: ${!!pc}`);
     
     // 피어 연결이 없으면 새로 생성
     if (!pc) {
@@ -323,11 +324,27 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         });
       }
 
-      // 원격 스트림 수신
+      // 원격 스트림 수신 - 이벤트 설정 확인
       pc.ontrack = (event) => {
-        console.log(`Offer 처리 - 원격 스트림 수신: ${data.fromUserId}`, 'streams:', event.streams.length);
+        console.log(`🎯 ONTRACK 이벤트 발생! - ${data.fromUserId}`, 'streams:', event.streams.length);
         const [stream] = event.streams;
         console.log(`Offer 처리 - 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
+        
+        // 직접 DOM 조작
+        setTimeout(() => {
+          const videoElement = document.getElementById(`video-${data.fromUserId}`) as HTMLVideoElement;
+          if (videoElement && stream) {
+            console.log(`직접 DOM 조작으로 비디오 할당 (Offer 처리): ${data.fromUserId}`);
+            videoElement.srcObject = stream;
+            
+            const noVideoElement = document.getElementById(`no-video-${data.fromUserId}`);
+            if (noVideoElement) {
+              noVideoElement.style.display = 'none';
+            }
+          } else {
+            console.log(`비디오 요소 찾기 실패: video-${data.fromUserId}`);
+          }
+        }, 100);
         
         setRemoteUsers(prev => {
           const updated = new Map(prev);
@@ -347,6 +364,8 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         });
       };
 
+      console.log(`피어 연결에 ontrack 이벤트 설정 완료: ${data.fromUserId}`);
+
       // ICE candidate
       pc.onicecandidate = (event) => {
         if (event.candidate && socketRef.current) {
@@ -357,6 +376,8 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
           }));
         }
       };
+    } else {
+      console.log(`기존 피어 연결 사용: ${data.fromUserId}`);
     }
 
     console.log(`${data.fromUserId}에게 Answer 생성 중...`);
