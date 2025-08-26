@@ -496,11 +496,27 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
               console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
               
               // 직접 DOM 조작 추가!
-              setTimeout(() => {
+              setTimeout(async () => {
                 const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement;
                 if (videoElement && stream) {
                   console.log(`🎥 직접 DOM 조작으로 비디오 할당 (지연 연결): ${userId}`);
                   videoElement.srcObject = stream;
+                  
+                  // 비디오 재생 강제 시도
+                  try {
+                    await videoElement.play();
+                    console.log(`✅ 비디오 재생 성공: ${userId}`);
+                  } catch (error) {
+                    console.log(`⚠️ 비디오 재생 실패 (autoplay 정책):`, error);
+                    // muted로 재시도
+                    videoElement.muted = true;
+                    try {
+                      await videoElement.play();
+                      console.log(`✅ muted 비디오 재생 성공: ${userId}`);
+                    } catch (mutedError) {
+                      console.log(`❌ muted 비디오 재생도 실패:`, mutedError);
+                    }
+                  }
                   
                   const noVideoElement = document.getElementById(`no-video-${userId}`);
                   if (noVideoElement) {
