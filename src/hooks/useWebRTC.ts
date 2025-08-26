@@ -149,12 +149,28 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         pc.addTrack(track, localStream);
       });
 
-      // 원격 스트림 수신
+      // 원격 스트림 수신 - HTML처럼 직접 DOM 조작
       pc.ontrack = (event) => {
         console.log(`원격 스트림 수신: ${newUserId}`, 'streams:', event.streams.length);
         const [stream] = event.streams;
         console.log(`수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
         
+        // HTML처럼 직접 비디오 요소를 찾아서 스트림 할당
+        setTimeout(() => {
+          const videoElement = document.getElementById(`video-${newUserId}`) as HTMLVideoElement;
+          if (videoElement && stream) {
+            console.log(`직접 DOM 조작으로 비디오 할당: ${newUserId}`);
+            videoElement.srcObject = stream;
+            
+            // "연결 중..." 메시지 숨기기
+            const noVideoElement = document.getElementById(`no-video-${newUserId}`);
+            if (noVideoElement) {
+              noVideoElement.style.display = 'none';
+            }
+          }
+        }, 100);
+        
+        // React 상태도 업데이트 (UI 반영용)
         setRemoteUsers(prev => {
           const updated = new Map(prev);
           const user = updated.get(newUserId);
