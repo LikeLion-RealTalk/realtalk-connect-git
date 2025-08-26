@@ -431,72 +431,80 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
 
   // localStream이 준비된 후 지연된 피어 연결 처리
   useEffect(() => {
-    if (localStream && remoteUsers.size > 0) {
-      console.log('localStream 준비됨 - 지연된 피어 연결 생성:', remoteUsers.size);
-      
-      // 기존 원격 사용자들과 피어 연결 생성
-      Array.from(remoteUsers.keys()).forEach(async (userId) => {
-        const pc = peerConnectionsRef.current.get(userId);
-        if (!pc && localStream) {
-          console.log(`지연된 피어 연결 생성: ${userId}`);
-          
-          // 피어 연결을 직접 여기서 생성하고 offer 전송
-          const newPc = new RTCPeerConnection(config);
-          peerConnectionsRef.current.set(userId, newPc);
-
-          // 로컬 스트림 추가
-          console.log(`지연 연결 ${userId}에게 로컬 스트림 전송:`, localStream.id);
-          localStream.getTracks().forEach(track => {
-            console.log(`지연 연결 트랙 추가:`, track.kind, track.id);
-            newPc.addTrack(track, localStream);
-          });
-
-          // 원격 스트림 수신
-          newPc.ontrack = (event) => {
-            console.log(`지연 연결 - 원격 스트림 수신: ${userId}`, 'streams:', event.streams.length);
-            const [stream] = event.streams;
-            console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
+    const createDelayedConnections = async () => {
+      if (localStream && remoteUsers.size > 0) {
+        console.log('localStream 준비됨 - 지연된 피어 연결 생성:', remoteUsers.size);
+        
+        // 기존 원격 사용자들과 피어 연결 생성
+        for (const userId of remoteUsers.keys()) {
+          const pc = peerConnectionsRef.current.get(userId);
+          if (!pc && localStream) {
+            console.log(`지연된 피어 연결 생성: ${userId}`);
             
-            setRemoteUsers(prev => {
-              const updated = new Map(prev);
-              const user = updated.get(userId);
-              if (user) {
-                updated.set(userId, { ...user, stream });
-                console.log(`지연 연결 ${userId}에게 스트림 할당 완료`);
-              }
-              return updated;
+            // 피어 연결을 직접 여기서 생성하고 offer 전송
+            const newPc = new RTCPeerConnection(config);
+            peerConnectionsRef.current.set(userId, newPc);
+
+            // 로컬 스트림 추가
+            console.log(`지연 연결 ${userId}에게 로컬 스트림 전송:`, localStream.id);
+            localStream.getTracks().forEach(track => {
+              console.log(`지연 연결 트랙 추가:`, track.kind, track.id);
+              newPc.addTrack(track, localStream);
             });
-          };
 
-          // ICE candidate
-          newPc.onicecandidate = (event) => {
-            if (event.candidate && socketRef.current) {
-              socketRef.current.send(JSON.stringify({
-                type: 'ice-candidate',
-                targetUserId: userId,
-                candidate: event.candidate
-              }));
+            // 원격 스트림 수신
+            newPc.ontrack = (event) => {
+              console.log(`지연 연결 - 원격 스트림 수신: ${userId}`, 'streams:', event.streams.length);
+              const [stream] = event.streams;
+              console.log(`지연 연결 수신된 스트림:`, stream.id, 'tracks:', stream.getTracks().length);
+              
+              setRemoteUsers(prev => {
+                const updated = new Map(prev);
+                const user = updated.get(userId);
+                if (user) {
+                  updated.set(userId, { ...user, stream });
+                  console.log(`지연 연결 ${userId}에게 스트림 할당 완료`);
+                }
+                return updated;
+              });
+            };
+
+            // ICE candidate
+            newPc.onicecandidate = (event) => {
+              if (event.candidate && socketRef.current) {
+                socketRef.current.send(JSON.stringify({
+                  type: 'ice-candidate',
+                  targetUserId: userId,
+                  candidate: event.candidate
+                }));
+              }
+            };
+
+            // 지연 연결에서 offer 생성 (상대방이 우리를 인지할 수 있도록)
+            try {
+              console.log(`지연 연결 ${userId}에게 Offer 생성 중...`);
+              const offer = await newPc.createOffer();
+              await newPc.setLocalDescription(offer);
+              console.log(`지연 연결 ${userId}에게 Offer 전송:`, offer.type);
+
+              if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                socketRef.current.send(JSON.stringify({
+                  type: 'offer',
+                  targetUserId: userId,
+                  offer: offer
+                }));
+              } else {
+                console.error(`지연 연결 ${userId} - WebSocket 연결 상태:`, socketRef.current?.readyState);
+              }
+            } catch (error) {
+              console.error(`지연 연결 ${userId} offer 생성 실패:`, error);
             }
-          };
-
-          // 지연 연결에서 offer 생성 (상대방이 우리를 인지할 수 있도록)
-          try {
-            console.log(`지연 연결 ${userId}에게 Offer 생성 중...`);
-            const offer = await newPc.createOffer();
-            await newPc.setLocalDescription(offer);
-            console.log(`지연 연결 ${userId}에게 Offer 전송:`, offer.type);
-
-            socketRef.current?.send(JSON.stringify({
-              type: 'offer',
-              targetUserId: userId,
-              offer: offer
-            }));
-          } catch (error) {
-            console.error(`지연 연결 ${userId} offer 생성 실패:`, error);
           }
         }
-      });
-    }
+      }
+    };
+
+    createDelayedConnections();
   }, [localStream, remoteUsers]);
 
   // 초기화
