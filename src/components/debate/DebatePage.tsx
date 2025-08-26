@@ -1504,8 +1504,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                       <div key={remoteUser.userId} className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
                         {remoteUser.stream ? (
                           <video
+                            key={`${remoteUser.userId}-${remoteUser.stream.id}`}
                             ref={(video) => {
                               if (video && remoteUser.stream) {
+                                console.log(`비디오 요소에 스트림 할당: ${remoteUser.userId}`, remoteUser.stream.id);
                                 video.srcObject = remoteUser.stream;
                               }
                             }}
