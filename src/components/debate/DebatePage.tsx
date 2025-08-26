@@ -756,6 +756,14 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       return;
     }
 
+    // 토론방 시간이 설정되지 않은 경우 타이머 작동 안함
+    if (expireTimeDisplay === '--') {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      return;
+    }
+
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
