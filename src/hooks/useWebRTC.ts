@@ -135,11 +135,55 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     // localStream이 있을 때만 피어 연결 생성 (offer 생성)
     if (localStream) {
       console.log(`새 사용자와 피어 연결 생성 (offer): ${newUserId}`);
-      await createPeerConnection(newUserId, true);
+      
+      // 직접 피어 연결 생성 (순환 참조 방지)
+      const pc = new RTCPeerConnection(config);
+      peerConnectionsRef.current.set(newUserId, pc);
+
+      // 로컬 스트림 추가
+      localStream.getTracks().forEach(track => {
+        pc.addTrack(track, localStream);
+      });
+
+      // 원격 스트림 수신
+      pc.ontrack = (event) => {
+        console.log(`원격 스트림 수신: ${newUserId}`);
+        const [stream] = event.streams;
+        
+        setRemoteUsers(prev => {
+          const updated = new Map(prev);
+          const user = updated.get(newUserId);
+          if (user) {
+            updated.set(newUserId, { ...user, stream });
+          }
+          return updated;
+        });
+      };
+
+      // ICE candidate
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socketRef.current) {
+          socketRef.current.send(JSON.stringify({
+            type: 'ice-candidate',
+            targetUserId: newUserId,
+            candidate: event.candidate
+          }));
+        }
+      };
+
+      // Offer 생성
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      socketRef.current?.send(JSON.stringify({
+        type: 'offer',
+        targetUserId: newUserId,
+        offer: offer
+      }));
     } else {
       console.log('localStream 없음 - 피어 연결 지연:', newUserId);
     }
-  }, [localStream, createPeerConnection]);
+  }, [localStream]);
 
   // 기존 사용자 목록 처리
   const handleRoomUsers = useCallback(async (users: string[]) => {
@@ -161,7 +205,41 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
         // localStream이 있을 때만 피어 연결 생성
         if (localStream) {
           console.log(`기존 사용자와 피어 연결 생성: ${existingUserId}`);
-          await createPeerConnection(existingUserId, false);
+          
+          // 직접 피어 연결 생성 (순환 참조 방지)
+          const pc = new RTCPeerConnection(config);
+          peerConnectionsRef.current.set(existingUserId, pc);
+
+          // 로컬 스트림 추가
+          localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+          });
+
+          // 원격 스트림 수신
+          pc.ontrack = (event) => {
+            console.log(`원격 스트림 수신: ${existingUserId}`);
+            const [stream] = event.streams;
+            
+            setRemoteUsers(prev => {
+              const updated = new Map(prev);
+              const user = updated.get(existingUserId);
+              if (user) {
+                updated.set(existingUserId, { ...user, stream });
+              }
+              return updated;
+            });
+          };
+
+          // ICE candidate
+          pc.onicecandidate = (event) => {
+            if (event.candidate && socketRef.current) {
+              socketRef.current.send(JSON.stringify({
+                type: 'ice-candidate',
+                targetUserId: existingUserId,
+                candidate: event.candidate
+              }));
+            }
+          };
         } else {
           console.log('localStream 없음 - 피어 연결 지연:', existingUserId);
         }
@@ -171,7 +249,7 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     if (users.length > 0) {
       setConnectionStatus('connected');
     }
-  }, [localStream, createPeerConnection]);
+  }, [localStream]);
 
   // 사용자 퇴장 처리
   const handleUserLeft = useCallback((leftUserId: string) => {
@@ -190,76 +268,6 @@ export const useWebRTC = ({ roomId, username, isEnabled }: WebRTCHookProps) => {
     });
   }, []);
 
-  // 피어 연결 생성
-  const createPeerConnection = useCallback(async (remoteUserId: string, shouldOffer: boolean) => {
-    const currentLocalStream = localStream;
-    if (!currentLocalStream) {
-      console.log(`피어 연결 생성 실패 - localStream 없음: ${remoteUserId}`);
-      return;
-    }
-
-    console.log(`피어 연결 생성: ${remoteUserId}, offer: ${shouldOffer}, localStream 트랙:`, currentLocalStream.getTracks().length);
-
-    const pc = new RTCPeerConnection(config);
-    peerConnectionsRef.current.set(remoteUserId, pc);
-
-    // 로컬 스트림 추가
-    currentLocalStream.getTracks().forEach(track => {
-      console.log(`트랙 추가: ${track.kind} - ${track.label}`);
-      pc.addTrack(track, currentLocalStream);
-    });
-
-    // 원격 스트림 수신
-    pc.ontrack = (event) => {
-      console.log(`원격 스트림 수신: ${remoteUserId}, 스트림:`, event.streams[0]);
-      const [stream] = event.streams;
-      
-      setRemoteUsers(prev => {
-        const updated = new Map(prev);
-        const user = updated.get(remoteUserId);
-        if (user) {
-          console.log(`원격 사용자 스트림 업데이트: ${remoteUserId}`);
-          updated.set(remoteUserId, { ...user, stream });
-        }
-        return updated;
-      });
-    };
-
-    // ICE candidate
-    pc.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        console.log(`ICE candidate 전송: ${remoteUserId}`);
-        socketRef.current.send(JSON.stringify({
-          type: 'ice-candidate',
-          targetUserId: remoteUserId,
-          candidate: event.candidate
-        }));
-      }
-    };
-
-    // 연결 상태 변경
-    pc.onconnectionstatechange = () => {
-      console.log(`연결 상태 (${remoteUserId}):`, pc.connectionState);
-      if (pc.connectionState === 'connected') {
-        setConnectionStatus('connected');
-      } else if (pc.connectionState === 'failed') {
-        console.error(`피어 연결 실패: ${remoteUserId}`);
-      }
-    };
-
-    // Offer 생성
-    if (shouldOffer) {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      console.log(`Offer 전송: ${remoteUserId}`);
-      socketRef.current?.send(JSON.stringify({
-        type: 'offer',
-        targetUserId: remoteUserId,
-        offer: offer
-      }));
-    }
-  }, [localStream]);
 
   // Offer 처리
   const handleOffer = useCallback(async (data: any) => {
