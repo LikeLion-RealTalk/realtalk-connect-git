@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Send, MessageCircle } from 'lucide-react';
-import { Position, POSITIONS } from '../../types/discussion';
+import { Send, MessageCircle, Mic } from 'lucide-react';
+import { Position, POSITIONS, DebateStage } from '../../types/discussion';
 
 interface ChatMessage {
   id: string;
@@ -17,6 +17,7 @@ interface ChatMessage {
 interface ChatSectionProps {
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
+  currentDebateStage?: DebateStage;
 }
 
 // 헤더 컴포넌트 분리
@@ -32,7 +33,7 @@ export function ChatSectionHeader() {
 }
 
 // 콘텐츠 컴포넌트 분리
-export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
+export function ChatSectionBody({ messages, onSendMessage, currentDebateStage }: ChatSectionProps) {
   const [inputMessage, setInputMessage] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const isUserScrollingRef = useRef(false);
@@ -93,6 +94,9 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
     }
   };
 
+  // 발언 단계인지 확인
+  const isSpeechStage = currentDebateStage === '1. 발언';
+
 
   const getPositionBadgeStyle = (position?: Position, isSpeaker?: boolean) => {
     if (!position) return 'bg-gray-200 text-gray-950';
@@ -107,6 +111,29 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
       ? 'bg-green-200 text-green-950'  // A입장 (POSITIONS[0]) - 녹색 연한색
       : 'bg-red-200 text-red-950';     // B입장 (POSITIONS[1]) - 빨간색 연한색
   };
+
+  // 발언 단계일 때는 비활성화 화면 표시
+  if (isSpeechStage) {
+    return (
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="flex-1 flex items-center justify-center bg-muted/50">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="p-4 bg-blue-100 rounded-full">
+                <Mic className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-on-surface mb-2">발언중입니다</h3>
+              <p className="text-sm text-muted-foreground">
+                발언이 끝나면 채팅을 다시 이용할 수 있습니다
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -192,12 +219,12 @@ export function ChatSectionBody({ messages, onSendMessage }: ChatSectionProps) {
 }
 
 // 기존 전체 컴포넌트 (데스크톱용)
-export function ChatSection({ messages, onSendMessage }: ChatSectionProps) {
+export function ChatSection({ messages, onSendMessage, currentDebateStage }: ChatSectionProps) {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <ChatSectionHeader />
       <div className="flex-1 min-h-0">
-        <ChatSectionBody messages={messages} onSendMessage={onSendMessage} />
+        <ChatSectionBody messages={messages} onSendMessage={onSendMessage} currentDebateStage={currentDebateStage} />
       </div>
     </div>
   );

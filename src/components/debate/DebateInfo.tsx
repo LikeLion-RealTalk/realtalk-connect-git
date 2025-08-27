@@ -41,11 +41,7 @@ export function DebateInfo({ status, audienceCount, remainingTime, expireTimeDis
       </div>
 
       {/* 오른쪽: 남은 시간 */}
-      <div 
-        className="flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors"
-        onClick={onShowExtensionModal}
-        title="클릭하여 토론 연장 신청"
-      >
+      <div className="flex items-center gap-1">
         <Clock className="w-4 h-4 text-red-600" />
         <span className="text-sm text-red-600 font-medium">{expireTimeDisplay || '--'}</span>
       </div>

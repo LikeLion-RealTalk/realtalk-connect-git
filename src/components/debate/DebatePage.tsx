@@ -1601,7 +1601,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   audienceCount={45}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
-                  onShowExtensionModal={() => setIsExtensionModalOpen(true)}
+                  onShowExtensionModal={undefined}
                 />
                 <CurrentSpeaker
                   speaker={(() => {
@@ -1679,7 +1679,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   audienceCount={45}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
-                  onShowExtensionModal={() => setIsExtensionModalOpen(true)}
+                  onShowExtensionModal={undefined}
                 />
                 <CurrentSpeaker
                   speaker={(() => {
@@ -1788,6 +1788,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                       <ChatSectionBody 
                         messages={chatMessages}
                         onSendMessage={handleSendMessage}
+                        currentDebateStage={currentDebateStage}
                       />
                     )}
                   </TabsContent>
@@ -1818,6 +1819,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 <ChatSection 
                   messages={chatMessages}
                   onSendMessage={handleSendMessage}
+                  currentDebateStage={currentDebateStage}
                 />
               )}
             </div>
