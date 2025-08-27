@@ -72,6 +72,12 @@ export const debateApi = {
     return response.data;
   },
   
+  // 청중 수 조회
+  getAudienceCount: async (roomUUID: string) => {
+    const response = await axiosInstance.get(`/api/debate-rooms/${roomUUID}/audiences/count`);
+    return response.data;
+  },
+  
   // 토론 주제 추천 조회
   getDebateTopics: async () => {
     const response = await axiosInstance.get('/api/debate-topics');

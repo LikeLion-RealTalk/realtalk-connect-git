@@ -193,6 +193,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
   // 발언자 목록 상태 관리 (서버에서 받은 데이터로 업데이트됨)
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   
+  // 청중 수 상태 관리 (API에서 받은 데이터로 업데이트됨)
+  const [audienceCount, setAudienceCount] = useState(0);
+  
   // 사이드 통계 상태 (초기값 50% 50%)
   const [sideStats, setSideStats] = useState({ percentA: 50, percentB: 50 });
 
@@ -417,7 +420,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
     console.log('[참가자] 변환된 발언자 목록:', convertedSpeakers);
     setSpeakers(convertedSpeakers);
-  }, [currentUserId, user?.id, isRoomOwner]);
+    
+    // 참가자 목록 업데이트 시 청중 수도 갱신
+    fetchAudienceCount();
+  }, [currentUserId, user?.id, isRoomOwner, fetchAudienceCount]);
 
   // currentUserId 변경 시 발언자 상태 업데이트
   useEffect(() => {
@@ -519,6 +525,23 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
       console.error('[토론방] 만료시간 API 조회 실패:', error);
       toast.error('시간 동기화에 실패했습니다');
       setExpireTimeDisplay('--');
+    }
+  }, [debateRoomInfo.id]);
+
+  // 청중 수 조회 함수
+  const fetchAudienceCount = useCallback(async () => {
+    try {
+      console.log('[청중 수] API 조회 시작:', debateRoomInfo.id);
+      const response = await debateApi.getAudienceCount(debateRoomInfo.id);
+      console.log('[청중 수] API 조회 성공:', response);
+      
+      if (response.audienceCount !== undefined) {
+        setAudienceCount(response.audienceCount);
+        console.log('[청중 수] 갱신됨:', response.audienceCount);
+      }
+    } catch (error) {
+      console.error('[청중 수] API 조회 실패:', error);
+      // 실패해도 기본값(0) 유지
     }
   }, [debateRoomInfo.id]);
 
@@ -663,6 +686,9 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                 // 토론방 입장 완료 후 기존 발언 내용 및 AI 요약 조회
                 await loadExistingSpeechMessages();
                 await loadExistingAiSummaries();
+                
+                // 청중 수도 조회
+                await fetchAudienceCount();
               } catch (error) {
                 console.error('[토론방] 입장 정보 전송 실패:', error);
               }
@@ -1598,7 +1624,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               <div className="flex-shrink-0 border-b border-divider elevation-1" id="debate-fixed-header">
                 <DebateInfo
                   status={getDisplayStatus()}
-                  audienceCount={5}
+                  audienceCount={audienceCount}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={undefined}
@@ -1676,7 +1702,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               <div className="flex-shrink-0 border-b border-divider bg-surface elevation-2">
                 <DebateInfo
                   status={getDisplayStatus()}
-                  audienceCount={5}
+                  audienceCount={audienceCount}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={undefined}
