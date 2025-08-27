@@ -1598,7 +1598,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               <div className="flex-shrink-0 border-b border-divider elevation-1" id="debate-fixed-header">
                 <DebateInfo
                   status={getDisplayStatus()}
-                  audienceCount={45}
+                  audienceCount={5}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={undefined}
@@ -1676,7 +1676,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
               <div className="flex-shrink-0 border-b border-divider bg-surface elevation-2">
                 <DebateInfo
                   status={getDisplayStatus()}
-                  audienceCount={45}
+                  audienceCount={5}
                   remainingTime="--"
                   expireTimeDisplay={expireTimeDisplay}
                   onShowExtensionModal={undefined}
