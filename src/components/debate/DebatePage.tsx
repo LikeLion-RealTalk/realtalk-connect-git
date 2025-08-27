@@ -534,19 +534,22 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
   // 청중 수 조회 함수
   const fetchAudienceCount = useCallback(async () => {
-    try {
-      console.log('[청중 수] API 조회 시작:', debateRoomInfo.id);
-      const response = await debateApi.getAudienceCount(debateRoomInfo.id);
-      console.log('[청중 수] API 조회 성공:', response);
-      
-      if (response.audienceCount !== undefined) {
-        setAudienceCount(response.audienceCount);
-        console.log('[청중 수] 갱신됨:', response.audienceCount);
+    // 0.5초 지연 후 API 호출
+    setTimeout(async () => {
+      try {
+        console.log('[청중 수] API 조회 시작 (0.5초 지연):', debateRoomInfo.id);
+        const response = await debateApi.getAudienceCount(debateRoomInfo.id);
+        console.log('[청중 수] API 조회 성공:', response);
+        
+        if (response.audienceCount !== undefined) {
+          setAudienceCount(response.audienceCount);
+          console.log('[청중 수] 갱신됨:', response.audienceCount);
+        }
+      } catch (error) {
+        console.error('[청중 수] API 조회 실패:', error);
+        // 실패해도 기본값(0) 유지
       }
-    } catch (error) {
-      console.error('[청중 수] API 조회 실패:', error);
-      // 실패해도 기본값(0) 유지
-    }
+    }, 500);
   }, [debateRoomInfo.id]);
 
   // 기존 발언 내용 조회 함수
