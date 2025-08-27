@@ -420,14 +420,10 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
 
     console.log('[참가자] 변환된 발언자 목록:', convertedSpeakers);
     setSpeakers(convertedSpeakers);
+    
+    // 웹소켓 participants 메시지 수신 시마다 청중 수 갱신 (변경 여부와 관계없이)
+    fetchAudienceCount();
   }, [currentUserId, user?.id, isRoomOwner]);
-
-  // 참가자 목록 변경 시 청중 수 갱신
-  useEffect(() => {
-    if (speakers.length > 0) { // 초기 빈 배열일 때는 호출하지 않음
-      fetchAudienceCount();
-    }
-  }, [speakers.length]);
 
   // currentUserId 변경 시 발언자 상태 업데이트
   useEffect(() => {
