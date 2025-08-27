@@ -1789,6 +1789,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                         messages={chatMessages}
                         onSendMessage={handleSendMessage}
                         currentDebateStage={currentDebateStage}
+                        currentUserId={currentUserId}
                       />
                     )}
                   </TabsContent>
@@ -1820,6 +1821,7 @@ export function DebatePage({ onNavigate, onGoBack, debateRoomInfo }: DebatePageP
                   messages={chatMessages}
                   onSendMessage={handleSendMessage}
                   currentDebateStage={currentDebateStage}
+                  currentUserId={currentUserId}
                 />
               )}
             </div>
